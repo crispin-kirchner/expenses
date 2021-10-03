@@ -4,11 +4,15 @@
 <head>
     <title>Ausgaben</title>
     <meta charset="UTF-8">
+    <script src="lib/uuidv4.min.js"></script>
     <script>
         "use strict";
         var state = {
             saved: true,
-            expenses: []
+            data: {
+                version: 1,
+                expenses: []
+            }
         }
 
         var dateTimeFormat = new Intl.DateTimeFormat([], { day: '2-digit', month: '2-digit' });
@@ -33,9 +37,17 @@
             return document.getElementById('file-input');
         }
 
+        function getExpenses() {
+            return state.data.expenses;
+        }
+
+        function setExpenses(newExpenses) {
+            state.data.expenses = newExpenses;
+        }
+
         function render() {
             var tableContent = '';
-            if (state.expenses.length > 0) {
+            if (getExpenses().length > 0) {
                 tableContent += `
                     <thead>
                         <tr>
@@ -46,14 +58,13 @@
                     </thead>`;
             }
             tableContent += '<tbody>';
-            for (var i = 0; i < state.expenses.length; ++i) {
-                const expense = state.expenses[i];
+            for (const expense of getExpenses()) {
                 tableContent += `
                     <tr>
                         <td>${dateTimeFormat.format(expense.date)}</td>
                         <td align="right">${parseFloat(expense.amount).toFixed(2)} CHF</td>
                         <td>${expense.description}</td>
-                        <td><button onclick="removeExpense(${i});">-</button></td>
+                        <td><button onclick="removeExpense('${expense.id}');">-</button></td>
                     </tr>`;
             }
             tableContent += '</tbody>';
@@ -71,7 +82,7 @@
                 return;
             }
 
-            state.expenses.push({
+            getExpenses().push({
                 date: date,
                 amount: amount,
                 description: description
@@ -82,14 +93,15 @@
             render();
         }
 
-        function removeExpense(i) {
-            state.expenses.splice(i, 1);
+        function removeExpense(id) {
+            const index = getExpenses().findIndex(e => e.id === id);
+            getExpenses().splice(index, 1);
             setSaved(false);
             render();
         }
 
         function save() {
-            let jsonString = JSON.stringify(state.expenses, null, 2);
+            let jsonString = JSON.stringify(state.data, null, 2);
             let dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(jsonString);
             let a = document.createElement('a');
             a.rel = 'noopener';
@@ -102,7 +114,7 @@
         }
 
         function setSaved(value) {
-            if (state.expenses.length === 0) {
+            if (getExpenses().length === 0) {
                 state.saved = true;
                 return;
             }
@@ -116,18 +128,39 @@
             }
             var reader = new FileReader();
             reader.onload = function (e) {
-                state.expenses = JSON.parse(e.target.result)
+                let migratedData = migrate(JSON.parse(e.target.result));
+                setExpenses(migratedData.expenses
                     .map(e => {
                         return {
+                            id: e.id,
                             date: new Date(e.date),
                             amount: e.amount,
                             description: e.description
                         };
-                    });
-                setSaved(true);
+                    }));
                 render();
             }
             reader.readAsText(file);
+        }
+
+        function migrate(loadedData) {
+            if (!loadedData.version) {
+                let migratedData = {
+                    version: 1
+                };
+                migratedData.expenses = loadedData.map(e => {
+                    return {
+                        id: e.id ? e.id : uuidv4(),
+                        date: e.date,
+                        amount: e.amount,
+                        description: e.description
+                    };
+                });
+                state.saved = false;
+                return migratedData;
+            }
+            setSaved(true);
+            return loadedData;
         }
     </script>
 </head>
