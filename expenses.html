@@ -1,0 +1,166 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>Ausgaben</title>
+    <meta charset="UTF-8">
+    <script>
+        "use strict";
+        var state = {
+            saved: true,
+            expenses: []
+        }
+
+        var dateTimeFormat = new Intl.DateTimeFormat([], { day: '2-digit', month: '2-digit' });
+
+        function getDateInput() {
+            return document.getElementById('date');
+        }
+
+        function getAmountInput() {
+            return document.getElementById('amount');
+        }
+
+        function getDescriptionInput() {
+            return document.getElementById('description');
+        }
+
+        function getSaveButton() {
+            return document.getElementById('save-button');
+        }
+
+        function getFileInput() {
+            return document.getElementById('file-input');
+        }
+
+        function render() {
+            var tableContent = '';
+            if (state.expenses.length > 0) {
+                tableContent += `
+                    <thead>
+                        <tr>
+                            <td>Datum</td>
+                            <td>Betrag</td>
+                            <td>Beschreibung</td>
+                        </tr>
+                    </thead>`;
+            }
+            tableContent += '<tbody>';
+            for (var i = 0; i < state.expenses.length; ++i) {
+                const expense = state.expenses[i];
+                tableContent += `
+                    <tr>
+                        <td>${dateTimeFormat.format(expense.date)}</td>
+                        <td align="right">${parseFloat(expense.amount).toFixed(2)} CHF</td>
+                        <td>${expense.description}</td>
+                        <td><button onclick="removeExpense(${i});">-</button></td>
+                    </tr>`;
+            }
+            tableContent += '</tbody>';
+            getSaveButton().disabled = state.saved;
+            document.getElementById('expenses').innerHTML = tableContent;
+        }
+
+        function submitExpense() {
+            var date = new Date(getDateInput().value);
+            var amount = getAmountInput().value;
+            var description = getDescriptionInput().value;
+
+            if (date === '' || amount === '' || description === '') {
+                alert('Bitte Datum, Betrag und Beschreibung ausfüllen');
+                return;
+            }
+
+            state.expenses.push({
+                date: date,
+                amount: amount,
+                description: description
+            });
+            setSaved(false);
+            getAmountInput().value = '';
+            getDescriptionInput().value = '';
+            render();
+        }
+
+        function removeExpense(i) {
+            state.expenses.splice(i, 1);
+            setSaved(false);
+            render();
+        }
+
+        function save() {
+            let jsonString = JSON.stringify(state.expenses, null, 2);
+            let dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(jsonString);
+            let a = document.createElement('a');
+            a.rel = 'noopener';
+            a.download = 'ausgaben.json';
+            a.target = '_blank';
+            a.href = dataStr;
+            a.dispatchEvent(new MouseEvent('click'));
+            setSaved(true);
+            render();
+        }
+
+        function setSaved(value) {
+            if (state.expenses.length === 0) {
+                state.saved = true;
+                return;
+            }
+            state.saved = value;
+        }
+
+        function loadExpenses() {
+            var file = getFileInput().files[0];
+            if (!file) {
+                return;
+            }
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                state.expenses = JSON.parse(e.target.result)
+                    .map(e => {
+                        return {
+                            date: new Date(e.date),
+                            amount: e.amount,
+                            description: e.description
+                        };
+                    });
+                setSaved(true);
+                render();
+            }
+            reader.readAsText(file);
+        }
+    </script>
+</head>
+
+<body>
+    <h1>Ausgaben</h1>
+    <hr>
+    <input type="file" id="file-input" onchange="loadExpenses()" />
+    <button id="save-button" onclick="save();">Speichern</button>
+    <hr>
+    <p>
+        <label>Datum</label>
+        <input id="date" type="date">
+    </p>
+    <p>
+        <label>Betrag</label>
+        <input id="amount" type="number">
+        <label>CHF</label>
+    </p>
+    <p>
+        <label>Beschreibung</label>
+        <input id="description">
+        <button onclick="submitExpense();">+ Hinzufügen</button>
+    </p>
+    <hr>
+    <table id="expenses" cellspacing="15">
+    </table>
+
+    <script>
+        "use strict";
+        getDateInput().value = new Date(Date.now()).toISOString().substring(0, 10);
+        render();
+    </script>
+</body>
+
+</html>
