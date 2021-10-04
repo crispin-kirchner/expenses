@@ -49,10 +49,10 @@
             var tableContent = '';
             if (getExpenses().length > 0) {
                 tableContent += `
-                    <thead>
+                    <thead style="font-weight: bold;">
                         <tr>
                             <td>Datum</td>
-                            <td>Betrag</td>
+                            <td align="right">Betrag</td>
                             <td>Beschreibung</td>
                         </tr>
                     </thead>`;
@@ -64,7 +64,7 @@
                         <td>${dateTimeFormat.format(expense.date)}</td>
                         <td align="right">${parseFloat(expense.amount).toFixed(2)} CHF</td>
                         <td>${expense.description}</td>
-                        <td><button onclick="removeExpense('${expense.id}');">-</button></td>
+                        <td><button onclick="removeExpense('${expense.id}');">🚮</button></td>
                     </tr>`;
             }
             tableContent += '</tbody>';
@@ -183,7 +183,7 @@
     <p>
         <label>Beschreibung</label>
         <input id="description">
-        <button onclick="submitExpense();">+ Hinzufügen</button>
+        <button onclick="submitExpense();">➕</button>
     </p>
     <hr>
     <table id="expenses" cellspacing="15">
