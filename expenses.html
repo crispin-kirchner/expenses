@@ -4,11 +4,17 @@
 <head>
     <title>Ausgaben</title>
     <meta charset="UTF-8">
+    <style>
+        .modal {
+            color: gray;
+        }
+    </style>
     <script src="lib/uuidv4.min.js"></script>
     <script>
         "use strict";
         var state = {
             saved: true,
+            edit: null,
             data: {
                 version: 1,
                 expenses: []
@@ -27,6 +33,18 @@
 
         function getDescriptionInput() {
             return document.getElementById('description');
+        }
+
+        function getLineDateInput() {
+            return document.getElementById('line-date');
+        }
+
+        function getLineAmountInput() {
+            return document.getElementById('line-amount');
+        }
+
+        function getLineDescriptionInput() {
+            return document.getElementById('line-description');
         }
 
         function getSaveButton() {
@@ -59,13 +77,29 @@
             }
             tableContent += '<tbody>';
             for (const expense of getExpenses()) {
-                tableContent += `
+                let row = '';
+                if (state.edit === expense.id) {
+                    row = `
                     <tr>
+                        <td><input id="line-date" type="date" value="${expense.date.toISOString().substring(0, 10)}"/></td>
+                        <td><input id="line-amount" type="number" value="${expense.amount}"/> CHF</td>
+                        <td><input id="line-description" value="${expense.description}"/></td>
+                        <td><button onclick="confirmLineEdit();">✅</button></td>
+                        <td><button onclick="cancelLineEdit();">❌</button></td>
+                    </tr>`;
+                }
+                else {
+                    row = `
+                    <tr ${!state.edit ? '' : 'class="modal"'}>
                         <td>${dateTimeFormat.format(expense.date)}</td>
                         <td align="right">${parseFloat(expense.amount).toFixed(2)} CHF</td>
                         <td>${expense.description}</td>
-                        <td><button onclick="removeExpense('${expense.id}');">🚮</button></td>
-                    </tr>`;
+                        ${!state.edit ? `
+                            <td><button onclick="startLineEdit('${expense.id}')">🖊</button></td>
+                            <td><button onclick="removeExpense('${expense.id}');">🚮</button></td>` : ''}
+                    </tr>`
+                }
+                tableContent += row;
             }
             tableContent += '</tbody>';
             getSaveButton().disabled = state.saved;
@@ -83,6 +117,7 @@
             }
 
             getExpenses().push({
+                id: uuidv4(),
                 date: date,
                 amount: amount,
                 description: description
@@ -96,6 +131,29 @@
         function removeExpense(id) {
             const index = getExpenses().findIndex(e => e.id === id);
             getExpenses().splice(index, 1);
+            setSaved(false);
+            render();
+        }
+
+        function startLineEdit(id) {
+            state.edit = id;
+            render();
+        }
+
+        function cancelLineEdit() {
+            state.edit = null;
+            render();
+        }
+
+        function confirmLineEdit() {
+            const index = getExpenses().findIndex(e => e.id === state.edit);
+            const entry = state.data.expenses[index];
+
+            entry.date = new Date(getLineDateInput().value);
+            entry.amount = getLineAmountInput().value;
+            entry.description = getLineDescriptionInput().value;
+
+            state.edit = null;
             setSaved(false);
             render();
         }
@@ -144,21 +202,6 @@
         }
 
         function migrate(loadedData) {
-            if (!loadedData.version) {
-                let migratedData = {
-                    version: 1
-                };
-                migratedData.expenses = loadedData.map(e => {
-                    return {
-                        id: e.id ? e.id : uuidv4(),
-                        date: e.date,
-                        amount: e.amount,
-                        description: e.description
-                    };
-                });
-                state.saved = false;
-                return migratedData;
-            }
             setSaved(true);
             return loadedData;
         }
