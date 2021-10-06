@@ -8,6 +8,14 @@
         .modal {
             color: gray;
         }
+
+        .decimal-column {
+            text-align: right;
+        }
+
+        thead {
+            font-weight: bold;
+        }
     </style>
     <script src="lib/uuidv4.min.js"></script>
     <script>
@@ -55,6 +63,10 @@
             return document.getElementById('file-input');
         }
 
+        function getMonthTable() {
+            return document.getElementById('month-table');
+        }
+
         function getExpenses() {
             return state.data.expenses;
         }
@@ -63,14 +75,65 @@
             state.data.expenses = newExpenses;
         }
 
+        function dateToYmd(date) {
+            return date.toISOString().substring(0, 10);
+        }
+
+        function renderFloat(f) {
+            return f.toFixed(2);
+        }
+
+        function renderDate(d) {
+            return dateTimeFormat.format(d);
+        }
+
         function render() {
+            renderMonthTable();
+            renderDayTable();
+        }
+
+        function renderMonthTable() {
+            let tableContent = '';
+            if (getExpenses().length > 0) {
+                tableContent += `
+                    <thead>
+                        <tr>
+                            <td>Datum</td>
+                            <td class="decimal-column">Betrag</td>
+                            <td>Beschreibung</td>
+                        </tr>
+                    </thead>`;
+            }
+            tableContent += '<tbody>';
+            let days = getExpenses().reduce((acc, e) => {
+                let day = acc[dateToYmd(e.date)] || {};
+                day.amount = (day.amount || 0) + parseFloat(e.amount);
+                (day.description = day.description || []).push(e.description.substr(0, e.description.indexOf('#')).trim());
+                acc[dateToYmd(e.date)] = day;
+                return acc;
+            }, {});
+            Object.entries(days).forEach(d => {
+                const [ymd, row] = d;
+                tableContent += `
+                    <tr>
+                        <td>${renderDate(new Date(ymd))}</td>
+                        <td class="decimal-column">${renderFloat(row.amount)}</td>
+                        <td>${row.description.join(', ')}</td>
+                    </tr>
+                `;
+            })
+            tableContent += '</tbody>';
+            getMonthTable().innerHTML = tableContent;
+        }
+
+        function renderDayTable() {
             var tableContent = '';
             if (getExpenses().length > 0) {
                 tableContent += `
-                    <thead style="font-weight: bold;">
+                    <thead>
                         <tr>
                             <td>Datum</td>
-                            <td align="right">Betrag</td>
+                            <td class="decimal-column">Betrag</td>
                             <td>Beschreibung</td>
                         </tr>
                     </thead>`;
@@ -81,7 +144,7 @@
                 if (state.edit === expense.id) {
                     row = `
                     <tr>
-                        <td><input id="line-date" type="date" value="${expense.date.toISOString().substring(0, 10)}"/></td>
+                        <td><input id="line-date" type="date" value="${dateToYmd(expense.date)}"/></td>
                         <td><input id="line-amount" type="number" value="${expense.amount}"/> CHF</td>
                         <td><input id="line-description" value="${expense.description}"/></td>
                         <td><button onclick="confirmLineEdit();">✅</button></td>
@@ -91,8 +154,8 @@
                 else {
                     row = `
                     <tr ${!state.edit ? '' : 'class="modal"'}>
-                        <td>${dateTimeFormat.format(expense.date)}</td>
-                        <td align="right">${parseFloat(expense.amount).toFixed(2)} CHF</td>
+                        <td>${renderDate(expense.date)}</td>
+                        <td class="decimal-column">${renderFloat(parseFloat(expense.amount))} CHF</td>
                         <td>${expense.description}</td>
                         ${!state.edit ? `
                             <td><button onclick="startLineEdit('${expense.id}')">🖊</button></td>
@@ -229,12 +292,13 @@
         <button onclick="submitExpense();">➕</button>
     </p>
     <hr>
+    <table id="month-table"></table>
     <table id="expenses" cellspacing="15">
     </table>
 
     <script>
         "use strict";
-        getDateInput().value = new Date(Date.now()).toISOString().substring(0, 10);
+        getDateInput().value = dateToYmd(new Date(Date.now()));
         render();
     </script>
 </body>
