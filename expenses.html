@@ -9,34 +9,130 @@
             color: gray;
         }
 
-        .decimal-column {
+        .align-right {
             text-align: right;
+        }
+
+        .float-right {
+            float: right;
+        }
+
+        .error {
+            border-color: red;
         }
 
         thead {
             font-weight: bold;
         }
+
+        h1 {
+            display: inline;
+        }
     </style>
     <script src="lib/uuidv4.min.js"></script>
     <script>
         "use strict";
+
         var state = {
             saved: true,
             edit: null,
+            month: null,
+            day: null,
             data: {
                 version: 1,
                 expenses: []
             }
         }
 
-        var dateTimeFormat = new Intl.DateTimeFormat([], { day: '2-digit', month: '2-digit' });
+        var dayHeadingFormat = new Intl.DateTimeFormat([], { weekday: 'long', day: '2-digit', month: '2-digit' });
+        var dayFormat = new Intl.DateTimeFormat([], { day: '2-digit', month: '2-digit' });
+        var monthFormat = new Intl.DateTimeFormat([], { month: 'long', year: 'numeric' });
+        var decimalRegex = /^([0-9]+\.?[0-9]*|\.[0-9]+)$/;
 
-        function getDateInput() {
-            return document.getElementById('date');
+        var today = dateToYmd(new Date(Date.now()));
+
+        class ExpensesError {
+            constructor(message, origins) {
+                this.message = message;
+                this.origins = origins;
+            }
         }
 
+        window.onerror = function (msg, url, lineNo, columnNo, error) {
+            if (error instanceof ExpensesError) {
+                error.origins.forEach(o => o.classList.add('error'))
+                alert(error.message);
+                return;
+            }
+            throw error;
+        }
+
+        /*
+         * Utility
+         */
+        function getMonth(ymd) {
+            return ymd.substring(0, 7);
+        }
+
+        function dateToYmd(date) {
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, 0)}`;
+        }
+
+        function isSameDay(d1, d2) {
+            return d1.getDate() === d2.getDate()
+                && d1.getMonth() === d2.getMonth()
+                && d1.getFullYear() === d2.getFullYear();
+        }
+
+        /*
+         * Data store
+         */
+        function getExpenses() {
+            return state.data.expenses;
+        }
+
+        function setExpenses(newExpenses) {
+            state.data.expenses = newExpenses;
+        }
+
+        function getDaysOfMonth(month) {
+            let days = {};
+            let monthNumeric = parseInt(month.substring(5, 7)) - 1;
+            let date = new Date(month);
+            let dateOfToday = new Date(Date.now());
+            while (date.getMonth() === monthNumeric) {
+                let day = {
+                    description: []
+                };
+                getExpenses()
+                    .filter(e => isSameDay(date, e.date))
+                    .forEach(e => {
+                        day.amount = (day.amount || 0) + parseFloat(e.amount);
+                        day.description.push(e.description.substr(0, e.description.indexOf('#')).trim());
+                    });
+                days[dateToYmd(date)] = day;
+                if (isSameDay(dateOfToday, date)) {
+                    break;
+                }
+                date.setDate(date.getDate() + 1);
+            }
+            return days;
+        }
+
+        function getExpensesOfDay(day) {
+            return getExpenses()
+                .filter(e => dateToYmd(e.date).substring(0, 10) === day);
+        }
+
+        /*
+         * UI
+         */
         function getAmountInput() {
             return document.getElementById('amount');
+        }
+
+        function getDayExpensesDiv() {
+            return document.getElementById('day-expenses');
         }
 
         function getDescriptionInput() {
@@ -67,117 +163,159 @@
             return document.getElementById('month-table');
         }
 
-        function getExpenses() {
-            return state.data.expenses;
+        function getMonthLabel() {
+            return document.getElementById('month-label');
         }
 
-        function setExpenses(newExpenses) {
-            state.data.expenses = newExpenses;
-        }
-
-        function dateToYmd(date) {
-            return date.toISOString().substring(0, 10);
+        function getSubmitButton() {
+            return document.getElementById('submit-button');
         }
 
         function renderFloat(f) {
             return f.toFixed(2);
         }
 
-        function renderDate(d) {
-            return dateTimeFormat.format(d);
+        function renderDay(d) {
+            return dayFormat.format(d);
         }
 
         function render() {
+            let monthLabel = '';
+            if (state.month) {
+                monthLabel = monthFormat.format(new Date(state.month));
+            }
+            getMonthLabel().textContent = monthLabel;
             renderMonthTable();
-            renderDayTable();
+
+            let dayHeading = '';
+            if (state.day) {
+                dayHeading = `<h2>${dayHeadingFormat.format(new Date(state.month + '-' + state.day))}</h2>`;
+            }
+            let dayTable = renderDayTable();
+            getDayExpensesDiv().innerHTML = dayHeading + dayTable;
+
+            let formDisabled = !state.month || !state.day || state.edit;
+            getAmountInput().disabled = formDisabled;
+            getDescriptionInput().disabled = formDisabled;
+            getSubmitButton().disabled = formDisabled;
+            getSaveButton().disabled = state.saved;
+            if (formDisabled) {
+                getAmountInput().value = '';
+                getDescriptionInput().value = '';
+            }
         }
 
         function renderMonthTable() {
-            let tableContent = '';
-            if (getExpenses().length > 0) {
-                tableContent += `
+            let tableContent = `
                     <thead>
                         <tr>
                             <td>Datum</td>
-                            <td class="decimal-column">Betrag</td>
+                            <td class="align-right">Betrag</td>
+                            <td></td>
                             <td>Beschreibung</td>
                         </tr>
                     </thead>`;
-            }
             tableContent += '<tbody>';
-            let days = getExpenses().reduce((acc, e) => {
-                let day = acc[dateToYmd(e.date)] || {};
-                day.amount = (day.amount || 0) + parseFloat(e.amount);
-                (day.description = day.description || []).push(e.description.substr(0, e.description.indexOf('#')).trim());
-                acc[dateToYmd(e.date)] = day;
-                return acc;
-            }, {});
-            Object.entries(days).forEach(d => {
-                const [ymd, row] = d;
-                tableContent += `
+            Object.entries(getDaysOfMonth(state.month))
+                .forEach(d => {
+                    const [ymd, row] = d;
+                    tableContent += `
                     <tr>
-                        <td>${renderDate(new Date(ymd))}</td>
-                        <td class="decimal-column">${renderFloat(row.amount)}</td>
+                        <td><a href="#" onclick="setDay('${ymd.substring(8, 10)}');">${renderDay(new Date(ymd))}</a></td>
+                        <td class="align-right">${row.amount ? renderFloat(row.amount) : ''}</td>
+                        <td>${row.amount ? 'CHF' : ''}</td>
                         <td>${row.description.join(', ')}</td>
                     </tr>
                 `;
-            })
+                });
             tableContent += '</tbody>';
             getMonthTable().innerHTML = tableContent;
         }
 
         function renderDayTable() {
-            var tableContent = '';
-            if (getExpenses().length > 0) {
-                tableContent += `
-                    <thead>
-                        <tr>
-                            <td>Datum</td>
-                            <td class="decimal-column">Betrag</td>
-                            <td>Beschreibung</td>
-                        </tr>
-                    </thead>`;
+            let dayExpenses = getExpensesOfDay(state.month + '-' + state.day);
+            if (dayExpenses.length === 0) {
+                return '';
             }
-            tableContent += '<tbody>';
-            for (const expense of getExpenses()) {
+            var table = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <td>Beschreibung</td>
+                                <td class="align-right">Betrag</td>
+                            </tr>
+                        </thead>`;
+            table += '<tbody>';
+            for (const expense of dayExpenses) {
                 let row = '';
                 if (state.edit === expense.id) {
                     row = `
-                    <tr>
-                        <td><input id="line-date" type="date" value="${dateToYmd(expense.date)}"/></td>
-                        <td><input id="line-amount" type="number" value="${expense.amount}"/> CHF</td>
-                        <td><input id="line-description" value="${expense.description}"/></td>
-                        <td><button onclick="confirmLineEdit();">✅</button></td>
-                        <td><button onclick="cancelLineEdit();">❌</button></td>
-                    </tr>`;
+                        <tr>
+                            <td><input id="line-description" value="${expense.description}"/></td>
+                            <td><input id="line-amount" class="align-right" onblur="validateDecimalField(getLineAmountInput())" value="${expense.amount}"/></td>
+                            <td>CHF</td>
+                            <td><button onclick="confirmLineEdit();">✅</button></td>
+                            <td><button onclick="cancelLineEdit();">❌</button></td>
+                        </tr>`;
                 }
                 else {
                     row = `
-                    <tr ${!state.edit ? '' : 'class="modal"'}>
-                        <td>${renderDate(expense.date)}</td>
-                        <td class="decimal-column">${renderFloat(parseFloat(expense.amount))} CHF</td>
-                        <td>${expense.description}</td>
-                        ${!state.edit ? `
-                            <td><button onclick="startLineEdit('${expense.id}')">🖊</button></td>
-                            <td><button onclick="removeExpense('${expense.id}');">🚮</button></td>` : ''}
-                    </tr>`
+                        <tr ${!state.edit ? '' : 'class="modal"'}>
+                            <td>${expense.description}</td>
+                            <td class="align-right">${renderFloat(parseFloat(expense.amount))}</td>
+                            <td>CHF</td>
+                            ${!state.edit ? `
+                                <td><button onclick="startLineEdit('${expense.id}')">🖊</button></td>
+                                <td><button onclick="removeExpense('${expense.id}');">🚮</button></td>` : ''}
+                        </tr>`
                 }
-                tableContent += row;
+                table += row;
             }
-            tableContent += '</tbody>';
-            getSaveButton().disabled = state.saved;
-            document.getElementById('expenses').innerHTML = tableContent;
+            table += `
+                    </tbody>
+                </table>`;
+            return table;
+        }
+
+        function validateDecimalField(decimalField) {
+            decimalField.classList.remove('error');
+            if (!decimalField.value) {
+                return;
+            }
+            if (!decimalRegex.test(decimalField.value)) {
+                throw new ExpensesError(`'${decimalField.value}' ist keine gültige Zahl`, [decimalField]);
+            }
+            const components = decimalField.value.split('.');
+            const integerPart = components[0] ? parseInt(components[0]) : '0';
+            const fractionalPart = components[1] ? components[1].substring(0, 2).padEnd(2, '0') : '00';
+            decimalField.value = integerPart + '.' + fractionalPart;
+        }
+
+        function validateExpense(amount, description) {
+            let emptyFields = [];
+            amount.classList.remove('error');
+            description.classList.remove('error');
+            if (!amount.value) {
+                amount.classList.add('error');
+                emptyFields.push('Betrag');
+            }
+            if (!description.value) {
+                description.classList.add('error');
+                emptyFields.push('Beschreibung');
+            }
+            if (emptyFields.length > 0) {
+                /* FIXME:
+                 * - Labels von den Feldern auslesen
+                 * - origins befüllen für error status im globalen handler
+                 */
+                throw new ExpensesError('Bitte ' + emptyFields.join(' und ') + ' ausfüllen');
+            }
+            return [amount.value, description.value];
         }
 
         function submitExpense() {
-            var date = new Date(getDateInput().value);
-            var amount = getAmountInput().value;
-            var description = getDescriptionInput().value;
-
-            if (date === '' || amount === '' || description === '') {
-                alert('Bitte Datum, Betrag und Beschreibung ausfüllen');
-                return;
-            }
+            var date = new Date(state.month + '-' + state.day);
+            let [amount, description] = validateExpense(getAmountInput(), getDescriptionInput());
 
             getExpenses().push({
                 id: uuidv4(),
@@ -208,13 +346,22 @@
             render();
         }
 
+        function setDay(day) {
+            if (state.day === day) {
+                return;
+            }
+            state.day = day;
+            render();
+        }
+
         function confirmLineEdit() {
             const index = getExpenses().findIndex(e => e.id === state.edit);
             const entry = state.data.expenses[index];
 
-            entry.date = new Date(getLineDateInput().value);
-            entry.amount = getLineAmountInput().value;
-            entry.description = getLineDescriptionInput().value;
+            const [amount, description] = validateExpense(getLineAmountInput(), getLineDescriptionInput());
+
+            entry.amount = amount;
+            entry.description = description;
 
             state.edit = null;
             setSaved(false);
@@ -265,6 +412,7 @@
         }
 
         function migrate(loadedData) {
+            // FIXME Migration für prettyfyte Zahlen
             setSaved(true);
             return loadedData;
         }
@@ -273,32 +421,34 @@
 
 <body>
     <h1>Ausgaben</h1>
-    <hr>
-    <input type="file" id="file-input" onchange="loadExpenses()" />
-    <button id="save-button" onclick="save();">Speichern</button>
-    <hr>
-    <p>
-        <label>Datum</label>
-        <input id="date" type="date">
-    </p>
-    <p>
-        <label>Betrag</label>
-        <input id="amount" type="number">
-        <label>CHF</label>
-    </p>
-    <p>
-        <label>Beschreibung</label>
-        <input id="description">
-        <button onclick="submitExpense();">➕</button>
-    </p>
+    <span id="month-label"></span>
+    <span class="float-right">
+        <input type="file" id="file-input" onchange="loadExpenses()" />
+        <button id="save-button" onclick="save();">💾</button>
+    </span>
     <hr>
     <table id="month-table"></table>
-    <table id="expenses" cellspacing="15">
+    <div id="day-expenses"></div>
     </table>
+    <p>
+        <span>
+            <label>Beschreibung</label>
+            <input id="description">
+        </span>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <span>
+            <label>Betrag</label>
+            <input id="amount" class="align-right" onblur="validateDecimalField(getAmountInput())">
+            <label>CHF</label>
+        </span>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <button id="submit-button" onclick="submitExpense();">➕</button>
+    </p>
 
     <script>
         "use strict";
-        getDateInput().value = dateToYmd(new Date(Date.now()));
+        state.month = today.substring(0, 7);
+        state.day = today.substring(8, 10);
         render();
     </script>
 </body>
