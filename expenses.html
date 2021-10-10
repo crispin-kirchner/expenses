@@ -28,6 +28,14 @@
         h1 {
             display: inline;
         }
+
+        label {
+            font-size: 70%;
+        }
+
+        .va-bottom {
+            vertical-align: bottom;
+        }
     </style>
     <script src="lib/uuidv4.min.js"></script>
     <script>
@@ -234,9 +242,6 @@
 
         function renderDayTable() {
             let dayExpenses = getExpensesOfDay(state.month + '-' + state.day);
-            if (dayExpenses.length === 0) {
-                return '';
-            }
             var table = `
                     <table>
                         <thead>
@@ -270,6 +275,25 @@
                         </tr>`
                 }
                 table += row;
+            }
+            if (!state.edit) {
+                table += `
+                <tr class="va-bottom">
+                    <td>
+                        <label for="description">Beschreibung</label><br/>
+                        <input id="description">
+                    </td>
+                    <td>
+                        <label for="amount">Betrag</label><br/>
+                        <input id="amount" class="align-right" onblur="validateDecimalField(getAmountInput())">
+                    </td>
+                    <td>
+                        CHF
+                    </td>
+                    <td>
+                        <button id="submit-button" onclick="submitExpense();">➕</button>
+                    </td>
+                </tr>`;
             }
             table += `
                     </tbody>
@@ -430,21 +454,6 @@
     <table id="month-table"></table>
     <div id="day-expenses"></div>
     </table>
-    <p>
-        <span>
-            <label>Beschreibung</label>
-            <input id="description">
-        </span>
-        &nbsp;&nbsp;&nbsp;&nbsp;
-        <span>
-            <label>Betrag</label>
-            <input id="amount" class="align-right" onblur="validateDecimalField(getAmountInput())">
-            <label>CHF</label>
-        </span>
-        &nbsp;&nbsp;&nbsp;&nbsp;
-        <button id="submit-button" onclick="submitExpense();">➕</button>
-    </p>
-
     <script>
         "use strict";
         state.month = today.substring(0, 7);
