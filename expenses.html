@@ -62,6 +62,7 @@
             edit: null,
             month: null,
             day: null,
+            filename: null,
             data: {
                 version: 1,
                 expenses: []
@@ -450,7 +451,7 @@
             let dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(jsonString);
             let a = document.createElement('a');
             a.rel = 'noopener';
-            a.download = 'ausgaben.json';
+            a.download = state.filename || 'ausgaben.json';
             a.target = '_blank';
             a.href = dataStr;
             a.dispatchEvent(new MouseEvent('click'));
@@ -467,13 +468,13 @@
         }
 
         function loadExpenses() {
-            var file = getFileInput().files[0];
+            const file = getFileInput().files[0];
             if (!file) {
                 return;
             }
-            var reader = new FileReader();
-            reader.onload = function (e) {
-                let migratedData = migrate(JSON.parse(e.target.result));
+            const reader = new FileReader();
+            reader.onload = e => {
+                const migratedData = migrate(JSON.parse(e.target.result));
                 setExpenses(migratedData.expenses
                     .map(e => {
                         return {
@@ -484,6 +485,7 @@
                         };
                     }));
                 render();
+                state.filename = file.name;
             }
             reader.readAsText(file);
         }
