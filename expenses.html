@@ -443,6 +443,9 @@
         }
 
         function openFile() {
+            if (!state.saved && !confirm('Beim Öffnen werden ungespeicherte Änderungen überschrieben. Bist du sicher dass du eine Datei öffnen möchtest?')) {
+                return;
+            }
             getFileInput().click();
         }
 
@@ -491,7 +494,6 @@
         }
 
         function migrate(loadedData) {
-            // FIXME Migration für prettyfyte Zahlen
             setSaved(true);
             return loadedData;
         }
