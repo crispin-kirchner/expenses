@@ -5,6 +5,10 @@
     <title>Ausgaben</title>
     <meta charset="UTF-8">
     <style>
+        html {
+            font-family: sans-serif;
+        }
+
         .modal {
             color: gray;
         }
@@ -15,6 +19,10 @@
 
         .float-right {
             float: right;
+        }
+
+        .display-none {
+            display: none;
         }
 
         .error {
@@ -36,12 +44,20 @@
         .va-bottom {
             vertical-align: bottom;
         }
+
+        tr>td .visible-on-tr-hover {
+            visibility: hidden;
+        }
+
+        tr:hover>td .visible-on-tr-hover {
+            visibility: visible;
+        }
     </style>
     <script src="lib/uuidv4.min.js"></script>
     <script>
         "use strict";
 
-        var state = {
+        const state = {
             saved: true,
             edit: null,
             month: null,
@@ -52,12 +68,12 @@
             }
         }
 
-        var dayHeadingFormat = new Intl.DateTimeFormat([], { weekday: 'long', day: '2-digit', month: '2-digit' });
-        var dayFormat = new Intl.DateTimeFormat([], { day: '2-digit', month: '2-digit' });
-        var monthFormat = new Intl.DateTimeFormat([], { month: 'long', year: 'numeric' });
-        var decimalRegex = /^([0-9]+\.?[0-9]*|\.[0-9]+)$/;
+        const dayHeadingFormat = new Intl.DateTimeFormat([], { weekday: 'long', day: '2-digit', month: '2-digit' });
+        const dayFormat = new Intl.DateTimeFormat([], { day: '2-digit', month: '2-digit' });
+        const monthFormat = new Intl.DateTimeFormat([], { month: 'long', year: 'numeric' });
+        const decimalRegex = /^([0-9]+\.?[0-9]*|\.[0-9]+)$/;
 
-        var today = dateToYmd(new Date(Date.now()));
+        const today = dateToYmd(new Date(Date.now()));
 
         class ExpensesError {
             constructor(message, origins) {
@@ -66,14 +82,45 @@
             }
         }
 
-        window.onerror = function (msg, url, lineNo, columnNo, error) {
+        window.onerror = (msg, url, lineNo, columnNo, error) => {
             if (error instanceof ExpensesError) {
                 error.origins.forEach(o => o.classList.add('error'))
                 alert(error.message);
                 return;
             }
             throw error;
-        }
+        };
+
+        window.addEventListener('beforeunload', e => {
+            if (!state.saved) {
+                e.preventDefault();
+                e.returnValue = 'Ungespeicherte Änderungen vorhanden';
+            }
+        });
+
+        document.onkeydown = e => {
+            if (e.ctrlKey) {
+                if (e.key === 'Enter') {
+                    if (['description', 'amount'].includes(e.target.id)) {
+                        submitExpense();
+                        return false;
+                    }
+                    if (['line-description', 'line-amount'].includes(e.target.id)) {
+                        confirmLineEdit();
+                        return false;
+                    }
+                }
+                if (e.key === 'o') {
+                    openFile();
+                    return false;
+                }
+                if (e.key === 's') {
+                    save();
+                    return false;
+                }
+            }
+            return true;
+        };
 
         /*
          * Utility
@@ -116,7 +163,8 @@
                     .filter(e => isSameDay(date, e.date))
                     .forEach(e => {
                         day.amount = (day.amount || 0) + parseFloat(e.amount);
-                        day.description.push(e.description.substr(0, e.description.indexOf('#')).trim());
+                        const firstHashPosition = e.description.indexOf('#');
+                        day.description.push(e.description.substr(0, firstHashPosition === -1 ? undefined : firstHashPosition).trim());
                     });
                 days[dateToYmd(date)] = day;
                 if (isSameDay(dateOfToday, date)) {
@@ -145,10 +193,6 @@
 
         function getDescriptionInput() {
             return document.getElementById('description');
-        }
-
-        function getLineDateInput() {
-            return document.getElementById('line-date');
         }
 
         function getLineAmountInput() {
@@ -242,14 +286,16 @@
 
         function renderDayTable() {
             let dayExpenses = getExpensesOfDay(state.month + '-' + state.day);
-            var table = `
-                    <table>
+            let table = '<table>';
+            if (dayExpenses.length > 0) {
+                table += `
                         <thead>
                             <tr>
                                 <td>Beschreibung</td>
                                 <td class="align-right">Betrag</td>
                             </tr>
                         </thead>`;
+            }
             table += '<tbody>';
             for (const expense of dayExpenses) {
                 let row = '';
@@ -257,7 +303,7 @@
                     row = `
                         <tr>
                             <td><input id="line-description" value="${expense.description}"/></td>
-                            <td><input id="line-amount" class="align-right" onblur="validateDecimalField(getLineAmountInput())" value="${expense.amount}"/></td>
+                            <td><input id="line-amount" class="align-right" onchange="validateDecimalField(getLineAmountInput())" value="${expense.amount}"/></td>
                             <td>CHF</td>
                             <td><button onclick="confirmLineEdit();">✅</button></td>
                             <td><button onclick="cancelLineEdit();">❌</button></td>
@@ -270,8 +316,8 @@
                             <td class="align-right">${renderFloat(parseFloat(expense.amount))}</td>
                             <td>CHF</td>
                             ${!state.edit ? `
-                                <td><button onclick="startLineEdit('${expense.id}')">🖊</button></td>
-                                <td><button onclick="removeExpense('${expense.id}');">🚮</button></td>` : ''}
+                                <td><button type="button" title="Bearbeiten" class="visible-on-tr-hover" onclick="startLineEdit('${expense.id}')">🖊</button></td>
+                                <td><button type="button" title="Löschen" class="visible-on-tr-hover" onclick="removeExpense('${expense.id}');">🚮</button></td>` : ''}
                         </tr>`
                 }
                 table += row;
@@ -283,15 +329,15 @@
                         <label for="description">Beschreibung</label><br/>
                         <input id="description">
                     </td>
-                    <td>
+                    <td class="align-right">
                         <label for="amount">Betrag</label><br/>
-                        <input id="amount" class="align-right" onblur="validateDecimalField(getAmountInput())">
+                        <input id="amount" class="align-right" onchange="validateDecimalField(getAmountInput())">
                     </td>
                     <td>
                         CHF
                     </td>
                     <td>
-                        <button id="submit-button" onclick="submitExpense();">➕</button>
+                        <button type="button" id="submit-button" title="Hinzufügen" onclick="submitExpense();">➕</button>
                     </td>
                 </tr>`;
             }
@@ -302,55 +348,45 @@
         }
 
         function validateDecimalField(decimalField) {
+            if (decimalField.dataset.validatedValue === decimalField.value) {
+                return;
+            }
             decimalField.classList.remove('error');
             if (!decimalField.value) {
+                decimalField.dataset.validatedValue = decimalField.value;
                 return;
             }
             if (!decimalRegex.test(decimalField.value)) {
+                decimalField.dataset.validatedValue = decimalField.value;
                 throw new ExpensesError(`'${decimalField.value}' ist keine gültige Zahl`, [decimalField]);
             }
             const components = decimalField.value.split('.');
             const integerPart = components[0] ? parseInt(components[0]) : '0';
             const fractionalPart = components[1] ? components[1].substring(0, 2).padEnd(2, '0') : '00';
             decimalField.value = integerPart + '.' + fractionalPart;
+            decimalField.dataset.validatedValue = decimalField.value;
         }
 
         function validateExpense(amount, description) {
+            validateDecimalField(amount);
             let emptyFields = [];
             amount.classList.remove('error');
             description.classList.remove('error');
-            if (!amount.value) {
-                amount.classList.add('error');
-                emptyFields.push('Betrag');
-            }
             if (!description.value) {
                 description.classList.add('error');
-                emptyFields.push('Beschreibung');
+                emptyFields.push(description);
+            }
+            if (!amount.value) {
+                amount.classList.add('error');
+                emptyFields.push(amount);
             }
             if (emptyFields.length > 0) {
-                /* FIXME:
-                 * - Labels von den Feldern auslesen
-                 * - origins befüllen für error status im globalen handler
-                 */
-                throw new ExpensesError('Bitte ' + emptyFields.join(' und ') + ' ausfüllen');
+                let fieldNames = emptyFields
+                    .map(f => document.querySelector(`label[for="${f.id}"]`).textContent)
+                    .join(' und ');
+                throw new ExpensesError(`Bitte ${fieldNames} ausfüllen`, emptyFields);
             }
             return [amount.value, description.value];
-        }
-
-        function submitExpense() {
-            var date = new Date(state.month + '-' + state.day);
-            let [amount, description] = validateExpense(getAmountInput(), getDescriptionInput());
-
-            getExpenses().push({
-                id: uuidv4(),
-                date: date,
-                amount: amount,
-                description: description
-            });
-            setSaved(false);
-            getAmountInput().value = '';
-            getDescriptionInput().value = '';
-            render();
         }
 
         function removeExpense(id) {
@@ -370,14 +406,6 @@
             render();
         }
 
-        function setDay(day) {
-            if (state.day === day) {
-                return;
-            }
-            state.day = day;
-            render();
-        }
-
         function confirmLineEdit() {
             const index = getExpenses().findIndex(e => e.id === state.edit);
             const entry = state.data.expenses[index];
@@ -386,10 +414,35 @@
 
             entry.amount = amount;
             entry.description = description;
-
             state.edit = null;
             setSaved(false);
             render();
+        }
+
+        function submitExpense() {
+            var date = new Date(state.month + '-' + state.day);
+            let [amount, description] = validateExpense(getAmountInput(), getDescriptionInput());
+
+            getExpenses().push({
+                id: uuidv4(),
+                date: date,
+                amount: amount,
+                description: description
+            });
+            setSaved(false);
+            render();
+        }
+
+        function setDay(day) {
+            if (state.day === day) {
+                return;
+            }
+            state.day = day;
+            render();
+        }
+
+        function openFile() {
+            getFileInput().click();
         }
 
         function save() {
@@ -447,13 +500,15 @@
     <h1>Ausgaben</h1>
     <span id="month-label"></span>
     <span class="float-right">
-        <input type="file" id="file-input" onchange="loadExpenses()" />
-        <button id="save-button" onclick="save();">💾</button>
+        <button type="button" title="Öffnen" onclick="openFile();">📂</button>
+        <input type="file" id="file-input" class="display-none" onchange="loadExpenses()" />
+        <button type="button" id="save-button" title="Speichern" onclick="save();">💾</button>
     </span>
     <hr>
     <table id="month-table"></table>
     <div id="day-expenses"></div>
     </table>
+
     <script>
         "use strict";
         state.month = today.substring(0, 7);
