@@ -39,6 +39,7 @@
 
         label {
             font-size: 70%;
+            display: block;
         }
 
         .va-bottom {
@@ -64,7 +65,7 @@
             day: null,
             filename: null,
             data: {
-                version: 1,
+                version: 2,
                 expenses: []
             }
         }
@@ -80,6 +81,24 @@
             constructor(message, origins) {
                 this.message = message;
                 this.origins = origins;
+            }
+        }
+
+        class Expense {
+            constructor(id, dateString, amount, currency, exchangeRate, description) {
+                this.id = id;
+                this.date = new Date(dateString);
+                this.amount = amount;
+                this.currency = currency;
+                this.exchangeRate = exchangeRate;
+                this.description = description;
+            }
+
+            getAmountChf() {
+                if (isDefaultCurrency(this.currency)) {
+                    return parseFloat(this.amount);
+                }
+                return parseFloat(this.exchangeRate) * parseFloat(this.amount);
             }
         }
 
@@ -102,12 +121,13 @@
         document.onkeydown = e => {
             if (e.ctrlKey) {
                 if (e.key === 'Enter') {
-                    if (['description', 'amount'].includes(e.target.id)) {
-                        submitExpense();
-                        return false;
-                    }
-                    if (['line-description', 'line-amount'].includes(e.target.id)) {
-                        confirmLineEdit();
+                    if (['description', 'amount', 'currency-input', 'exchange-rate'].includes(e.target.id)) {
+                        if (state.edit) {
+                            confirmLineEdit();
+                        }
+                        else {
+                            submitExpense();
+                        }
                         return false;
                     }
                 }
@@ -163,7 +183,7 @@
                 getExpenses()
                     .filter(e => isSameDay(date, e.date))
                     .forEach(e => {
-                        day.amount = (day.amount || 0) + parseFloat(e.amount);
+                        day.amount = (day.amount || 0) + e.getAmountChf();
                         const firstHashPosition = e.description.indexOf('#');
                         day.description.push(e.description.substr(0, firstHashPosition === -1 ? undefined : firstHashPosition).trim());
                     });
@@ -188,6 +208,14 @@
             return document.getElementById('amount');
         }
 
+        function getComputedChfValue() {
+            return document.getElementById('computed-chf-value');
+        }
+
+        function getCurrencySelect() {
+            return document.getElementById('currency-input');
+        }
+
         function getDayExpensesDiv() {
             return document.getElementById('day-expenses');
         }
@@ -196,12 +224,8 @@
             return document.getElementById('description');
         }
 
-        function getLineAmountInput() {
-            return document.getElementById('line-amount');
-        }
-
-        function getLineDescriptionInput() {
-            return document.getElementById('line-description');
+        function getExchangeRateInput() {
+            return document.getElementById('exchange-rate');
         }
 
         function getSaveButton() {
@@ -218,10 +242,6 @@
 
         function getMonthLabel() {
             return document.getElementById('month-label');
-        }
-
-        function getSubmitButton() {
-            return document.getElementById('submit-button');
         }
 
         function renderFloat(f) {
@@ -247,15 +267,7 @@
             let dayTable = renderDayTable();
             getDayExpensesDiv().innerHTML = dayHeading + dayTable;
 
-            let formDisabled = !state.month || !state.day || state.edit;
-            getAmountInput().disabled = formDisabled;
-            getDescriptionInput().disabled = formDisabled;
-            getSubmitButton().disabled = formDisabled;
             getSaveButton().disabled = state.saved;
-            if (formDisabled) {
-                getAmountInput().value = '';
-                getDescriptionInput().value = '';
-            }
         }
 
         function renderMonthTable() {
@@ -285,6 +297,70 @@
             getMonthTable().innerHTML = tableContent;
         }
 
+        function renderForm(expense) {
+            let form = `
+                <tr class="va-bottom">
+                    <td>
+                        <label for="description">Beschreibung</label>
+                        <input id="description" value="${expense ? expense.description : ''}" required />
+                    </td>
+                    <td class="align-right">
+                        <label for="amount">Betrag</label>
+                        <input id="amount" class="align-right" oninput="handleAmountOrExchangeRateInput();" onchange="validateDecimalField(getAmountInput(), 2);" value="${expense ? expense.amount : ''}" required />
+                    </td>
+                    <td>
+                        <label for="currency-input">Währung</label>
+                        <select id="currency-input" onchange="handleCurrencyChanged()" required>
+                            <option value="CHF">CHF</option>
+                            <option value="€">€</option>
+                        </select>
+                    </td>`;
+            if (expense) {
+                form += `
+                    <td><button type="button" title="Speichern" onclick="confirmLineEdit();">✅</button></td>
+                    <td><button type="button" title="Abbrechen" onclick="cancelLineEdit();">❌</button></td>`;
+            }
+            else {
+                form += '<td><button type="button" title="Hinzufügen" onclick="submitExpense();">➕</button></td>';
+            }
+            const defaultCurrency = expense ? isDefaultCurrency(expense.currency) : true;
+            form += `
+                </tr>
+                <tr id="form-line2" class="va-bottom ${defaultCurrency ? 'display-none' : ''}">
+                    <td class="align-right">
+                        <label for="exchange-rate">Wechselkurs</label>
+                        <input class="align-right" id="exchange-rate" oninput="handleAmountOrExchangeRateInput();" onchange="validateDecimalField(getExchangeRateInput(), 4);" value="${expense ? expense.exchangeRate : 1}"/>
+                    </td>
+                    <td class="align-right">
+                        <span id="computed-chf-value">${defaultCurrency ? '' : expense?.getAmountChf()}</span>
+                    </td>
+                    <td>CHF</td>
+                </tr>`;
+            return form;
+        }
+
+        function handleCurrencyChanged() {
+            if (isDefaultCurrency(getCurrencySelect().value)) {
+                document.getElementById('form-line2').classList.add('display-none');
+                getExchangeRateInput().value = 1;
+            }
+            else {
+                document.getElementById('form-line2').classList.remove('display-none');
+            }
+        }
+
+        function handleAmountOrExchangeRateInput() {
+            if (isDefaultCurrency(getCurrencySelect().value)) {
+                return;
+            }
+            const chfValue = parseFloat(getAmountInput().value) * parseFloat(getExchangeRateInput().value);
+            getComputedChfValue().textContent = Number.isNaN(chfValue) ? '' : renderFloat(chfValue);
+        }
+
+        function isDefaultCurrency(currency) {
+            return currency === 'CHF';
+        }
+
         function renderDayTable() {
             let dayExpenses = getExpensesOfDay(state.month + '-' + state.day);
             let table = '<table>';
@@ -301,20 +377,13 @@
             for (const expense of dayExpenses) {
                 let row = '';
                 if (state.edit === expense.id) {
-                    row = `
-                        <tr>
-                            <td><input id="line-description" value="${expense.description}"/></td>
-                            <td><input id="line-amount" class="align-right" onchange="validateDecimalField(getLineAmountInput())" value="${expense.amount}"/></td>
-                            <td>CHF</td>
-                            <td><button onclick="confirmLineEdit();">✅</button></td>
-                            <td><button onclick="cancelLineEdit();">❌</button></td>
-                        </tr>`;
+                    row = renderForm(expense);
                 }
                 else {
                     row = `
                         <tr ${!state.edit ? '' : 'class="modal"'}>
                             <td>${expense.description}</td>
-                            <td class="align-right">${renderFloat(parseFloat(expense.amount))}</td>
+                            <td class="align-right">${renderFloat(expense.getAmountChf())}</td>
                             <td>CHF</td>
                             ${!state.edit ? `
                                 <td><button type="button" title="Bearbeiten" class="visible-on-tr-hover" onclick="startLineEdit('${expense.id}')">🖊</button></td>
@@ -324,23 +393,7 @@
                 table += row;
             }
             if (!state.edit) {
-                table += `
-                <tr class="va-bottom">
-                    <td>
-                        <label for="description">Beschreibung</label><br/>
-                        <input id="description">
-                    </td>
-                    <td class="align-right">
-                        <label for="amount">Betrag</label><br/>
-                        <input id="amount" class="align-right" onchange="validateDecimalField(getAmountInput())">
-                    </td>
-                    <td>
-                        CHF
-                    </td>
-                    <td>
-                        <button type="button" id="submit-button" title="Hinzufügen" onclick="submitExpense();">➕</button>
-                    </td>
-                </tr>`;
+                table += renderForm();
             }
             table += `
                     </tbody>
@@ -348,7 +401,7 @@
             return table;
         }
 
-        function validateDecimalField(decimalField) {
+        function validateDecimalField(decimalField, fractionalDigits) {
             if (decimalField.dataset.validatedValue === decimalField.value) {
                 return;
             }
@@ -363,31 +416,30 @@
             }
             const components = decimalField.value.split('.');
             const integerPart = components[0] ? parseInt(components[0]) : '0';
-            const fractionalPart = components[1] ? components[1].substring(0, 2).padEnd(2, '0') : '00';
+            const fractionalPart = components[1] ? components[1].substring(0, fractionalDigits).padEnd(fractionalDigits, '0') : '00';
             decimalField.value = integerPart + '.' + fractionalPart;
             decimalField.dataset.validatedValue = decimalField.value;
         }
 
-        function validateExpense(amount, description) {
-            validateDecimalField(amount);
-            let emptyFields = [];
-            amount.classList.remove('error');
-            description.classList.remove('error');
-            if (!description.value) {
-                description.classList.add('error');
-                emptyFields.push(description);
-            }
-            if (!amount.value) {
-                amount.classList.add('error');
-                emptyFields.push(amount);
-            }
+        function validateForm() {
+            validateDecimalField(getAmountInput(), 2);
+            validateDecimalField(getExchangeRateInput(), 4);
+
+            const emptyFields = [];
+            [getAmountInput(), getExchangeRateInput(), getDescriptionInput()].forEach(f => {
+                f.classList.remove('error');
+                if (!f.value) {
+                    f.classList.add('error');
+                    emptyFields.push(f);
+                }
+            });
+
             if (emptyFields.length > 0) {
                 let fieldNames = emptyFields
                     .map(f => document.querySelector(`label[for="${f.id}"]`).textContent)
                     .join(' und ');
                 throw new ExpensesError(`Bitte ${fieldNames} ausfüllen`, emptyFields);
             }
-            return [amount.value, description.value];
         }
 
         function removeExpense(id) {
@@ -408,28 +460,26 @@
         }
 
         function confirmLineEdit() {
-            const index = getExpenses().findIndex(e => e.id === state.edit);
-            const entry = state.data.expenses[index];
-
-            const [amount, description] = validateExpense(getLineAmountInput(), getLineDescriptionInput());
-
-            entry.amount = amount;
-            entry.description = description;
-            state.edit = null;
-            setSaved(false);
-            render();
+            storeForm(() => {
+                const index = getExpenses().findIndex(e => e.id === state.edit);
+                const entry = state.data.expenses[index];
+                entry.amount = getAmountInput().value;
+                entry.description = getDescriptionInput().value;
+                entry.currency = getCurrencySelect().value;
+                entry.exchangeRate = getExchangeRateInput().value;
+                state.edit = null;
+            });
         }
 
         function submitExpense() {
-            var date = new Date(state.month + '-' + state.day);
-            let [amount, description] = validateExpense(getAmountInput(), getDescriptionInput());
+            storeForm(() => getExpenses().push(new Expense(uuidv4(), state.month + '-' + state.day, getAmountInput().value, getCurrencySelect().value, getExchangeRateInput().value, getDescriptionInput().value)));
+        }
 
-            getExpenses().push({
-                id: uuidv4(),
-                date: date,
-                amount: amount,
-                description: description
-            });
+        function storeForm(saveAction) {
+            validateForm();
+
+            saveAction();
+
             setSaved(false);
             render();
         }
@@ -479,14 +529,7 @@
             reader.onload = e => {
                 const migratedData = migrate(JSON.parse(e.target.result));
                 setExpenses(migratedData.expenses
-                    .map(e => {
-                        return {
-                            id: e.id,
-                            date: new Date(e.date),
-                            amount: e.amount,
-                            description: e.description
-                        };
-                    }));
+                    .map(e => new Expense(e.id, e.date, e.amount, e.currency, e.exchangeRate, e.description)));
                 render();
                 state.filename = file.name;
             }
@@ -494,7 +537,15 @@
         }
 
         function migrate(loadedData) {
-            setSaved(true);
+            if (!loadedData.expenses[0].currency) {
+                loadedData.expenses.forEach(e => {
+                    e.currency = 'CHF';
+                    e.exchangeRate = '1';
+                });
+                loadedData.version = 2;
+                state.saved = false;
+                return loadedData;
+            }
             return loadedData;
         }
     </script>
