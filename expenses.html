@@ -4,6 +4,7 @@
 <head>
     <title>Ausgaben</title>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         html {
             font-family: sans-serif;
@@ -85,13 +86,28 @@
         }
 
         class Expense {
-            constructor(id, dateString, amount, currency, exchangeRate, description) {
-                this.id = id;
-                this.date = new Date(dateString);
-                this.amount = amount;
-                this.currency = currency;
-                this.exchangeRate = exchangeRate;
-                this.description = description;
+            constructor(dateString, amount, currency, exchangeRate, description) {
+                if (arguments.length !== 1) {
+                    // create new
+                    this.id = uuidv4();
+                    this.date = new Date(dateString);
+                    this.amount = amount;
+                    this.currency = currency;
+                    this.exchangeRate = exchangeRate;
+                    this.description = description;
+                    this.createDate = new Date(Date.now());
+                }
+                else {
+                    // create from json
+                    const obj = arguments[0];
+                    this.id = obj.id;
+                    this.date = new Date(obj.date);
+                    this.amount = obj.amount;
+                    this.currency = obj.currency;
+                    this.exchangeRate = obj.exchangeRate;
+                    this.description = obj.description;
+                    this.createDate = new Date(obj.createDate);
+                }
             }
 
             getAmountChf() {
@@ -185,7 +201,10 @@
                     .forEach(e => {
                         day.amount = (day.amount || 0) + e.getAmountChf();
                         const firstHashPosition = e.description.indexOf('#');
-                        day.description.push(e.description.substr(0, firstHashPosition === -1 ? undefined : firstHashPosition).trim());
+                        const dealer = e.description.substr(0, firstHashPosition === -1 ? undefined : firstHashPosition).trim();
+                        if (!day.description.includes(dealer)) {
+                            day.description.push(dealer);
+                        }
                     });
                 days[dateToYmd(date)] = day;
                 if (isSameDay(dateOfToday, date)) {
@@ -268,6 +287,8 @@
             getDayExpensesDiv().innerHTML = dayHeading + dayTable;
 
             getSaveButton().disabled = state.saved;
+
+            getDescriptionInput().focus();
         }
 
         function renderMonthTable() {
@@ -298,6 +319,7 @@
         }
 
         function renderForm(expense) {
+            const currencies = ['CHF', '€'];
             let form = `
                 <tr class="va-bottom">
                     <td>
@@ -311,8 +333,7 @@
                     <td>
                         <label for="currency-input">Währung</label>
                         <select id="currency-input" onchange="handleCurrencyChanged()" required>
-                            <option value="CHF">CHF</option>
-                            <option value="€">€</option>
+                            ${currencies.map(c => `<option value="${c}" ${c === expense?.currency ? 'selected' : ''}>${c}</option>`)}
                         </select>
                     </td>`;
             if (expense) {
@@ -329,7 +350,7 @@
                 <tr id="form-line2" class="va-bottom ${defaultCurrency ? 'display-none' : ''}">
                     <td class="align-right">
                         <label for="exchange-rate">Wechselkurs</label>
-                        <input class="align-right" id="exchange-rate" oninput="handleAmountOrExchangeRateInput();" onchange="validateDecimalField(getExchangeRateInput(), 4);" value="${expense ? expense.exchangeRate : 1}"/>
+                        <input class="align-right" id="exchange-rate" oninput="handleAmountOrExchangeRateInput();" onchange="validateDecimalField(getExchangeRateInput(), 5);" value="${expense ? expense.exchangeRate : 1}"/>
                     </td>
                     <td class="align-right">
                         <span id="computed-chf-value">${defaultCurrency ? '' : expense?.getAmountChf()}</span>
@@ -339,6 +360,26 @@
             return form;
         }
 
+        function getLastExchangeRate(currency, date) {
+            const expensesOfDay = getExpenses()
+                .filter(e => e.currency && isSameDay(e.date, date));
+            let relevantExpenses = expensesOfDay;
+
+            if (expensesOfDay.length === 0) {
+                const expensesOfCurrency = getExpenses()
+                    .filter(e => e.currency === getCurrencySelect().value);
+
+                if (expensesOfCurrency.length === 0) {
+                    return null;
+                }
+                relevantExpenses = expensesOfCurrency;
+            }
+
+            return relevantExpenses
+                .reduce((latest, e) => e.createDate > latest.createDate ? e : latest)
+                .exchangeRate;
+        }
+
         function handleCurrencyChanged() {
             if (isDefaultCurrency(getCurrencySelect().value)) {
                 document.getElementById('form-line2').classList.add('display-none');
@@ -346,6 +387,10 @@
             }
             else {
                 document.getElementById('form-line2').classList.remove('display-none');
+                const latestExchangeRate = getLastExchangeRate(getCurrencySelect().value, new Date(state.month + '-' + state.day));
+                if (latestExchangeRate) {
+                    getExchangeRateInput().value = latestExchangeRate;
+                }
             }
         }
 
@@ -402,6 +447,7 @@
         }
 
         function validateDecimalField(decimalField, fractionalDigits) {
+            decimalField.value = decimalField.value.trim();
             if (decimalField.dataset.validatedValue === decimalField.value) {
                 return;
             }
@@ -423,7 +469,7 @@
 
         function validateForm() {
             validateDecimalField(getAmountInput(), 2);
-            validateDecimalField(getExchangeRateInput(), 4);
+            validateDecimalField(getExchangeRateInput(), 5);
 
             const emptyFields = [];
             [getAmountInput(), getExchangeRateInput(), getDescriptionInput()].forEach(f => {
@@ -464,7 +510,7 @@
                 const index = getExpenses().findIndex(e => e.id === state.edit);
                 const entry = state.data.expenses[index];
                 entry.amount = getAmountInput().value;
-                entry.description = getDescriptionInput().value;
+                entry.description = getDescriptionInput().value.trim();
                 entry.currency = getCurrencySelect().value;
                 entry.exchangeRate = getExchangeRateInput().value;
                 state.edit = null;
@@ -472,7 +518,7 @@
         }
 
         function submitExpense() {
-            storeForm(() => getExpenses().push(new Expense(uuidv4(), state.month + '-' + state.day, getAmountInput().value, getCurrencySelect().value, getExchangeRateInput().value, getDescriptionInput().value)));
+            storeForm(() => getExpenses().push(new Expense(state.month + '-' + state.day, getAmountInput().value, getCurrencySelect().value, getExchangeRateInput().value, getDescriptionInput().value.trim())));
         }
 
         function storeForm(saveAction) {
@@ -529,7 +575,7 @@
             reader.onload = e => {
                 const migratedData = migrate(JSON.parse(e.target.result));
                 setExpenses(migratedData.expenses
-                    .map(e => new Expense(e.id, e.date, e.amount, e.currency, e.exchangeRate, e.description)));
+                    .map(e => new Expense(e)));
                 render();
                 state.filename = file.name;
             }
@@ -538,9 +584,12 @@
 
         function migrate(loadedData) {
             if (!loadedData.expenses[0].currency) {
+                let createDate = Date.now() - (loadedData.expenses.length) * 100;
                 loadedData.expenses.forEach(e => {
                     e.currency = 'CHF';
                     e.exchangeRate = '1';
+                    e.createDate = new Date(createDate).toJSON();
+                    createDate = createDate + 100;
                 });
                 loadedData.version = 2;
                 state.saved = false;
