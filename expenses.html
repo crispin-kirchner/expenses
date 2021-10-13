@@ -350,7 +350,7 @@
                         <input class="align-right" id="exchange-rate" oninput="handleAmountOrExchangeRateInput();" onchange="validateDecimalField(getExchangeRateInput(), 5);" value="${expense ? expense.exchangeRate : 1}"/>
                     </td>
                     <td class="align-right">
-                        <span id="computed-chf-value">${defaultCurrency ? '' : expense?.getAmountChf()}</span>
+                        <span id="computed-chf-value">${defaultCurrency ? '' : renderFloat(expense?.getAmountChf())}</span>
                     </td>
                     <td>CHF</td>
                 </tr>`;
