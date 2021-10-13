@@ -207,9 +207,6 @@
                         }
                     });
                 days[dateToYmd(date)] = day;
-                if (isSameDay(dateOfToday, date)) {
-                    break;
-                }
                 date.setDate(date.getDate() + 1);
             }
             return days;
