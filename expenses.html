@@ -561,6 +561,9 @@
                 return;
             }
             state.saved = value;
+            if (!state.saved) {
+                getFileInput().value = '';
+            }
         }
 
         function loadExpenses() {
