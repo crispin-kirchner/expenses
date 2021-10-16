@@ -135,7 +135,7 @@
 
         document.onkeydown = e => {
             if (e.key === 'Enter') {
-                if (['description', 'amount', 'currency-input', 'exchange-rate'].includes(e.target.id)) {
+                if (['description', 'amount', 'currency-input', 'date-input', 'exchange-rate'].includes(e.target.id)) {
                     if (e.ctrlKey) {
                         onSubmitForm();
                     }
@@ -183,6 +183,10 @@
             state.data.expenses = newExpenses;
         }
 
+        function getCurrentDayString() {
+            return state.month + '-' + state.day;
+        }
+
         function getDaysOfMonth(month) {
             let days = {};
             let monthNumeric = parseInt(month.substring(5, 7)) - 1;
@@ -228,6 +232,10 @@
             return document.getElementById('currency-input');
         }
 
+        function getDateInput() {
+            return document.getElementById('date-input');
+        }
+
         function getDayExpensesDiv() {
             return document.getElementById('day-expenses');
         }
@@ -260,6 +268,22 @@
             return document.getElementById('month-label');
         }
 
+        function getRecurringCheckbox() {
+            return document.getElementById('recurring-checkbox');
+        }
+
+        function getRecurringFrequency() {
+            return document.getElementById('recurring-frequency');
+        }
+
+        function getRecurringMonthly() {
+            return document.getElementById('recurring-monthly');
+        }
+
+        function getRecurringYearly() {
+            return document.getElementById('recurring-yearly');
+        }
+
         function renderFloat(f) {
             return f.toFixed(2);
         }
@@ -286,7 +310,7 @@
 
             let dayHeading = '';
             if (state.day) {
-                dayHeading = `<h2>${dayHeadingFormat.format(new Date(state.month + '-' + state.day))}</h2>`;
+                dayHeading = `<h2>${dayHeadingFormat.format(new Date(getCurrentDayString()))}</h2>`;
             }
             let dayTable = renderDayTable();
             let form = renderForm();
@@ -345,13 +369,22 @@
 
             const defaultCurrency = expense ? isDefaultCurrency(expense.currency) : true;
             form += `
-                <div id="form-line2" ${defaultCurrency ? 'class="display-none"' : ''}>
-                    <label for="exchange-rate">Wechselkurs</label>
-                    <input class="align-right" id="exchange-rate" oninput="handleAmountOrExchangeRateInput();" onchange="validateDecimalField(getExchangeRateInput(), 5);" value="${expense ? expense.exchangeRate : 1}"/>
-                    <span id="computed-chf-value">${defaultCurrency ? '' : renderFloat(expense?.getAmountChf())}</span> CHF
-                </div>`;
+                    <div>
+                        <input id="date-input" type="date" value="${expense ? dateToYmd(expense.date) : getCurrentDayString()}"/>
+                    </div>
+                    <div id="form-line2" ${defaultCurrency ? 'class="display-none"' : ''}>
+                        <label for="exchange-rate">Wechselkurs</label>
+                        <input class="align-right" id="exchange-rate" oninput="handleAmountOrExchangeRateInput();" onchange="validateDecimalField(getExchangeRateInput(), 5);" value="${expense ? expense.exchangeRate : 1}"/>
+                        <span id="computed-chf-value">${defaultCurrency ? '' : renderFloat(expense?.getAmountChf())}</span> CHF
+                    </div>
+                    <div>
+                        <input id="recurring-checkbox" type="checkbox" onchange="handleRecurringCheckboxChanged();" /><label for="recurring-checkbox">Wiederkehrend</label>
+                        <input id="recurring-frequency" type="text" class="align-right" size="2" maxlength="2" value="1" disabled />-
+                        <input id="recurring-monthly" name="recurring-periodicity" type="radio" checked disabled/><label for="recurring-monthly">Monatlich</label>
+                        <input id="recurring-yearly" name="recurring-periodicity" type="radio" disabled/><label for="recurring-yearly">Jährlich</label>
+                    </div>
+                </form>`;
 
-            form += '</form>';
             return form;
         }
 
@@ -382,11 +415,16 @@
             }
             else {
                 document.getElementById('form-line2').classList.remove('display-none');
-                const latestExchangeRate = getLastExchangeRate(getCurrencySelect().value, new Date(state.month + '-' + state.day));
+                const latestExchangeRate = getLastExchangeRate(getCurrencySelect().value, new Date(getCurrentDayString()));
                 if (latestExchangeRate) {
                     getExchangeRateInput().value = latestExchangeRate;
                 }
             }
+        }
+
+        function handleRecurringCheckboxChanged() {
+            [getRecurringFrequency(), getRecurringMonthly(), getRecurringYearly()]
+                .forEach(e => e.disabled = !getRecurringCheckbox().checked);
         }
 
         function handleAmountOrExchangeRateInput() {
@@ -402,7 +440,7 @@
         }
 
         function renderDayTable() {
-            let dayExpenses = getExpensesOfDay(state.month + '-' + state.day);
+            let dayExpenses = getExpensesOfDay(getCurrentDayString());
             let table = '<table>';
             if (dayExpenses.length > 0) {
                 table += `
@@ -498,15 +536,16 @@
 
             if (state.edit) {
                 const entry = getEditExpense();
+                entry.date = new Date(getDateInput().value);
                 entry.amount = getAmountInput().value;
-                entry.description = getDescriptionInput().value.trim();
                 entry.currency = getCurrencySelect().value;
                 entry.exchangeRate = getExchangeRateInput().value;
+                entry.description = getDescriptionInput().value.trim();
                 state.edit = null;
             }
             else {
                 getExpenses().push(new Expense(
-                    state.month + '-' + state.day,
+                    getDateInput().value,
                     getAmountInput().value,
                     getCurrencySelect().value,
                     getExchangeRateInput().value,
