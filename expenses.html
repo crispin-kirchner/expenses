@@ -40,7 +40,6 @@
 
         label {
             font-size: 70%;
-            display: block;
         }
 
         .va-bottom {
@@ -135,18 +134,15 @@
         });
 
         document.onkeydown = e => {
-            if (e.ctrlKey) {
-                if (e.key === 'Enter') {
-                    if (['description', 'amount', 'currency-input', 'exchange-rate'].includes(e.target.id)) {
-                        if (state.edit) {
-                            confirmLineEdit();
-                        }
-                        else {
-                            submitExpense();
-                        }
-                        return false;
+            if (e.key === 'Enter') {
+                if (['description', 'amount', 'currency-input', 'exchange-rate'].includes(e.target.id)) {
+                    if (e.ctrlKey) {
+                        onSubmitForm();
                     }
+                    return false;
                 }
+            }
+            if (e.ctrlKey) {
                 if (e.key === 'o') {
                     openFile();
                     return false;
@@ -244,6 +240,10 @@
             return document.getElementById('exchange-rate');
         }
 
+        function getExpenseForm() {
+            return document.getElementById('expense-form');
+        }
+
         function getSaveButton() {
             return document.getElementById('save-button');
         }
@@ -268,6 +268,14 @@
             return dayFormat.format(d);
         }
 
+        function getEditExpense() {
+            if (!state.edit) {
+                return null;
+            }
+            const index = getExpenses().findIndex(e => e.id === state.edit);
+            return state.data.expenses[index];
+        }
+
         function render() {
             let monthLabel = '';
             if (state.month) {
@@ -281,11 +289,12 @@
                 dayHeading = `<h2>${dayHeadingFormat.format(new Date(state.month + '-' + state.day))}</h2>`;
             }
             let dayTable = renderDayTable();
-            getDayExpensesDiv().innerHTML = dayHeading + dayTable;
+            let form = renderForm();
+            getDayExpensesDiv().innerHTML = dayHeading + dayTable + form;
 
             getSaveButton().disabled = state.saved;
-
             getDescriptionInput().focus();
+            getExpenseForm().addEventListener('submit', onSubmitForm);
         }
 
         function renderMonthTable() {
@@ -315,45 +324,34 @@
             getMonthTable().innerHTML = tableContent;
         }
 
-        function renderForm(expense) {
+        function renderForm() {
+            const expense = getEditExpense();
             const currencies = ['CHF', '€'];
             let form = `
-                <tr class="va-bottom">
-                    <td>
-                        <label for="description">Beschreibung</label>
-                        <input id="description" value="${expense ? expense.description : ''}" required />
-                    </td>
-                    <td class="align-right">
-                        <label for="amount">Betrag</label>
-                        <input id="amount" class="align-right" oninput="handleAmountOrExchangeRateInput();" onchange="validateDecimalField(getAmountInput(), 2);" value="${expense ? expense.amount : ''}" required />
-                    </td>
-                    <td>
-                        <label for="currency-input">Währung</label>
-                        <select id="currency-input" onchange="handleCurrencyChanged()" required>
-                            ${currencies.map(c => `<option value="${c}" ${c === expense?.currency ? 'selected' : ''}>${c}</option>`)}
-                        </select>
-                    </td>`;
+                <form id="expense-form" autocomplete="off">
+                    <label for="description">Beschreibung</label>
+                    <input id="description" value="${expense ? expense.description : ''}" />
+                    <label for="amount">Betrag</label>
+                    <input id="amount" class="align-right" oninput="handleAmountOrExchangeRateInput();" onchange="validateDecimalField(getAmountInput(), 2);" value="${expense ? expense.amount : ''}" required />
+                    <label for="currency-input">Währung</label>
+                    <select id="currency-input" onchange="handleCurrencyChanged()" required>
+                        ${currencies.map(c => `<option value="${c}" ${c === expense?.currency ? 'selected' : ''}>${c}</option>`)}
+                    </select>
+                    <button type="submit" title="${expense ? 'Speichern' : 'Hinzufügen'}">${expense ? '✅' : '➕'}</button>`;
             if (expense) {
                 form += `
-                    <td><button type="button" title="Speichern" onclick="confirmLineEdit();">✅</button></td>
-                    <td><button type="button" title="Abbrechen" onclick="cancelLineEdit();">❌</button></td>`;
+                    <button type="button" title="Abbrechen" onclick="cancelLineEdit();">❌</button>`;
             }
-            else {
-                form += '<td><button type="button" title="Hinzufügen" onclick="submitExpense();">➕</button></td>';
-            }
+
             const defaultCurrency = expense ? isDefaultCurrency(expense.currency) : true;
             form += `
-                </tr>
-                <tr id="form-line2" class="va-bottom ${defaultCurrency ? 'display-none' : ''}">
-                    <td class="align-right">
-                        <label for="exchange-rate">Wechselkurs</label>
-                        <input class="align-right" id="exchange-rate" oninput="handleAmountOrExchangeRateInput();" onchange="validateDecimalField(getExchangeRateInput(), 5);" value="${expense ? expense.exchangeRate : 1}"/>
-                    </td>
-                    <td class="align-right">
-                        <span id="computed-chf-value">${defaultCurrency ? '' : renderFloat(expense?.getAmountChf())}</span>
-                    </td>
-                    <td>CHF</td>
-                </tr>`;
+                <div id="form-line2" ${defaultCurrency ? 'class="display-none"' : ''}>
+                    <label for="exchange-rate">Wechselkurs</label>
+                    <input class="align-right" id="exchange-rate" oninput="handleAmountOrExchangeRateInput();" onchange="validateDecimalField(getExchangeRateInput(), 5);" value="${expense ? expense.exchangeRate : 1}"/>
+                    <span id="computed-chf-value">${defaultCurrency ? '' : renderFloat(expense?.getAmountChf())}</span> CHF
+                </div>`;
+
+            form += '</form>';
             return form;
         }
 
@@ -417,25 +415,16 @@
             }
             table += '<tbody>';
             for (const expense of dayExpenses) {
-                let row = '';
-                if (state.edit === expense.id) {
-                    row = renderForm(expense);
-                }
-                else {
-                    row = `
+                let row = `
                         <tr ${!state.edit ? '' : 'class="modal"'}>
                             <td>${expense.description}</td>
-                            <td class="align-right">${renderFloat(expense.getAmountChf())}</td>
-                            <td>CHF</td>
+                            <td class="align-right">${expense.amount}</td>
+                            <td>${expense.currency}</td>
                             ${!state.edit ? `
                                 <td><button type="button" title="Bearbeiten" class="visible-on-tr-hover" onclick="startLineEdit('${expense.id}')">🖊</button></td>
                                 <td><button type="button" title="Löschen" class="visible-on-tr-hover" onclick="removeExpense('${expense.id}');">🚮</button></td>` : ''}
                         </tr>`
-                }
                 table += row;
-            }
-            if (!state.edit) {
-                table += renderForm();
             }
             table += `
                     </tbody>
@@ -502,26 +491,27 @@
             render();
         }
 
-        function confirmLineEdit() {
-            storeForm(() => {
-                const index = getExpenses().findIndex(e => e.id === state.edit);
-                const entry = state.data.expenses[index];
+        function onSubmitForm(event) {
+            event?.preventDefault();
+
+            validateForm();
+
+            if (state.edit) {
+                const entry = getEditExpense();
                 entry.amount = getAmountInput().value;
                 entry.description = getDescriptionInput().value.trim();
                 entry.currency = getCurrencySelect().value;
                 entry.exchangeRate = getExchangeRateInput().value;
                 state.edit = null;
-            });
-        }
-
-        function submitExpense() {
-            storeForm(() => getExpenses().push(new Expense(state.month + '-' + state.day, getAmountInput().value, getCurrencySelect().value, getExchangeRateInput().value, getDescriptionInput().value.trim())));
-        }
-
-        function storeForm(saveAction) {
-            validateForm();
-
-            saveAction();
+            }
+            else {
+                getExpenses().push(new Expense(
+                    state.month + '-' + state.day,
+                    getAmountInput().value,
+                    getCurrencySelect().value,
+                    getExchangeRateInput().value,
+                    getDescriptionInput().value.trim()))
+            }
 
             setSaved(false);
             render();
