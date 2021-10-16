@@ -10,26 +10,6 @@
             font-family: sans-serif;
         }
 
-        .modal {
-            color: gray;
-        }
-
-        .align-right {
-            text-align: right;
-        }
-
-        .float-right {
-            float: right;
-        }
-
-        .display-none {
-            display: none;
-        }
-
-        .error {
-            border-color: red;
-        }
-
         thead {
             font-weight: bold;
         }
@@ -42,11 +22,40 @@
             font-size: 70%;
         }
 
+        .align-right {
+            text-align: right;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: row;
+        }
+
+        .float-right {
+            float: right;
+        }
+
+        .modal {
+            color: gray;
+        }
+
+        .display-none {
+            display: none;
+        }
+
+        .error {
+            border-color: red;
+        }
+
         .va-bottom {
             vertical-align: bottom;
         }
 
         tr>td .visible-on-tr-hover {
+            visibility: hidden;
+        }
+
+        tr.modal:hover>td .visible-on-tr-hover {
             visibility: hidden;
         }
 
@@ -74,6 +83,7 @@
         const dayFormat = new Intl.DateTimeFormat([], { day: '2-digit', month: '2-digit' });
         const monthFormat = new Intl.DateTimeFormat([], { month: 'long', year: 'numeric' });
         const decimalRegex = /^([0-9]+\.?[0-9]*|\.[0-9]+)$/;
+        const integerRegex = /^([0-9]+)$/;
 
         const today = dateToYmd(new Date(Date.now()));
 
@@ -85,27 +95,43 @@
         }
 
         class Expense {
-            constructor(dateString, amount, currency, exchangeRate, description) {
+            constructor(dateString, amount, currency, exchangeRate, description, recurrencePeriodicity, recurrenceFrequency, recurrenceFromString, recurrenceToString) {
                 if (arguments.length !== 1) {
                     // create new
                     this.id = uuidv4();
-                    this.date = new Date(dateString);
+                    this.date = dateString ? new Date(dateString) : null;
                     this.amount = amount;
                     this.currency = currency;
                     this.exchangeRate = exchangeRate;
                     this.description = description;
                     this.createDate = new Date(Date.now());
+                    if (recurrencePeriodicity) {
+                        this.recurrence = {
+                            periodicity: recurrencePeriodicity,
+                            frequency: parseInt(recurrenceFrequency),
+                            from: new Date(recurrenceFromString),
+                            to: recurrenceToString ? new Date(recurrenceToString) : null
+                        }
+                    }
                 }
                 else {
                     // create from json
                     const obj = arguments[0];
                     this.id = obj.id;
-                    this.date = new Date(obj.date);
+                    this.date = obj.date ? new Date(obj.date) : null;
                     this.amount = obj.amount;
                     this.currency = obj.currency;
                     this.exchangeRate = obj.exchangeRate;
                     this.description = obj.description;
                     this.createDate = new Date(obj.createDate);
+                    if (obj.recurrence) {
+                        this.recurrence = {
+                            periodicity: obj.recurrence.periodicity,
+                            frequency: parseInt(obj.recurrence.frequency),
+                            from: new Date(obj.recurrence.from),
+                            to: obj.recurrence.to ? new Date(obj.recurrence.to) : null
+                        }
+                    }
                 }
             }
 
@@ -114,6 +140,22 @@
                     return parseFloat(this.amount);
                 }
                 return parseFloat(this.exchangeRate) * parseFloat(this.amount);
+            }
+
+            getMonthlyAmount() {
+                if (this.recurrence.periodicity === 'yearly') {
+                    return this.amount / this.recurrence.frequency / 12;
+                }
+                if (this.recurrence.periodicity === 'monthly') {
+                    return this.amount / this.recurrence.frequency;
+                }
+                throw 'Inconsistent recurring expense';
+            }
+
+            isValid(date) {
+                const firstDayOfNextMonth = getFirstDayOfNextMonth(date);
+                const firstDayOfCurrentMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+                return this.recurrence.from < firstDayOfNextMonth && (!this.recurrence.to || this.recurrence.to >= firstDayOfCurrentMonth)
             }
         }
 
@@ -135,10 +177,11 @@
 
         document.onkeydown = e => {
             if (e.key === 'Enter') {
-                if (['description', 'amount', 'currency-input', 'date-input', 'exchange-rate'].includes(e.target.id)) {
+                if (['description', 'amount', 'currency-input', 'date-input', 'exchange-rate', 'recurring-checkbox', 'recurring-frequency', 'recurring-monthly', 'recurring-yearly', 'recurring-from', 'recurring-to', 'recurr'].includes(e.target.id)) {
                     if (e.ctrlKey) {
-                        onSubmitForm();
+                        submitForm();
                     }
+                    // disable Enter-only for submitting
                     return false;
                 }
             }
@@ -156,7 +199,7 @@
         };
 
         /*
-         * Utility
+         * DateUtility
          */
         function getMonth(ymd) {
             return ymd.substring(0, 7);
@@ -170,6 +213,13 @@
             return d1.getDate() === d2.getDate()
                 && d1.getMonth() === d2.getMonth()
                 && d1.getFullYear() === d2.getFullYear();
+        }
+
+        function getFirstDayOfNextMonth(date) {
+            if (date.getMonth() == 11) {
+                return new Date(date.getFullYear() + 1, 0, 1);
+            }
+            return new Date(date.getFullYear(), date.getMonth() + 1, 1);
         }
 
         /*
@@ -187,6 +237,11 @@
             return state.month + '-' + state.day;
         }
 
+        function getOnetimeExpenses() {
+            return getExpenses()
+                .filter(e => !e.recurrence);
+        }
+
         function getDaysOfMonth(month) {
             let days = {};
             let monthNumeric = parseInt(month.substring(5, 7)) - 1;
@@ -196,7 +251,7 @@
                 let day = {
                     description: []
                 };
-                getExpenses()
+                getOnetimeExpenses()
                     .filter(e => isSameDay(date, e.date))
                     .forEach(e => {
                         day.amount = (day.amount || 0) + e.getAmountChf();
@@ -213,7 +268,7 @@
         }
 
         function getExpensesOfDay(day) {
-            return getExpenses()
+            return getOnetimeExpenses()
                 .filter(e => dateToYmd(e.date).substring(0, 10) === day);
         }
 
@@ -276,6 +331,10 @@
             return document.getElementById('recurring-checkbox');
         }
 
+        function getRecurringExpenses() {
+            return document.getElementById('recurring-expenses');
+        }
+
         function getRecurringFrequency() {
             return document.getElementById('recurring-frequency');
         }
@@ -312,12 +371,18 @@
             return state.data.expenses[index];
         }
 
+        function renderAmountTd(content) {
+            return `<td class="align-right">${content}</td>`;
+        }
+
         function render() {
             let monthLabel = '';
             if (state.month) {
                 monthLabel = monthFormat.format(new Date(state.month));
             }
             getMonthLabel().textContent = monthLabel;
+
+            renderRecurringExpenses();
             renderMonthTable();
 
             let dayHeading = '';
@@ -330,31 +395,58 @@
 
             getSaveButton().disabled = state.saved;
             getDescriptionInput().focus();
-            getExpenseForm().addEventListener('submit', onSubmitForm);
+            getExpenseForm().addEventListener('submit', submitForm);
+        }
+
+        function renderRecurringExpenses() {
+            const currentDay = new Date(getCurrentDayString());
+
+            const recurringExpenses = getExpenses()
+                .filter(e => e.recurrence)
+                .filter(e => e.isValid(currentDay));
+
+            if (recurringExpenses.length === 0) {
+                getRecurringExpenses().innerHTML = '';
+                return;
+            }
+
+            let recurringExpensesHtml = `
+                    <h2>Wiederkehrende Ausgaben</h2>
+                    <table>`;
+            recurringExpensesHtml += recurringExpenses
+                .map(e => renderExpenseTr(`
+                        <td>${e.description}</td>
+                        ${renderAmountTd(renderFloat(e.getMonthlyAmount()))}
+                        <td>${e.currency}</td>
+                        ${renderModificationButtons(e)}`))
+                .join('\n');
+
+            recurringExpensesHtml += '</table>';
+            getRecurringExpenses().innerHTML = recurringExpensesHtml;
         }
 
         function renderMonthTable() {
             let tableContent = `
-                    <thead>
-                        <tr>
-                            <td>Datum</td>
-                            <td class="align-right">Betrag</td>
-                            <td></td>
-                            <td>Beschreibung</td>
-                        </tr>
-                    </thead>`;
+            <thead>
+            <tr>
+                <td>Datum</td>
+                ${renderAmountTd('Betrag')}
+                <td></td>
+                <td>Beschreibung</td>
+            </tr>
+                    </thead> `;
             tableContent += '<tbody>';
             Object.entries(getDaysOfMonth(state.month))
                 .forEach(d => {
                     const [ymd, row] = d;
                     tableContent += `
-                    <tr>
+            <tr>
                         <td><a href="#" onclick="setDay('${ymd.substring(8, 10)}');">${renderDay(new Date(ymd))}</a></td>
-                        <td class="align-right">${row.amount ? renderFloat(row.amount) : ''}</td>
+                        ${renderAmountTd(row.amount ? renderFloat(row.amount) : '')}
                         <td>${row.amount ? 'CHF' : ''}</td>
                         <td>${row.description.join(', ')}</td>
                     </tr>
-                `;
+            `;
                 });
             tableContent += '</tbody>';
             getMonthTable().innerHTML = tableContent;
@@ -364,44 +456,50 @@
             const expense = getEditExpense();
             const currencies = ['CHF', '€'];
             let form = `
+            <h2> ${!expense ? 'Neue ' : ''}Ausgabe${expense ? ' bearbeiten' : ''}</h2>
                 <form id="expense-form" autocomplete="off">
                     <label for="description">Beschreibung</label>
                     <input id="description" value="${expense ? expense.description : ''}" />
+                    <br />
                     <label for="amount">Betrag</label>
                     <input id="amount" class="align-right" oninput="handleAmountOrExchangeRateInput();" onchange="validateDecimalField(getAmountInput(), 2);" value="${expense ? expense.amount : ''}" required />
-                    <label for="currency-input">Währung</label>
+                    <label for="currency-input" class="display-none">Währung</label>
                     <select id="currency-input" onchange="handleCurrencyChanged()" required>
                         ${currencies.map(c => `<option value="${c}" ${c === expense?.currency ? 'selected' : ''}>${c}</option>`)}
-                    </select>
-                    <button type="submit" title="${expense ? 'Speichern' : 'Hinzufügen'}">${expense ? '✅' : '➕'}</button>`;
-            if (expense) {
-                form += `
-                    <button type="button" title="Abbrechen" onclick="cancelLineEdit();">❌</button>`;
-            }
+                    </select>`;
 
             const defaultCurrency = expense ? isDefaultCurrency(expense.currency) : true;
             form += `
-                    <div>
-                        <label for="date-input">Datum</label>
-                        <input id="date-input" type="date" value="${expense ? dateToYmd(expense.date) : getCurrentDayString()}"/>
-                    </div>
                     <div id="form-line2" ${defaultCurrency ? 'class="display-none"' : ''}>
                         <label for="exchange-rate">Wechselkurs</label>
-                        <input class="align-right" id="exchange-rate" oninput="handleAmountOrExchangeRateInput();" onchange="validateDecimalField(getExchangeRateInput(), 5);" value="${expense ? expense.exchangeRate : 1}"/>
+                        <input class="align-right" id="exchange-rate" oninput="handleAmountOrExchangeRateInput();" onchange="validateDecimalField(getExchangeRateInput(), 5);" value="${expense ? expense.exchangeRate : 1}" />
                         <span id="computed-chf-value">${defaultCurrency ? '' : renderFloat(expense?.getAmountChf())}</span> CHF
-                    </div>
+                    </div>`;
+
+            const recurrence = expense?.recurrence;
+            form += `
                     <div>
-                        <input id="recurring-checkbox" type="checkbox" onchange="handleRecurringCheckboxChanged();" /><label for="recurring-checkbox">Wiederkehrend</label>
-                        <input id="recurring-frequency" type="text" class="align-right" size="2" maxlength="2" value="1" disabled />-
-                        <input id="recurring-monthly" name="recurring-periodicity" type="radio" checked disabled/><label for="recurring-monthly">Monatlich</label>
-                        <input id="recurring-yearly" name="recurring-periodicity" type="radio" disabled/><label for="recurring-yearly">Jährlich</label>
+                        <label for="date-input" ${recurrence ? 'class="display-none"' : ''}>Datum</label>
+                        <input id="date-input" type="date" ${recurrence ? 'class="display-none"' : ''} value="${expense?.date ? dateToYmd(expense.date) : (expense ? '' : getCurrentDayString())}" />
+                    </div>`;
+
+            const periodicity = recurrence?.periodicity;
+            form += `
+                    <div>
+                        <input id="recurring-checkbox" type="checkbox" onchange="handleRecurringCheckboxChanged();" ${recurrence ? 'checked' : ''} /><label for="recurring-checkbox">Wiederkehrend</label>
+                        <br />
+                        <input id="recurring-frequency" type="number" class="align-right" size="2" maxlength="2" value="${recurrence ? recurrence.frequency : '1'}" onchange="validateIntegerField(getRecurringFrequency());" ${recurrence ? '' : 'disabled'} />-
+                        <input id="recurring-monthly" name="recurring-periodicity" type="radio" ${!recurrence || periodicity === 'monthly' ? 'checked' : ''} ${recurrence ? '' : 'disabled'} /><label for="recurring-monthly">Monatlich</label>
+                        <input id="recurring-yearly" name="recurring-periodicity" type="radio" ${periodicity === 'yearly' ? 'checked' : ''} ${recurrence ? '' : 'disabled'} /><label for="recurring-yearly">Jährlich</label>
                     </div>
                     <div id="recurring-fromto">
-                        <label for="recurring-from">Start</label>
-                        <input id="recurring-from" type="date" disabled/>
-                        <label for="recurring-to">Ende</label>
-                        <input id="recurring-to" type="date" disabled/>
+                        <label for="recurring-from">Start</label><label>/</label><label for="recurring-to">Ende</label>
+                        <input id="recurring-from" type="date" value="${recurrence ? dateToYmd(recurrence.from) : ''}" ${recurrence ? '' : 'disabled'} />
+                        <input id="recurring-to" type="date" value="${recurrence?.to ? dateToYmd(recurrence.to) : ''}" ${recurrence ? '' : 'disabled'} />
                     </div>
+                    <div class="align-right">
+                    <button type ="submit" title="${expense ? 'Speichern' : 'Hinzufügen'}">${expense ? '✅' : '➕'}</button>
+                    ${expense ? `<button type="button" title="Abbrechen" onclick="cancelLineEdit();">❌</button>` : ''}
                 </form>`;
 
             return form;
@@ -477,61 +575,78 @@
             return currency === 'CHF';
         }
 
+        function renderModificationButtons(expense) {
+            return `
+                    <td> <button type="button" title="Bearbeiten" class="visible-on-tr-hover" onclick="startLineEdit('${expense.id}')">🖊</button></td>
+                        <td><button type="button" title="Löschen" class="visible-on-tr-hover" onclick="removeExpense('${expense.id}');">🚮</button></td>`;
+        }
+
+        function renderExpenseTr(content) {
+            return `<tr ${!state.edit ? '' : 'class="modal"'}> ${content}</tr> `;
+        }
+
         function renderDayTable() {
             let dayExpenses = getExpensesOfDay(getCurrentDayString());
             let table = '<table>';
             if (dayExpenses.length > 0) {
                 table += `
-                        <thead>
-                            <tr>
-                                <td>Beschreibung</td>
-                                <td class="align-right">Betrag</td>
-                            </tr>
-                        </thead>`;
+            <thead>
+            <tr>
+                <td>Beschreibung</td>
+                ${renderAmountTd('Betrag')}
+            </tr>
+                    </thead> `;
             }
             table += '<tbody>';
             for (const expense of dayExpenses) {
-                let row = `
-                        <tr ${!state.edit ? '' : 'class="modal"'}>
-                            <td>${expense.description}</td>
-                            <td class="align-right">${expense.amount}</td>
-                            <td>${expense.currency}</td>
-                            ${!state.edit ? `
-                                <td><button type="button" title="Bearbeiten" class="visible-on-tr-hover" onclick="startLineEdit('${expense.id}')">🖊</button></td>
-                                <td><button type="button" title="Löschen" class="visible-on-tr-hover" onclick="removeExpense('${expense.id}');">🚮</button></td>` : ''}
-                        </tr>`
-                table += row;
+                table += renderExpenseTr(`
+                    <td>${expense.description}</td>
+                    ${renderAmountTd(expense.amount)}
+                    <td>${expense.currency}</td>
+                    ${renderModificationButtons(expense)} `);
             }
             table += `
                     </tbody>
-                </table>`;
+                </table> `;
             return table;
         }
 
         function validateDecimalField(decimalField, fractionalDigits) {
-            decimalField.value = decimalField.value.trim();
-            if (decimalField.dataset.validatedValue === decimalField.value) {
+            validateField(decimalField, decimalRegex, () => {
+                const components = decimalField.value.split('.');
+                const integerPart = components[0] ? parseInt(components[0]) : '0';
+                const fractionalPart = components[1] ? components[1].substring(0, fractionalDigits).padEnd(fractionalDigits, '0') : '00';
+                return integerPart + '.' + fractionalPart;
+            });
+        }
+
+        function validateIntegerField(integerField) {
+            validateField(integerField, integerRegex, () => parseInt(integerField.value));
+        }
+
+        function validateField(field, regex, prettyPrinter) {
+            field.value = field.value.trim();
+            if (field.dataset.validatedValue === field.value) {
                 return;
             }
-            decimalField.classList.remove('error');
-            if (!decimalField.value) {
-                decimalField.dataset.validatedValue = decimalField.value;
+            field.classList.remove('error');
+            if (!field.value) {
+                field.dataset.validatedValue = field.value;
                 return;
             }
-            if (!decimalRegex.test(decimalField.value)) {
-                decimalField.dataset.validatedValue = decimalField.value;
-                throw new ExpensesError(`'${decimalField.value}' ist keine gültige Zahl`, [decimalField]);
+            if (!regex.test(field.value)) {
+                field.dataset.validatedValue = field.value;
+                throw new ExpensesError(`'${field.value}' ist keine gültige Zahl`, [field]);
             }
-            const components = decimalField.value.split('.');
-            const integerPart = components[0] ? parseInt(components[0]) : '0';
-            const fractionalPart = components[1] ? components[1].substring(0, fractionalDigits).padEnd(fractionalDigits, '0') : '00';
-            decimalField.value = integerPart + '.' + fractionalPart;
-            decimalField.dataset.validatedValue = decimalField.value;
+            const validatedValue = prettyPrinter();
+            field.value = validatedValue;
+            field.dataset.validatedValue = validatedValue;
         }
 
         function validateForm() {
             validateDecimalField(getAmountInput(), 2);
             validateDecimalField(getExchangeRateInput(), 5);
+            validateIntegerField(getRecurringFrequency());
 
             const emptyFields = [];
             const mandatoryFields = [getAmountInput(), getExchangeRateInput(), getDescriptionInput()];
@@ -576,18 +691,41 @@
             render();
         }
 
-        function onSubmitForm(event) {
+        function getRecurrencePeriodicity() {
+            if (!getRecurringCheckbox().checked) {
+                return null;
+            }
+            if (getRecurringMonthly().checked) {
+                return 'monthly';
+            }
+            if (getRecurringYearly().checked) {
+                return 'yearly';
+            }
+        }
+
+        function submitForm(event) {
             event?.preventDefault();
 
             validateForm();
 
+            // FIXME eliminate this code duplication
             if (state.edit) {
                 const entry = getEditExpense();
-                entry.date = new Date(getDateInput().value);
+                entry.date = getDateInput().value ? new Date(getDateInput().value) : null;
                 entry.amount = getAmountInput().value;
                 entry.currency = getCurrencySelect().value;
                 entry.exchangeRate = getExchangeRateInput().value;
                 entry.description = getDescriptionInput().value.trim();
+                if (getRecurringCheckbox().checked) {
+                    entry.recurrence = entry.recurrence || {};
+                    entry.recurrence.periodicity = getRecurrencePeriodicity();
+                    entry.recurrence.frequency = parseInt(getRecurringFrequency().value);
+                    entry.recurrence.from = new Date(getRecurringFrom().value);
+                    entry.recurrence.to = getRecurringTo().value ? new Date(getRecurringTo().value) : null;
+                }
+                else {
+                    entry.recurrence = undefined;
+                }
                 state.edit = null;
             }
             else {
@@ -596,7 +734,11 @@
                     getAmountInput().value,
                     getCurrencySelect().value,
                     getExchangeRateInput().value,
-                    getDescriptionInput().value.trim()))
+                    getDescriptionInput().value.trim(),
+                    getRecurrencePeriodicity(),
+                    getRecurringFrequency().value,
+                    getRecurringFrom().value,
+                    getRecurringTo().value));
             }
 
             setSaved(false);
@@ -677,17 +819,28 @@
 </head>
 
 <body>
-    <h1>Ausgaben</h1>
-    <span id="month-label"></span>
-    <span class="float-right">
-        <button type="button" title="Öffnen" onclick="openFile();">📂</button>
-        <input type="file" id="file-input" class="display-none" onchange="loadExpenses()" />
-        <button type="button" id="save-button" title="Speichern" onclick="save();">💾</button>
-    </span>
-    <hr>
-    <table id="month-table"></table>
-    <div id="day-expenses"></div>
-    </table>
+    <div class="bar">
+        <h1 id="month-label">Ausgaben</h1>
+        <span class="float-right">
+            <button type="button" title="Öffnen" onclick="openFile();">📂</button>
+            <input type="file" id="file-input" class="display-none" onchange="loadExpenses()" />
+            <button type="button" id="save-button" title="Speichern" onclick="save();">💾</button>
+        </span>
+        <hr>
+    </div>
+
+    <div class="container">
+        <div id="recurring-expenses"></div>
+        <div>
+            <h2>Ausgaben</h2>
+            <table id="month-table"></table>
+        </div>
+        <div>
+            <div id="day-expenses"></div>
+        </div>
+    </div>
+
+
 
     <script>
         "use strict";
