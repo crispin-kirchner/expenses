@@ -236,6 +236,10 @@
             return document.getElementById('date-input');
         }
 
+        function getDateLabel() {
+            return document.querySelector('label[for="date-input"]')
+        }
+
         function getDayExpensesDiv() {
             return document.getElementById('day-expenses');
         }
@@ -276,8 +280,16 @@
             return document.getElementById('recurring-frequency');
         }
 
+        function getRecurringFrom() {
+            return document.getElementById('recurring-from');
+        }
+
         function getRecurringMonthly() {
             return document.getElementById('recurring-monthly');
+        }
+
+        function getRecurringTo() {
+            return document.getElementById('recurring-to');
         }
 
         function getRecurringYearly() {
@@ -370,6 +382,7 @@
             const defaultCurrency = expense ? isDefaultCurrency(expense.currency) : true;
             form += `
                     <div>
+                        <label for="date-input">Datum</label>
                         <input id="date-input" type="date" value="${expense ? dateToYmd(expense.date) : getCurrentDayString()}"/>
                     </div>
                     <div id="form-line2" ${defaultCurrency ? 'class="display-none"' : ''}>
@@ -382,6 +395,12 @@
                         <input id="recurring-frequency" type="text" class="align-right" size="2" maxlength="2" value="1" disabled />-
                         <input id="recurring-monthly" name="recurring-periodicity" type="radio" checked disabled/><label for="recurring-monthly">Monatlich</label>
                         <input id="recurring-yearly" name="recurring-periodicity" type="radio" disabled/><label for="recurring-yearly">Jährlich</label>
+                    </div>
+                    <div id="recurring-fromto">
+                        <label for="recurring-from">Start</label>
+                        <input id="recurring-from" type="date" disabled/>
+                        <label for="recurring-to">Ende</label>
+                        <input id="recurring-to" type="date" disabled/>
                     </div>
                 </form>`;
 
@@ -423,8 +442,27 @@
         }
 
         function handleRecurringCheckboxChanged() {
-            [getRecurringFrequency(), getRecurringMonthly(), getRecurringYearly()]
+            [getRecurringFrequency(),
+            getRecurringMonthly(),
+            getRecurringYearly(),
+            getRecurringFrom(),
+            getRecurringTo()]
                 .forEach(e => e.disabled = !getRecurringCheckbox().checked);
+
+            if (getRecurringCheckbox().checked) {
+                [getDateLabel(), getDateInput()]
+                    .forEach(e => e.classList.add('display-none'));
+
+                getRecurringFrom().value = getDateInput().value;
+                getDateInput().value = null;
+            }
+            else {
+                [getDateLabel(), getDateInput()]
+                    .forEach(e => e.classList.remove('display-none'));
+
+                getDateInput().value = getRecurringFrom().value;
+                getRecurringFrom().value = null;
+            }
         }
 
         function handleAmountOrExchangeRateInput() {
@@ -496,7 +534,16 @@
             validateDecimalField(getExchangeRateInput(), 5);
 
             const emptyFields = [];
-            [getAmountInput(), getExchangeRateInput(), getDescriptionInput()].forEach(f => {
+            const mandatoryFields = [getAmountInput(), getExchangeRateInput(), getDescriptionInput()];
+            if (getRecurringCheckbox().checked) {
+                mandatoryFields.push(
+                    getRecurringFrequency(),
+                    getRecurringFrom());
+            }
+            else {
+                mandatoryFields.push(getDateInput());
+            }
+            mandatoryFields.forEach(f => {
                 f.classList.remove('error');
                 if (!f.value) {
                     f.classList.add('error');
