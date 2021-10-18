@@ -84,6 +84,7 @@
         const monthFormat = new Intl.DateTimeFormat([], { month: 'long', year: 'numeric' });
         const decimalRegex = /^([0-9]+\.?[0-9]*|\.[0-9]+)$/;
         const integerRegex = /^([0-9]+)$/;
+        const defaultExchangeRate = '1.00000';
 
         const today = dateToYmd(new Date(Date.now()));
 
@@ -472,7 +473,7 @@
             form += `
                     <div id="form-line2" ${defaultCurrency ? 'class="display-none"' : ''}>
                         <label for="exchange-rate">Wechselkurs</label>
-                        <input class="align-right" id="exchange-rate" oninput="handleAmountOrExchangeRateInput();" onchange="validateDecimalField(getExchangeRateInput(), 5);" value="${expense ? expense.exchangeRate : 1}" />
+                        <input class="align-right" id="exchange-rate" oninput="handleAmountOrExchangeRateInput();" onchange="validateDecimalField(getExchangeRateInput(), 5);" value="${expense ? expense.exchangeRate : defaultExchangeRate}" />
                         <span id="computed-chf-value">${defaultCurrency ? '' : renderFloat(expense?.getAmountChf())}</span> CHF
                     </div>`;
 
@@ -506,8 +507,9 @@
         }
 
         function getLastExchangeRate(currency, date) {
+            // TODO Wechselkurse für wiederkehrende Ausgaben
             const expensesOfDay = getExpenses()
-                .filter(e => e.currency && isSameDay(e.date, date));
+                .filter(e => e.currency && (!e.date || isSameDay(e.date, date)));
             let relevantExpenses = expensesOfDay;
 
             if (expensesOfDay.length === 0) {
@@ -528,7 +530,7 @@
         function handleCurrencyChanged() {
             if (isDefaultCurrency(getCurrencySelect().value)) {
                 document.getElementById('form-line2').classList.add('display-none');
-                getExchangeRateInput().value = 1;
+                getExchangeRateInput().value = defaultExchangeRate;
             }
             else {
                 document.getElementById('form-line2').classList.remove('display-none');
