@@ -427,16 +427,7 @@
         }
 
         function renderMonthTable() {
-            let tableContent = `
-            <thead>
-            <tr>
-                <td>Datum</td>
-                ${renderAmountTd('Betrag')}
-                <td></td>
-                <td>Beschreibung</td>
-            </tr>
-                    </thead> `;
-            tableContent += '<tbody>';
+            let tableContent = '';
             Object.entries(getDaysOfMonth(state.month))
                 .forEach(d => {
                     const [ymd, row] = d;
@@ -449,7 +440,6 @@
                     </tr>
             `;
                 });
-            tableContent += '</tbody>';
             getMonthTable().innerHTML = tableContent;
         }
 
@@ -590,16 +580,6 @@
         function renderDayTable() {
             let dayExpenses = getExpensesOfDay(getCurrentDayString());
             let table = '<table>';
-            if (dayExpenses.length > 0) {
-                table += `
-            <thead>
-            <tr>
-                <td>Beschreibung</td>
-                ${renderAmountTd('Betrag')}
-            </tr>
-                    </thead> `;
-            }
-            table += '<tbody>';
             for (const expense of dayExpenses) {
                 table += renderExpenseTr(`
                     <td>${expense.description}</td>
@@ -608,7 +588,6 @@
                     ${renderModificationButtons(expense)} `);
             }
             table += `
-                    </tbody>
                 </table> `;
             return table;
         }
