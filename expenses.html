@@ -375,23 +375,42 @@
             let monthNumeric = parseInt(month.substring(5, 7)) - 1;
             let date = new Date(month);
             let dateOfToday = new Date(Date.now());
+
+            // TODO refactor to use same code as month summary
+            const income = getExpenses()
+                .filter(e => e.getType() === 'income')
+                .filter(e => e.isValid(new Date(getCurrentDayString())))
+                .reduce((sum, e) => sum + e.computeAmountChf(), 0);
+
+            const recurringExpenses = getExpenses()
+                .filter(e => e.getType() === 'expense')
+                .filter(e => e.isRecurring())
+                .filter(e => e.isValid(new Date(getCurrentDayString())))
+                .reduce((sum, e) => sum + e.computeAmountChf(), 0);
+
+            const availableAmount = income - recurringExpenses;
+
             while (date.getMonth() === monthNumeric) {
-                let day = {
-                    description: []
-                };
-                getOnetimeExpenses()
+                days[dateToYmd(date)] = getOnetimeExpenses()
                     .filter(e => e.getType() === 'expense' && e.isValid(date))
-                    .forEach(e => {
-                        day.amount = (day.amount || 0) + e.computeAmountChf();
+                    .reduce((day, e) => {
+                        day.amount += e.computeAmountChf();
                         const firstHashPosition = e.getDescription().indexOf('#');
                         const dealer = e.getDescription().substr(0, firstHashPosition === -1 ? undefined : firstHashPosition).trim();
                         if (!day.description.includes(dealer)) {
                             day.description.push(dealer);
                         }
-                    });
-                days[dateToYmd(date)] = day;
+                        return day;
+                    }, { amount: 0, description: [] });
                 date.setDate(date.getDate() + 1);
             }
+
+            const numDays = Object.entries(days).length;
+            Object.entries(days)
+                .filter(entry => new Date(entry[0]) < new Date(today))
+                .forEach(entry => {
+                    entry[1].saved = availableAmount / numDays - entry[1].amount
+                });
             return days;
         }
 
@@ -585,6 +604,8 @@
                             ${renderAmountTd(row.amount ? renderFloat(row.amount) : '')}
                             <td>${row.amount ? 'CHF' : ''}</td>
                             <td>${row.description.join(', ')}</td>
+                            ${renderAmountTd(row.saved ? renderFloat(row.saved) : '')}
+                            <td>${row.saved ? 'CHF' : ''}</td>
                         </tr>
             `;
                 });
@@ -614,7 +635,6 @@
                     <br />
                     <label for="amount">Betrag</label>
                     <input id="amount" class="align-right" oninput="handleAmountOrExchangeRateInput();" onchange="validateDecimalField(getAmountInput(), 2);" value="${expense ? expense.getAmount() : ''}" />
-                    <label for="currency-input">Währung</label>
                     <select id="currency-input" onchange="handleCurrencyChanged()" required>
                         ${currencies.map(c => `<option value="${c}" ${c === expense?.getCurrency() ? 'selected' : ''}>${c}</option>`)}
                     </select>
