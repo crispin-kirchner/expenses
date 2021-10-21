@@ -380,7 +380,7 @@
                     description: []
                 };
                 getOnetimeExpenses()
-                    .filter(e => isSameDay(date, e.getDate()))
+                    .filter(e => e.getType() === 'expense' && e.isValid(date))
                     .forEach(e => {
                         day.amount = (day.amount || 0) + e.computeAmountChf();
                         const firstHashPosition = e.getDescription().indexOf('#');
@@ -582,21 +582,13 @@
         }
 
         function renderFormHeader() {
-            if (!state.edit) {
-                return `
-                    <select id="type-select">
-                        <option value="expense" selected>Ausgabe</option>
-                        <option value="income">Einnahme</option>
-                    </select>`;
-            }
             const expense = getEditExpense();
-            if (expense.getType() === 'expense') {
-                return 'Ausgabe';
-            }
-            if (expense.getType() === 'income') {
-                return 'Einnahme';
-            }
-            throw 'Expense has unknown type';
+            const expenseSelected = !expense || expense.getType() === 'expense';
+            return `
+                    <select id="type-select">
+                        <option value="expense" ${expenseSelected ? 'selected' : ''}>Ausgabe</option>
+                        <option value="income" ${expense?.getType() === 'income' ? 'selected' : ''}>Einnahme</option>
+                    </select>`
         }
 
         function renderForm() {
