@@ -5,13 +5,10 @@
     <title>Ausgaben</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         html {
             font-family: sans-serif;
-        }
-
-        thead {
-            font-weight: bold;
         }
 
         h1 {
@@ -83,6 +80,8 @@
             saved: true,
             edit: null,
             month: null,
+            monthDisplay: 'calendar',
+            chartTags: [],
             day: null,
             filename: null,
             data: {
@@ -97,6 +96,7 @@
         const numberFormat = new Intl.NumberFormat(['de-CH'], { useGrouping: true, minimumFractionDigits: 2, maximumFractionDigits: 2 });
         const decimalRegex = /^([0-9]+\.?[0-9]*|\.[0-9]+)$/;
         const integerRegex = /^([0-9]+)$/;
+        const tagRegex = /#(\w+)/g;
         const defaultExchangeRate = '1.00000';
 
         const today = dateToYmd(new Date(Date.now()));
@@ -253,6 +253,15 @@
                 this._recurrenceTo = recurrenceTo;
             }
 
+            getTags() {
+                let m = null;
+                const tags = [];
+                while (m = tagRegex.exec(this.getDescription())) {
+                    tags.push(m[1]);
+                }
+                return tags;
+            }
+
             computeAmountChf() {
                 if (isDefaultCurrency(this.getCurrency())) {
                     return parseFloat(this.getAmount());
@@ -357,6 +366,22 @@
             return state.data.expenses;
         }
 
+        function getAllTags(filter) {
+            const now = new Date(getCurrentDayString());
+            return getExpenses()
+                .filter(ex => ex.isValid(now))
+                .filter(ex => ex.getType() === 'expense')
+                .map(ex => ex.getTags())
+                .reduce((allTags, tags) => {
+                    tags.forEach(t => {
+                        if (!allTags.includes(t)) {
+                            allTags.push(t);
+                        }
+                    });
+                    return allTags;
+                }, []);
+        }
+
         function setExpenses(newExpenses) {
             state.data.expenses = newExpenses;
         }
@@ -457,8 +482,8 @@
             return document.getElementById('file-input');
         }
 
-        function getMonthTable() {
-            return document.getElementById('month-table');
+        function getMainArea() {
+            return document.getElementById('main-area');
         }
 
         function getMonthLabel() {
@@ -525,6 +550,41 @@
             return `<td class="align-right">${content}</td>`;
         }
 
+        function setMonthDisplay(monthDisplay) {
+            if (monthDisplay === state.monthDisplay) {
+                return;
+            }
+            state.monthDisplay = monthDisplay;
+            render();
+        }
+
+        function renderMainArea() {
+            const nav = `
+                <ul class="nav nav-tabs">
+                    <li class="nav-item">
+                        <a class="nav-link ${state.monthDisplay === 'calendar' ? 'active' : ''}" onclick="setMonthDisplay('calendar');" href="#">Kalender</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link ${state.monthDisplay === 'chart' ? 'active' : ''}" onclick="setMonthDisplay('chart')" href="#">Diagramm</a>
+                    </li>
+                </ul>`;
+            if (state.monthDisplay === 'calendar') {
+                var content = renderMonthTable();
+            }
+            if (state.monthDisplay === 'chart') {
+                var content = renderChart();
+            }
+            getMainArea().innerHTML = nav + content;
+        }
+
+        function renderChart() {
+            const tags = getAllTags();
+            return `
+                <div>
+                    ${tags.map(t => `<span class="badge ${state.chartTags.includes(t) ? 'bg-primary' : 'bg-secondary'}">${t}</span>`).join('\n')}
+                </div>`;
+        }
+
         function render() {
             let monthLabel = '';
             if (state.month) {
@@ -533,7 +593,7 @@
             getMonthLabel().textContent = monthLabel;
 
             renderMonthOverview();
-            renderMonthTable();
+            renderMainArea();
 
             const dayTable = `
                 <table>
@@ -594,7 +654,7 @@
         }
 
         function renderMonthTable() {
-            let tableContent = '';
+            let tableContent = '<table>';
             Object.entries(getDaysOfMonth(state.month))
                 .forEach(d => {
                     const [ymd, row] = d;
@@ -609,7 +669,7 @@
                         </tr>
             `;
                 });
-            getMonthTable().innerHTML = tableContent;
+            return tableContent + '</table>';
         }
 
         function renderFormHeader() {
@@ -1021,8 +1081,7 @@
 
     <div class="container">
         <div id="recurring-expenses"></div>
-        <div>
-            <table id="month-table"></table>
+        <div id="main-area">
         </div>
         <div>
             <div id="day-expenses"></div>
