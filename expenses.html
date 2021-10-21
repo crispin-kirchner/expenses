@@ -518,7 +518,7 @@
 
             const dayTable = `
                 <table>
-                    ${renderSection(dayHeadingFormat.format(new Date(getCurrentDayString())), e => e.getType() === 'expense' && !e.isRecurring())}
+                    ${renderSection(dayHeadingFormat.format(new Date(getCurrentDayString())), e => e.getType() === 'expense' && !e.isRecurring(), false)}
                 </table>`;
             const form = renderForm();
             getDayExpensesDiv().innerHTML = dayTable + form;
@@ -530,12 +530,15 @@
             getExpenseForm().addEventListener('submit', submitForm);
         }
 
-        function renderSection(heading, filter) {
+        function renderSection(heading, filter, sort) {
             const currentDay = new Date(getCurrentDayString());
             const expenses = getExpenses()
                 .filter(filter)
-                .filter(e => e.isValid(currentDay))
-                .sort((e1, e2) => e2.computeMonthlyAmountChf() - e1.computeMonthlyAmountChf());
+                .filter(e => e.isValid(currentDay));
+
+            if (sort) {
+                expenses.sort((e1, e2) => e2.computeMonthlyAmountChf() - e1.computeMonthlyAmountChf());
+            }
 
             const sum = expenses
                 .reduce((sum, e) => sum + e.computeMonthlyAmountChf(), 0.0);
@@ -563,9 +566,9 @@
         function renderMonthOverview() {
             let monthOverviewHtml = `
                     <table class="indent-childs">
-                        ${renderSection('Einnahmen', e => e.getType() === 'income')}
-                        ${renderSection('Wiederkehrende Ausgaben', e => e.getType() === 'expense' && e.isRecurring())}
-                        ${renderSection('Sparziele', e => e.getType() === 'goal')}
+                        ${renderSection('Einnahmen', e => e.getType() === 'income', true)}
+                        ${renderSection('Wiederkehrende Ausgaben', e => e.getType() === 'expense' && e.isRecurring(), true)}
+                        ${renderSection('Sparziele', e => e.getType() === 'goal', true)}
                     </table>`;
 
             getRecurringExpenses().innerHTML = monthOverviewHtml;
