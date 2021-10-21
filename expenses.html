@@ -414,10 +414,6 @@
             return document.getElementById('date-input');
         }
 
-        function getDateLabel() {
-            return document.querySelector('label[for="date-input"]');
-        }
-
         function getDayExpensesDiv() {
             return document.getElementById('day-expenses');
         }
@@ -464,6 +460,14 @@
 
         function getRecurringFrom() {
             return document.getElementById('recurring-from');
+        }
+
+        function getRecurringFromToLabelSep() {
+            return document.getElementById('recurring-fromto-label-sep');
+        }
+
+        function getRecurringFrequencySep() {
+            return document.getElementById('recurring-frequency-sep');
         }
 
         function getRecurringMonthly() {
@@ -519,6 +523,8 @@
             const form = renderForm();
             getDayExpensesDiv().innerHTML = dayTable + form;
 
+            refreshView();
+
             getSaveButton().disabled = state.saved;
             getDescriptionInput().focus();
             getExpenseForm().addEventListener('submit', submitForm);
@@ -559,6 +565,7 @@
                     <table class="indent-childs">
                         ${renderSection('Einnahmen', e => e.getType() === 'income')}
                         ${renderSection('Wiederkehrende Ausgaben', e => e.getType() === 'expense' && e.isRecurring())}
+                        ${renderSection('Sparziele', e => e.getType() === 'goal')}
                     </table>`;
 
             getRecurringExpenses().innerHTML = monthOverviewHtml;
@@ -585,9 +592,10 @@
             const expense = getEditExpense();
             const expenseSelected = !expense || expense.getType() === 'expense';
             return `
-                    <select id="type-select">
+                    <select id="type-select" onchange="handleTypeChanged();">
                         <option value="expense" ${expenseSelected ? 'selected' : ''}>Ausgabe</option>
                         <option value="income" ${expense?.getType() === 'income' ? 'selected' : ''}>Einnahme</option>
+                        <option value="goal" ${expense?.getType() === 'goal' ? 'selected' : ''}>Sparziel</option>
                     </select>`
         }
 
@@ -596,37 +604,39 @@
             const currencies = ['CHF', '€'];
             const defaultCurrency = expense ? isDefaultCurrency(expense.getCurrency()) : true;
             let form = `
-                <form id="expense-form" autocomplete="off">
+                <form id="expense-form" autocomplete="off" novalidate>
                     <h2>${renderFormHeader()}</h2>
                     <label for="description">Beschreibung</label>
                     <input id="description" value="${expense ? expense.getDescription() : ''}" />
                     <br />
                     <label for="amount">Betrag</label>
-                    <input id="amount" class="align-right" oninput="handleAmountOrExchangeRateInput();" onchange="validateDecimalField(getAmountInput(), 2);" value="${expense ? expense.getAmount() : ''}" required />
-                    <label for="currency-input" class="display-none">Währung</label>
+                    <input id="amount" class="align-right" oninput="handleAmountOrExchangeRateInput();" onchange="validateDecimalField(getAmountInput(), 2);" value="${expense ? expense.getAmount() : ''}" />
+                    <label for="currency-input">Währung</label>
                     <select id="currency-input" onchange="handleCurrencyChanged()" required>
                         ${currencies.map(c => `<option value="${c}" ${c === expense?.getCurrency() ? 'selected' : ''}>${c}</option>`)}
                     </select>
-                    <div id="form-line2" ${defaultCurrency ? 'class="display-none"' : ''}>
+                    <div id="form-line2">
                         <label for="exchange-rate">Wechselkurs</label>
                         <input class="align-right" id="exchange-rate" oninput="handleAmountOrExchangeRateInput();" onchange="validateDecimalField(getExchangeRateInput(), 5);" value="${expense ? expense.getExchangeRate() : defaultExchangeRate}" />
                         <span id="computed-chf-value">${defaultCurrency ? '' : renderFloat(expense?.computeAmountChf())}</span> CHF
                     </div>
                     <div>
-                        <label for="date-input" ${expense?.isRecurring() ? 'class="display-none"' : ''}>Datum</label>
-                        <input id="date-input" type="date" ${expense?.isRecurring() ? 'class="display-none"' : ''} value="${expense?.getDate() ? dateToYmd(expense.getDate()) : (expense ? '' : getCurrentDayString())}" />
+                        <label for="date-input">Datum</label>
+                        <input id="date-input" type="date" value="${expense?.getDate() ? dateToYmd(expense.getDate()) : (expense ? '' : getCurrentDayString())}" />
                     </div>
                     <div>
                         <input id="recurring-checkbox" type="checkbox" onchange="handleRecurringCheckboxChanged();" ${expense?.isRecurring() ? 'checked' : ''} /><label for="recurring-checkbox">Wiederkehrend</label>
                         <br />
-                        <input id="recurring-frequency" type="number" class="align-right" size="2" maxlength="2" value="${expense?.isRecurring() ? expense.getRecurrenceFrequency() : '1'}" onchange="validateIntegerField(getRecurringFrequency());" ${expense?.isRecurring() ? '' : 'disabled'} />-
-                        <input id="recurring-monthly" name="recurring-periodicity" type="radio" ${!expense?.isRecurring() || expense.getRecurrencePeriodicity() === 'monthly' ? 'checked' : ''} ${expense?.isRecurring() ? '' : 'disabled'} /><label for="recurring-monthly">Monatlich</label>
-                        <input id="recurring-yearly" name="recurring-periodicity" type="radio" ${expense?.getRecurrencePeriodicity() === 'yearly' ? 'checked' : ''} ${expense?.isRecurring() ? '' : 'disabled'} /><label for="recurring-yearly">Jährlich</label>
-                    </div>
+                        <input id="recurring-frequency" type="number" class="align-right" size="2" maxlength="2" value="${expense?.isRecurring() ? expense.getRecurrenceFrequency() : '1'}" onchange="validateIntegerField(getRecurringFrequency());" /><span id="recurring-frequency-sep">-</span>
+                        <input id="recurring-monthly" name="recurring-periodicity" type="radio" ${!expense?.isRecurring() || expense.getRecurrencePeriodicity() === 'monthly' ? 'checked' : ''} /><label for="recurring-monthly">Monatlich</label>
+                        <input id="recurring-yearly" name="recurring-periodicity" type="radio" ${expense?.getRecurrencePeriodicity() === 'yearly' ? 'checked' : ''} /><label for="recurring-yearly">Jährlich</label>
+                    </div>`;
+            const isRecurringToEnabled = expense?.isRecurring() || expense?.getType() === 'goal';
+            form += `
                     <div id="recurring-fromto">
-                        <label for="recurring-from">Start</label><label>/</label><label for="recurring-to">Ende</label>
-                        <input id="recurring-from" type="date" value="${expense?.isRecurring() ? dateToYmd(expense.getRecurrenceFrom()) : ''}" ${expense?.isRecurring() ? '' : 'disabled'} />
-                        <input id="recurring-to" type="date" value="${expense?.getRecurrenceTo() ? dateToYmd(expense.getRecurrenceTo()) : ''}" ${expense?.isRecurring() ? '' : 'disabled'} />
+                        <label for="recurring-from">Start</label><label id="recurring-fromto-label-sep">/</label><label for="recurring-to">Ende</label>
+                        <input id="recurring-from" type="date" value="${expense?.isRecurring() ? dateToYmd(expense.getRecurrenceFrom()) : ''}" />
+                        <input id="recurring-to" type="date" value="${expense?.getRecurrenceTo() ? dateToYmd(expense.getRecurrenceTo()) : ''}" />
                     </div>
                     <div class="align-right">
                     <button type ="submit" title="${expense ? 'Speichern' : 'Hinzufügen'}">${expense ? '✅' : '➕'}</button>
@@ -657,42 +667,69 @@
                 .getExchangeRate();
         }
 
-        function handleCurrencyChanged() {
-            if (isDefaultCurrency(getCurrencySelect().value)) {
-                document.getElementById('form-line2').classList.add('display-none');
-                getExchangeRateInput().value = defaultExchangeRate;
+        function setVisible(field, visible) {
+            const elements = [field];
+            const label = document.querySelector(`label[for="${field.id}"]`);
+            if (label) {
+                elements.push(label);
+            }
+            if (visible) {
+                elements.forEach(el => el.classList.remove('display-none'));
             }
             else {
-                document.getElementById('form-line2').classList.remove('display-none');
-                const latestExchangeRate = getLastExchangeRate(getCurrencySelect().value, new Date(getCurrentDayString()));
-                if (latestExchangeRate) {
-                    getExchangeRateInput().value = latestExchangeRate;
-                }
+                elements.forEach(el => el.classList.add('display-none'));
             }
         }
 
-        function handleRecurringCheckboxChanged() {
+        function refreshView() {
             [getRecurringFrequency(),
             getRecurringMonthly(),
             getRecurringYearly(),
-            getRecurringFrom(),
+            getRecurringFrequencySep()]
+                .forEach(f => setVisible(f, getRecurringCheckbox().checked));
+
+            [getRecurringFrom(),
+            getRecurringFromToLabelSep(),
             getRecurringTo()]
-                .forEach(f => f.disabled = !getRecurringCheckbox().checked);
+                .forEach(f => setVisible(f, getRecurringCheckbox().checked || getTypeSelect().value === 'goal'));
 
+            setVisible(getRecurringCheckbox(), getTypeSelect().value !== 'goal');
+            setVisible(getDateInput(), !getRecurringCheckbox().checked && getTypeSelect().value !== 'goal');
+            setVisible(document.getElementById('form-line2'), !isDefaultCurrency(getCurrencySelect().value));
+
+            getCurrencySelect().disabled = getTypeSelect().value === 'goal';
+        }
+
+        function handleTypeChanged() {
+            if (getTypeSelect().value === 'goal') {
+                getRecurringCheckbox().checked = false;
+                getCurrencySelect().value = 'CHF';
+                getExchangeRateInput().value = defaultExchangeRate;
+            }
+            refreshView();
+        }
+
+        function handleCurrencyChanged() {
+            let exchangeRate = defaultExchangeRate;
+            if (!isDefaultCurrency(getCurrencySelect().value)) {
+                exchangeRate = getLastExchangeRate(getCurrencySelect().value, new Date(getCurrentDayString())) || exchangeRate;
+            }
+            getExchangeRateInput().value = exchangeRate;
+
+            refreshView();
+        }
+
+        function handleRecurringCheckboxChanged() {
             if (getRecurringCheckbox().checked) {
-                [getDateLabel(), getDateInput()]
-                    .forEach(f => f.classList.add('display-none'));
-
                 getRecurringFrom().value = getDateInput().value;
                 getDateInput().value = null;
             }
             else {
-                [getDateLabel(), getDateInput()]
-                    .forEach(f => f.classList.remove('display-none'));
-
                 getDateInput().value = getRecurringFrom().value;
                 getRecurringFrom().value = null;
             }
+
+            refreshView();
         }
 
         function handleAmountOrExchangeRateInput() {
@@ -764,6 +801,11 @@
                 mandatoryFields.push(
                     getRecurringFrequency(),
                     getRecurringFrom());
+            }
+            else if (getTypeSelect().value === 'goal') {
+                mandatoryFields.push(
+                    getRecurringFrom(),
+                    getRecurringTo());
             }
             else {
                 mandatoryFields.push(getDateInput());
