@@ -581,7 +581,7 @@
             renderMainArea();
 
             const dayTable = `
-                <table>
+                <table class="table table-sm table-hover">
                     ${renderSection(dayHeadingFormat.format(new Date(getCurrentDayString())), e => e.getType() === 'expense' && !e.isRecurring(), false)}
                 </table>`;
             const form = renderForm();
@@ -632,7 +632,7 @@
         function renderMonthOverview() {
             let monthOverviewHtml = `
                 <div class="bg-dark rounded p-2">
-                    <table class="table table-dark table-sm">
+                    <table class="table table-dark table-sm table-hover">
                         ${renderSection('Einnahmen', e => e.getType() === 'income', true)}
                         ${renderSection('Wiederkehrende Ausgaben', e => e.getType() === 'expense' && e.isRecurring(), true)}
                         ${renderSection('Sparziele', e => e.getType() === 'goal', true)}
@@ -643,18 +643,16 @@
         }
 
         function renderMonthTable() {
-            let tableContent = '<table>';
+            let tableContent = '<table class="table table-sm table-hover">';
             Object.entries(getDaysOfMonth(state.month))
                 .forEach(d => {
                     const [ymd, row] = d;
                     tableContent += `
-                        <tr>
-                            <td class="text-end"><a href="#" onclick="setDay('${ymd.substring(8, 10)}');">${renderDay(new Date(ymd))}</a></td>
+                        <tr onclick="setDay('${ymd.substring(8, 10)}');">
+                            <td class="text-end">${renderDay(new Date(ymd))}</td>
                             ${renderAmountTd(row.amount ? renderFloat(row.amount) : '')}
-                            <td>${row.amount ? 'CHF' : ''}</td>
                             <td>${row.description.join(', ')}</td>
                             ${renderAmountTd(row.saved ? renderFloat(row.saved) : '')}
-                            <td>${row.saved ? 'CHF' : ''}</td>
                         </tr>
             `;
                 });
