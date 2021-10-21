@@ -15,23 +15,6 @@
             display: inline;
         }
 
-        label {
-            font-size: 70%;
-        }
-
-        .align-right {
-            text-align: right;
-        }
-
-        .container {
-            display: flex;
-            flex-direction: row;
-        }
-
-        .float-right {
-            float: right;
-        }
-
         .modal {
             color: gray;
         }
@@ -58,10 +41,6 @@
 
         tr:hover>td .visible-on-tr-hover {
             visibility: visible;
-        }
-
-        table.indent-childs tr:not(.heading)>td:first-child {
-            padding-left: 1em;
         }
 
         tr.heading {
@@ -91,12 +70,12 @@
         }
 
         const dayHeadingFormat = new Intl.DateTimeFormat([], { weekday: 'long', day: '2-digit', month: '2-digit' });
-        const dayFormat = new Intl.DateTimeFormat([], { day: '2-digit', month: '2-digit' });
+        const dayFormat = new Intl.DateTimeFormat([], { day: 'numeric' });
         const monthFormat = new Intl.DateTimeFormat([], { month: 'long', year: 'numeric' });
         const numberFormat = new Intl.NumberFormat(['de-CH'], { useGrouping: true, minimumFractionDigits: 2, maximumFractionDigits: 2 });
         const decimalRegex = /^([0-9]+\.?[0-9]*|\.[0-9]+)$/;
         const integerRegex = /^([0-9]+)$/;
-        const tagRegex = /#(\w+)/g;
+        const tagRegex = /#(\p{Letter}+)\b/ug;
         const defaultExchangeRate = '1.00000';
 
         const today = dateToYmd(new Date(Date.now()));
@@ -286,7 +265,7 @@
                 return parseFloat(this.getAmount());
             }
 
-            isValid(date) {
+            isValidOnDate(date) {
                 if (this.isRecurring()) {
                     const firstDayOfNextMonth = getFirstDayOfNextMonth(date);
                     const firstDayOfCurrentMonth = new Date(date.getFullYear(), date.getMonth(), 1);
@@ -359,6 +338,12 @@
             return new Date(date.getFullYear(), date.getMonth() + 1, 1);
         }
 
+        function isInMonth(date, month) {
+            const firstDayOfNextMonth = getFirstDayOfNextMonth(month);
+            const firstDayOfCurrentMonth = new Date(month.getFullYear(), month.getMonth(), 1);
+            return date < firstDayOfNextMonth && date >= firstDayOfCurrentMonth;
+        }
+
         /*
          * Data store
          */
@@ -369,7 +354,7 @@
         function getAllTags(filter) {
             const now = new Date(getCurrentDayString());
             return getExpenses()
-                .filter(ex => ex.isValid(now))
+                .filter(ex => ex.isRecurring() ? ex.isValidOnDate(now) : isInMonth(ex.getDate(), now))
                 .filter(ex => ex.getType() === 'expense')
                 .map(ex => ex.getTags())
                 .reduce((allTags, tags) => {
@@ -404,20 +389,20 @@
             // TODO refactor to use same code as month summary
             const income = getExpenses()
                 .filter(e => e.getType() === 'income')
-                .filter(e => e.isValid(new Date(getCurrentDayString())))
+                .filter(e => e.isValidOnDate(new Date(getCurrentDayString())))
                 .reduce((sum, e) => sum + e.computeAmountChf(), 0);
 
             const recurringExpenses = getExpenses()
                 .filter(e => e.getType() === 'expense')
                 .filter(e => e.isRecurring())
-                .filter(e => e.isValid(new Date(getCurrentDayString())))
+                .filter(e => e.isValidOnDate(new Date(getCurrentDayString())))
                 .reduce((sum, e) => sum + e.computeAmountChf(), 0);
 
             const availableAmount = income - recurringExpenses;
 
             while (date.getMonth() === monthNumeric) {
                 days[dateToYmd(date)] = getOnetimeExpenses()
-                    .filter(e => e.getType() === 'expense' && e.isValid(date))
+                    .filter(e => e.getType() === 'expense' && e.isValidOnDate(date))
                     .reduce((day, e) => {
                         day.amount += e.computeAmountChf();
                         const firstHashPosition = e.getDescription().indexOf('#');
@@ -547,7 +532,7 @@
         }
 
         function renderAmountTd(content) {
-            return `<td class="align-right">${content}</td>`;
+            return `<td class="text-end">${content}</td>`;
         }
 
         function setMonthDisplay(monthDisplay) {
@@ -613,7 +598,7 @@
             const currentDay = new Date(getCurrentDayString());
             const expenses = getExpenses()
                 .filter(filter)
-                .filter(e => e.isValid(currentDay));
+                .filter(ex => ex.isValidOnDate(currentDay));
 
             if (sort) {
                 expenses.sort((e1, e2) => e2.computeMonthlyAmountChf() - e1.computeMonthlyAmountChf());
@@ -628,14 +613,16 @@
                         <tr class="heading">
                             <td>${heading}</td>
                             ${renderAmountTd(renderSum ? renderFloat(sum) : '')}
-                            <td>${renderSum ? 'CHF' : ''}</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
                         </tr>`;
 
             section += expenses
                 .map(e => renderExpenseTr(`
                         <td>${e.getDescription()}</td>
                         ${renderAmountTd(renderFloat(e.computeMonthlyAmount()))}
-                        <td>${e.getCurrency()}</td>
+                        <td>${isDefaultCurrency(e.getCurrency()) ? '' : e.getCurrency()}</td>
                         ${renderModificationButtons(e)}`))
                 .join('\n');
 
@@ -644,11 +631,13 @@
 
         function renderMonthOverview() {
             let monthOverviewHtml = `
-                    <table class="indent-childs">
+                <div class="bg-dark rounded p-2">
+                    <table class="table table-dark table-sm">
                         ${renderSection('Einnahmen', e => e.getType() === 'income', true)}
                         ${renderSection('Wiederkehrende Ausgaben', e => e.getType() === 'expense' && e.isRecurring(), true)}
                         ${renderSection('Sparziele', e => e.getType() === 'goal', true)}
-                    </table>`;
+                    </table>
+                </div>`;
 
             getRecurringExpenses().innerHTML = monthOverviewHtml;
         }
@@ -660,7 +649,7 @@
                     const [ymd, row] = d;
                     tableContent += `
                         <tr>
-                            <td><a href="#" onclick="setDay('${ymd.substring(8, 10)}');">${renderDay(new Date(ymd))}</a></td>
+                            <td class="text-end"><a href="#" onclick="setDay('${ymd.substring(8, 10)}');">${renderDay(new Date(ymd))}</a></td>
                             ${renderAmountTd(row.amount ? renderFloat(row.amount) : '')}
                             <td>${row.amount ? 'CHF' : ''}</td>
                             <td>${row.description.join(', ')}</td>
@@ -672,45 +661,56 @@
             return tableContent + '</table>';
         }
 
-        function renderFormHeader() {
-            const expense = getEditExpense();
-            const expenseSelected = !expense || expense.getType() === 'expense';
-            return `
-                    <select id="type-select" onchange="handleTypeChanged();">
-                        <option value="expense" ${expenseSelected ? 'selected' : ''}>Ausgabe</option>
-                        <option value="income" ${expense?.getType() === 'income' ? 'selected' : ''}>Einnahme</option>
-                        <option value="goal" ${expense?.getType() === 'goal' ? 'selected' : ''}>Sparziel</option>
-                    </select>`
-        }
-
         function renderForm() {
             const expense = getEditExpense();
             const currencies = ['CHF', '€'];
             const defaultCurrency = expense ? isDefaultCurrency(expense.getCurrency()) : true;
+            const expenseSelected = !expense || expense.getType() === 'expense';
             let form = `
                 <form id="expense-form" autocomplete="off" novalidate>
-                    <h2>${renderFormHeader()}</h2>
-                    <label for="description">Beschreibung</label>
-                    <input id="description" value="${expense ? expense.getDescription() : ''}" />
-                    <br />
-                    <label for="amount">Betrag</label>
-                    <input id="amount" class="align-right" oninput="handleAmountOrExchangeRateInput();" onchange="validateDecimalField(getAmountInput(), 2);" value="${expense ? expense.getAmount() : ''}" />
-                    <select id="currency-input" onchange="handleCurrencyChanged()" required>
-                        ${currencies.map(c => `<option value="${c}" ${c === expense?.getCurrency() ? 'selected' : ''}>${c}</option>`)}
-                    </select>
-                    <div id="form-line2">
-                        <label for="exchange-rate">Wechselkurs</label>
-                        <input class="align-right" id="exchange-rate" oninput="handleAmountOrExchangeRateInput();" onchange="validateDecimalField(getExchangeRateInput(), 5);" value="${expense ? expense.getExchangeRate() : defaultExchangeRate}" />
-                        <span id="computed-chf-value">${defaultCurrency ? '' : renderFloat(expense?.computeAmountChf())}</span> CHF
+                    <h2>${state.edit ? 'Bearbeiten' : 'Neu'}</h2>
+                    <div class="form-floating mb-3">
+                        <select id="type-select" class="form-select" placeholder="Typ" onchange="handleTypeChanged();">
+                            <option value="expense" ${expenseSelected ? 'selected' : ''}>Ausgabe</option>
+                            <option value="income" ${expense?.getType() === 'income' ? 'selected' : ''}>Einnahme</option>
+                            <option value="goal" ${expense?.getType() === 'goal' ? 'selected' : ''}>Sparziel</option>
+                        </select>
+                        <label for="type-select">Typ</label>
                     </div>
-                    <div>
+                    <div class="form-floating mb-3">
+                        <input id="description" class="form-control" placeholder="Beschreibung" value="${expense ? expense.getDescription() : ''}" />
+                        <label for="description">Beschreibung</label>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-8 form-floating">
+                            <input id="amount" class="form-control text-end" placeholder="Betrag" oninput="handleAmountOrExchangeRateInput();" onchange="validateDecimalField(getAmountInput(), 2);" value="${expense ? expense.getAmount() : ''}" />
+                            <label for="amount">Betrag</label>
+                        </div>
+                        <div class="col-4 form-floating">
+                            <select id="currency-input" class="form-select" onchange="handleCurrencyChanged()" required>
+                                ${currencies.map(c => `<option value="${c}" ${c === expense?.getCurrency() ? 'selected' : ''}>${c}</option>`)}
+                            </select>
+                            <label for="currency-input">Währung</label>
+                        </div>
+                    </div>
+                    <div id="form-line2" class="input-group mt-2">
+                        <span class="input-group-text">Wechselkurs</span>
+                        <input class="form-control text-end" id="exchange-rate" oninput="handleAmountOrExchangeRateInput();" onchange="validateDecimalField(getExchangeRateInput(), 5);" value="${expense ? expense.getExchangeRate() : defaultExchangeRate}" />
+                        <span class="input-group-text">
+                            <span id="computed-chf-value">${defaultCurrency ? '0.00' : renderFloat(expense?.computeAmountChf())}</span>
+                            <span>&nbsp;CHF</span>
+                        </span>
+                    </div>
+                    <div class="form-floating mt-3">
+                        <input id="date-input" class="form-control" type="date" value="${expense?.getDate() ? dateToYmd(expense.getDate()) : (expense ? '' : getCurrentDayString())}" />
                         <label for="date-input">Datum</label>
-                        <input id="date-input" type="date" value="${expense?.getDate() ? dateToYmd(expense.getDate()) : (expense ? '' : getCurrentDayString())}" />
+                    </div>
+                    <div class="form-check form-switch mt-4">
+                        <input id="recurring-checkbox" class="form-check-input" type="checkbox" onchange="handleRecurringCheckboxChanged();" ${expense?.isRecurring() ? 'checked' : ''} />
+                        <label for="recurring-checkbox" class="form-check-label">Wiederkehrend</label>
                     </div>
                     <div>
-                        <input id="recurring-checkbox" type="checkbox" onchange="handleRecurringCheckboxChanged();" ${expense?.isRecurring() ? 'checked' : ''} /><label for="recurring-checkbox">Wiederkehrend</label>
-                        <br />
-                        <input id="recurring-frequency" type="number" class="align-right" size="2" maxlength="2" value="${expense?.isRecurring() ? expense.getRecurrenceFrequency() : '1'}" onchange="validateIntegerField(getRecurringFrequency());" /><span id="recurring-frequency-sep">-</span>
+                        <input id="recurring-frequency" type="number" class="text-end" size="2" maxlength="2" value="${expense?.isRecurring() ? expense.getRecurrenceFrequency() : '1'}" onchange="validateIntegerField(getRecurringFrequency());" /><span id="recurring-frequency-sep">-</span>
                         <input id="recurring-monthly" name="recurring-periodicity" type="radio" ${!expense?.isRecurring() || expense.getRecurrencePeriodicity() === 'monthly' ? 'checked' : ''} /><label for="recurring-monthly">Monatlich</label>
                         <input id="recurring-yearly" name="recurring-periodicity" type="radio" ${expense?.getRecurrencePeriodicity() === 'yearly' ? 'checked' : ''} /><label for="recurring-yearly">Jährlich</label>
                     </div>`;
@@ -721,7 +721,7 @@
                         <input id="recurring-from" type="date" value="${expense?.isRecurring() ? dateToYmd(expense.getRecurrenceFrom()) : ''}" />
                         <input id="recurring-to" type="date" value="${expense?.getRecurrenceTo() ? dateToYmd(expense.getRecurrenceTo()) : ''}" />
                     </div>
-                    <div class="align-right">
+                    <div class="text-end">
                     <button type ="submit" title="${expense ? 'Speichern' : 'Hinzufügen'}">${expense ? '✅' : '➕'}</button>
                     ${expense ? `<button type="button" title="Abbrechen" onclick="cancelLineEdit();">❌</button>` : ''}
                 </form>`;
@@ -816,9 +816,6 @@
         }
 
         function handleAmountOrExchangeRateInput() {
-            if (isDefaultCurrency(getCurrencySelect().value)) {
-                return;
-            }
             const chfValue = parseFloat(getAmountInput().value) * parseFloat(getExchangeRateInput().value);
             getComputedChfValue().textContent = Number.isNaN(chfValue) ? '' : renderFloat(chfValue);
         }
@@ -1069,26 +1066,24 @@
 </head>
 
 <body>
-    <div class="bar">
-        <h1 id="month-label">Ausgaben</h1>
-        <span class="float-right">
-            <button type="button" title="Öffnen" onclick="openFile();">📂</button>
+    <nav class="navbar navbar-dark bg-dark px-3">
+        <span id="month-label" class="navbar-brand">Ausgaben</span>
+        <form class="d-flex">
+            <button class="btn btn-light me-2" type="button" title="Öffnen" onclick="openFile();">📂</button>
             <input type="file" id="file-input" class="display-none" onchange="loadExpenses()" />
-            <button type="button" id="save-button" title="Speichern" onclick="save();">💾</button>
-        </span>
-        <hr>
-    </div>
+            <button class="btn btn-light" type="button" id="save-button" title="Speichern" onclick="save();">💾</button>
+        </form>
+    </nav>
 
-    <div class="container">
-        <div id="recurring-expenses"></div>
-        <div id="main-area">
+    <div class="container-fluid my-4">
+        <div class="row">
+            <aside id="recurring-expenses" class="col col-3"></aside>
+            <div id="main-area" class="col col-6"> </div>
+            <div class="col col-3">
+                <div id="day-expenses"></div>
+            </div>
         </div>
-        <div>
-            <div id="day-expenses"></div>
-        </div>
     </div>
-
-
 
     <script>
         "use strict";
