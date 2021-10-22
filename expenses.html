@@ -720,8 +720,9 @@
                         <input id="recurring-to" type="date" value="${expense?.getRecurrenceTo() ? dateToYmd(expense.getRecurrenceTo()) : ''}" />
                     </div>
                     <div class="text-end">
-                    <button type ="submit" title="${expense ? 'Speichern' : 'Hinzufügen'}">${expense ? '✅' : '➕'}</button>
-                    ${expense ? `<button type="button" title="Abbrechen" onclick="cancelLineEdit();">❌</button>` : ''}
+                        ${expense ? `<button class="btn btn-secondary" type="button" title="Abbrechen" onclick="cancelLineEdit();">❌</button>` : ''}
+                        <button class="btn btn-primary" type="submit" title="${expense ? 'Speichern' : 'Hinzufügen'}">${expense ? '✅' : '➕'}</button>
+                    </div>
                 </form>`;
 
             return form;
@@ -730,12 +731,12 @@
         function getLastExchangeRate(currency, date) {
             // TODO Wechselkurse für wiederkehrende Ausgaben
             const expensesOfDay = getExpenses()
-                .filter(e => e.getCurrency() && (!e.getDate() || isSameDay(e.getDate(), date)));
+                .filter(e => e.getCurrency() && e.getDate() && isSameDay(e.getDate(), date));
             let relevantExpenses = expensesOfDay;
 
             if (expensesOfDay.length === 0) {
                 const expensesOfCurrency = getExpenses()
-                    .filter(e => e.getCurrency() === getCurrencySelect().value);
+                    .filter(e => e.getType() === 'expense' && e.getCurrency() === getCurrencySelect().value);
 
                 if (expensesOfCurrency.length === 0) {
                     return null;
@@ -793,7 +794,8 @@
         function handleCurrencyChanged() {
             let exchangeRate = defaultExchangeRate;
             if (!isDefaultCurrency(getCurrencySelect().value)) {
-                exchangeRate = getLastExchangeRate(getCurrencySelect().value, new Date(getCurrentDayString())) || exchangeRate;
+                const referenceDate = new Date(getDateInput().value !== '' ? getDateInput().value : getCurrentDayString());
+                exchangeRate = getLastExchangeRate(getCurrencySelect().value, referenceDate) || exchangeRate;
             }
             getExchangeRateInput().value = exchangeRate;
 
