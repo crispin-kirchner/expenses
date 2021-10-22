@@ -27,6 +27,11 @@
             border-color: red;
         }
 
+        .currency {
+            width: 3ex;
+            display: inline-block;
+        }
+
         .va-bottom {
             vertical-align: bottom;
         }
@@ -52,6 +57,7 @@
         }
     </style>
     <script src="lib/uuidv4.min.js"></script>
+    <script src="node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         "use strict";
 
@@ -59,13 +65,57 @@
             saved: true,
             edit: null,
             month: null,
-            monthDisplay: 'calendar',
+            monthDisplay: 'overview',
             chartTags: [],
             day: null,
             filename: null,
+            overviewConfiguration: {
+                typeFilter: ['income', 'recurring', 'expense']
+            },
             data: {
                 version: 2,
-                expenses: []
+                expenses: [],
+                categories: [
+                    {
+                        name: 'lebensmittel',
+                        classes: 'bg-success'
+                    },
+                    {
+                        name: 'kommunikation',
+                    },
+                    {
+                        name: 'zehnt',
+                        classes: 'bg-light text-dark border'
+                    },
+                    {
+                        name: 'kultur',
+                        classes: 'bg-warning'
+                    },
+                    {
+                        name: 'haushalt',
+                        classes: 'bg-dark border'
+                    },
+                    {
+                        name: 'mobilität',
+                        classes: 'bg-danger'
+                    },
+                    {
+                        name: 'kleidung',
+                        classes: 'bg-info'
+                    },
+                    {
+                        name: 'gesundheit',
+                    },
+                    {
+                        name: 'geld',
+                        classes: 'bg-secondary'
+                    }
+                ],
+                tags: [
+                    {
+                        name: 'kreditkarte'
+                    }
+                ]
             }
         }
 
@@ -79,6 +129,21 @@
         const defaultExchangeRate = '1.00000';
 
         const today = dateToYmd(new Date(Date.now()));
+
+        const typeFilters = {
+            income: {
+                name: 'Einkommen',
+                filter: ex => ex.getType() === 'income'
+            },
+            recurring: {
+                name: 'Wiederkehrend',
+                filter: ex => ex.getType() === 'expense' && ex.isRecurring()
+            },
+            expense: {
+                name: 'Ausgaben',
+                filter: ex => ex.getType() === 'expense' && !ex.isRecurring()
+            }
+        }
 
         class ExpensesError {
             constructor(message, origins) {
@@ -241,6 +306,10 @@
                 return tags;
             }
 
+            hasCategory(category) {
+                return this.getTags().includes(category);
+            }
+
             computeAmountChf() {
                 if (isDefaultCurrency(this.getCurrency())) {
                     return parseFloat(this.getAmount());
@@ -267,11 +336,16 @@
 
             isValidOnDate(date) {
                 if (this.isRecurring()) {
-                    const firstDayOfNextMonth = getFirstDayOfNextMonth(date);
-                    const firstDayOfCurrentMonth = new Date(date.getFullYear(), date.getMonth(), 1);
-                    return this.getRecurrenceFrom() < firstDayOfNextMonth && (!this.getRecurrenceTo() || this.getRecurrenceTo() >= firstDayOfCurrentMonth)
+                    return isValidInMonth(this.getRecurrenceFrom(), this.getRecurrenceTo(), date);
                 }
                 return isSameDay(date, this.getDate());
+            }
+
+            isValidInMonth(month) {
+                if (this.isRecurring()) {
+                    return isValidInMonth(this.getRecurrenceFrom(), this.getRecurrenceTo(), month);
+                }
+                return isInMonth(this.getDate(), month);
             }
         }
 
@@ -344,6 +418,12 @@
             return date < firstDayOfNextMonth && date >= firstDayOfCurrentMonth;
         }
 
+        function isValidInMonth(validFrom, validTo, month) {
+            const firstDayOfNextMonth = getFirstDayOfNextMonth(month);
+            const firstDayOfCurrentMonth = new Date(month.getFullYear(), month.getMonth(), 1);
+            return validFrom < firstDayOfNextMonth && (!validTo || validTo >= firstDayOfCurrentMonth);
+        }
+
         /*
          * Data store
          */
@@ -351,20 +431,12 @@
             return state.data.expenses;
         }
 
-        function getAllTags(filter) {
-            const now = new Date(getCurrentDayString());
-            return getExpenses()
-                .filter(ex => ex.isRecurring() ? ex.isValidOnDate(now) : isInMonth(ex.getDate(), now))
-                .filter(ex => ex.getType() === 'expense')
-                .map(ex => ex.getTags())
-                .reduce((allTags, tags) => {
-                    tags.forEach(t => {
-                        if (!allTags.includes(t)) {
-                            allTags.push(t);
-                        }
-                    });
-                    return allTags;
-                }, []);
+        function getCategoryByName(name) {
+            const index = state.data.categories.findIndex(c => c.name === name);
+            if (index < 0) {
+                return null;
+            }
+            return state.data.categories[index];
         }
 
         function setExpenses(newExpenses) {
@@ -424,6 +496,116 @@
             return days;
         }
 
+        function getActiveTypeFilters() {
+            return Object.entries(typeFilters)
+                .filter(en => state.overviewConfiguration.typeFilter.includes(en[0]));
+        }
+
+        function or(item, filters) {
+            for (const filter of filters) {
+                if (filter(item)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function groupByType(rowsFeatured, subGroupingFn) {
+            const rows = [];
+            for (const fd of getActiveTypeFilters()) {
+                const childRows = subGroupingFn(rowsFeatured
+                    .filter(r => r.type === fd[0]))
+                    .sort((e1, e2) => e2.amountChf - e1.amountChf);
+
+                const amountChf = childRows.reduce((sum, row) => sum += row.amountChf, 0);
+                rows.push({
+                    title: fd[1].name,
+                    id: fd[0],
+                    amountChf: amountChf,
+                    amount: amountChf,
+                    currency: 'CHF',
+                    childRows: childRows
+                });
+            }
+            return rows;
+        }
+
+        function groupByCategory(rowsFeatured) {
+            const outRows = [];
+            return rowsFeatured
+                .reduce((outRows, row) => {
+                    if (!row.category) {
+                        outRows.push(row);
+                        return outRows;
+                    }
+                    const index = outRows.findIndex(outRow => outRow.id === row.category);
+                    let outRow = null;
+                    if (index < 0) {
+                        outRow = {
+                            title: row.category,
+                            id: row.category,
+                            amountChf: 0,
+                            amount: 0,
+                            currency: 'CHF',
+                            category: row.category,
+                            childRows: []
+                        };
+                        outRows.push(outRow);
+                    }
+                    else {
+                        outRow = outRows[index];
+                    }
+                    outRow.amountChf += row.amountChf;
+                    outRow.amount += row.amountChf;
+                    outRow.childRows.push(row);
+                    row.title = row.title.replace(new RegExp(`\\s#${row.category}(?:\\b|$)`), '');
+                    return outRows;
+                }, [])
+                .map(or => {
+                    or.childRows.sort((e1, e2) => e2.amountChf - e1.amountChf);
+                    return or;
+                })
+                .sort((e1, e2) => e2.amountChf - e1.amountChf);
+        }
+
+        function getOverviewData() {
+            const currentDay = new Date(getCurrentDayString());
+            const filterDatas = getActiveTypeFilters();
+            const filters = filterDatas.map(fd => fd[1].filter);
+            const categories = state.data.categories.map(cat => cat.name);
+
+            const rowsFeatured = getExpenses()
+                .filter(ex => or(ex, filters))
+                .filter(ex => ex.isValidInMonth(currentDay))
+                .map(ex => {
+                    const row = {
+                        ex: ex.getId(),
+                        title: ex.getDescription(),
+                        amountChf: ex.computeMonthlyAmountChf(),
+                        amount: ex.computeMonthlyAmount(),
+                        currency: ex.getCurrency(),
+                        childRows: []
+                    };
+                    row['type'] = (() => {
+                        for (const filterData of filterDatas) {
+                            if (filterData[1].filter(ex)) {
+                                return filterData[0];
+                            }
+                        }
+                    })();
+                    row['category'] = (() => {
+                        for (const category of state.data.categories) {
+                            if (ex.hasCategory(category.name)) {
+                                return category.name;
+                            }
+                        }
+                    })();
+                    return row;
+                });
+
+            return groupByType(rowsFeatured, groupByCategory);
+        }
+
         /*
          * UI
          */
@@ -479,10 +661,6 @@
             return document.getElementById('recurring-checkbox');
         }
 
-        function getRecurringExpenses() {
-            return document.getElementById('recurring-expenses');
-        }
-
         function getRecurringFrequency() {
             return document.getElementById('recurring-frequency');
         }
@@ -523,6 +701,13 @@
             return dayFormat.format(d);
         }
 
+        function decorateTags(description) {
+            return description.replaceAll(tagRegex, (m, p0) => {
+                const classes = getCategoryByName(p0)?.classes;
+                return `<span class="badge ${classes ? classes : 'bg-primary'}">${p0}</span>`
+            });
+        }
+
         function getEditExpense() {
             if (!state.edit) {
                 return null;
@@ -544,30 +729,33 @@
         }
 
         function renderMainArea() {
-            const nav = `
-                <ul class="nav nav-tabs">
-                    <li class="nav-item">
-                        <a class="nav-link ${state.monthDisplay === 'calendar' ? 'active' : ''}" onclick="setMonthDisplay('calendar');" href="#">Kalender</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link ${state.monthDisplay === 'chart' ? 'active' : ''}" onclick="setMonthDisplay('chart')" href="#">Diagramm</a>
-                    </li>
-                </ul>`;
-            if (state.monthDisplay === 'calendar') {
-                var content = renderMonthTable();
-            }
-            if (state.monthDisplay === 'chart') {
-                var content = renderChart();
-            }
-            getMainArea().innerHTML = nav + content;
-        }
+            const items = {
+                overview: {
+                    name: 'Übersicht',
+                    callback: renderMonthOverview
+                },
+                calendar: {
+                    name: 'Kalender',
+                    callback: renderMonthTable
+                }
+            };
 
-        function renderChart() {
-            const tags = getAllTags();
-            return `
-                <div>
-                    ${tags.map(t => `<span class="badge ${state.chartTags.includes(t) ? 'bg-primary' : 'bg-secondary'}">${t}</span>`).join('\n')}
-                </div>`;
+            const lis = Object.entries(items)
+                .map(en => {
+                    const [item, props] = en;
+                    return `
+                    <li class="nav-item">
+                        <a class="nav-link ${state.monthDisplay === item ? 'active' : ''}" onclick="setMonthDisplay('${item}');" href="#">${props.name}</a>
+                    </li>`;
+                });
+
+            const content = items[state.monthDisplay].callback();
+
+            getMainArea().innerHTML = `
+                <ul class="nav nav-tabs mb-2">
+                    ${lis.join('\n')}
+                </ul>
+                ${content}`;
         }
 
         function render() {
@@ -577,7 +765,6 @@
             }
             getMonthLabel().textContent = monthLabel;
 
-            renderMonthOverview();
             renderMainArea();
 
             const dayTable = `
@@ -620,7 +807,7 @@
 
             section += expenses
                 .map(e => renderExpenseTr(`
-                        <td>${e.getDescription()}</td>
+                        <td>${decorateTags(e.getDescription())}</td>
                         ${renderAmountTd(renderFloat(e.computeMonthlyAmount()))}
                         <td>${isDefaultCurrency(e.getCurrency()) ? '' : e.getCurrency()}</td>
                         ${renderModificationButtons(e)}`))
@@ -629,17 +816,110 @@
             return section;
         }
 
-        function renderMonthOverview() {
-            let monthOverviewHtml = `
-                <div class="bg-dark rounded p-2">
-                    <table class="table table-dark table-sm table-hover">
-                        ${renderSection('Einnahmen', e => e.getType() === 'income', true)}
-                        ${renderSection('Wiederkehrende Ausgaben', e => e.getType() === 'expense' && e.isRecurring(), true)}
-                        ${renderSection('Sparziele', e => e.getType() === 'goal', true)}
-                    </table>
-                </div>`;
+        function renderOverviewRowRecursive(row, path, level) {
+            const hasChildren = row.childRows.length !== 0;
+            const childrenId = `child-items-${path !== '' ? path + '-' : ''}${row.id}`;
 
-            getRecurringExpenses().innerHTML = monthOverviewHtml;
+            let html = '';
+            if (level === 0) {
+                html += `
+                    <div class="bg-dark text-light rounded p-2 mt-2">
+                        <ul class="m-0">`;
+            }
+
+            let children = '';
+            if (hasChildren) {
+                children = `
+                    <div id="${childrenId}" class="collapse">
+                        ${renderOverviewRowsRecursive(row.childRows, path + row.id, level + 1)}
+                    </div>
+                `;
+            }
+
+            const renderAmount = row.amount > 0.005;
+
+            let title = row.title;
+            if (row.ex) {
+                title = decorateTags(row.title);
+            }
+            if (row.id && row.category && row.id === row.category) {
+                title = decorateTags('#' + row.title);
+            }
+
+            html += `
+                    <li ${hasChildren ? `data-bs-toggle="collapse" data-bs-target="#${childrenId}"` : ''}>
+                        <div>
+                            <span>${title}</span>
+                            <span class="float-end">
+                                <span>${renderAmount ? renderFloat(row.amount) : ''}</span>
+                                <span class="currency">${isDefaultCurrency(row.currency) ? '' : row.currency}</span>
+                            </span>
+                            ${children}
+                        </div>
+                    </li>`
+
+            if (level === 0) {
+                html += `
+                        </ul>
+                    </div>`;
+            }
+
+            return html;
+        }
+
+        function renderOverviewRowsRecursive(rows, path, level) {
+            let html = '';
+
+            if (level !== 0) {
+                html += `<ul>`;
+            }
+
+            html += rows
+                .map(row => renderOverviewRowRecursive(row, path, level))
+                .join('\n');
+
+            if (level !== 0) {
+                html += '</ul>';
+            }
+
+            return html;
+        }
+
+        function renderOverviewSections() {
+            const rows = getOverviewData();
+
+            return renderOverviewRowsRecursive(rows, '', 0);
+        }
+
+        function toggleOverviewFilter(filter) {
+            const typeFilter = state.overviewConfiguration.typeFilter;
+            const numFiltersBefore = typeFilter.length;
+            const index = typeFilter.indexOf(filter);
+            if (index > -1) {
+                typeFilter.splice(index, 1);
+            }
+            else {
+                typeFilter.push(filter);
+            }
+            render();
+        }
+
+        function renderMonthOverview() {
+            const typeFilterButtons = Object.entries(typeFilters)
+                .map(en => {
+                    const [item, props] = en;
+                    return `
+                        <input id="overview-filter-${item}-checkbox" type="checkbox" class="btn-check" onchange="toggleOverviewFilter('${item}')">
+                        <label class="btn btn-sm ${state.overviewConfiguration.typeFilter.includes(item) ? 'btn-primary active' : 'btn-outline-primary'}" for="overview-filter-${item}-checkbox">${props.name}</label>`;
+                });
+
+            return `
+                <form>
+                    <div class="btn-group">
+                        ${typeFilterButtons.join('\n')}
+                    </div>
+                </form>
+                ${renderOverviewSections()}`;
         }
 
         function renderMonthTable() {
@@ -1067,19 +1347,21 @@
 
 <body>
     <nav class="navbar navbar-dark bg-dark px-3">
-        <span id="month-label" class="navbar-brand">Ausgaben</span>
-        <form class="d-flex">
-            <button class="btn btn-light me-2" type="button" title="Öffnen" onclick="openFile();">📂</button>
-            <input type="file" id="file-input" class="display-none" onchange="loadExpenses()" />
-            <button class="btn btn-light" type="button" id="save-button" title="Speichern" onclick="save();">💾</button>
-        </form>
+        <div class="container">
+            <span id="month-label" class="navbar-brand">Ausgaben</span>
+            <form class="d-flex">
+                <button class="btn btn-light me-2" type="button" title="Öffnen" onclick="openFile();">📂</button>
+                <input type="file" id="file-input" class="display-none" onchange="loadExpenses()" />
+                <button class="btn btn-light" type="button" id="save-button" title="Speichern"
+                    onclick="save();">💾</button>
+            </form>
+        </div>
     </nav>
 
-    <div class="container-fluid my-4">
+    <div class="container my-4">
         <div class="row">
-            <aside id="recurring-expenses" class="col col-3"></aside>
-            <div id="main-area" class="col col-6"> </div>
-            <div class="col col-3">
+            <div id="main-area" class="col col-8"> </div>
+            <div class="col col-4">
                 <div id="day-expenses"></div>
             </div>
         </div>
