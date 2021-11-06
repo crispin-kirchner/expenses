@@ -116,6 +116,7 @@
         const decimalRegex = /^([0-9]+\.?[0-9]*|\.[0-9]+)$/;
         const integerRegex = /^([0-9]+)$/;
         const tagRegex = /#(\p{Letter}+)\b/ug;
+        const DEFAULT_CURRENCY = 'CHF';
         const defaultExchangeRate = '1.00000';
 
         const today = dateToYmd(new Date(Date.now()));
@@ -462,7 +463,6 @@
             let days = {};
             let date = new Date(month.getFullYear(), month.getMonth(), 1);
 
-            // TODO refactor to use same code as month summary
             const income = getExpenses()
                 .filter(e => e.getType() === 'income')
                 .filter(e => e.isValidOnDate(new Date(getCurrentDayString())))
@@ -527,7 +527,7 @@
                     id: fd[0],
                     amountChf: amountChf,
                     amount: amountChf,
-                    currency: 'CHF',
+                    currency: DEFAULT_CURRENCY,
                     childRows: childRows
                 });
             }
@@ -550,7 +550,7 @@
                             id: row.category,
                             amountChf: 0,
                             amount: 0,
-                            currency: 'CHF',
+                            currency: DEFAULT_CURRENCY,
                             category: row.category,
                             childRows: []
                         };
@@ -871,28 +871,16 @@
             return section;
         }
 
-        function renderOverviewRowRecursive(row, path, level) {
-            const hasChildren = row.childRows.length !== 0;
-            const childrenId = `child-items-${path !== '' ? path + '-' : ''}${row.id}`;
+        function renderTopLevelRow(content) {
+            return `
+                <div class="bg-dark text-light rounded p-2 mt-2">
+                    <ul class="m-0">
+                        ${content}
+                    </ul>
+                </div>`;
+        }
 
-            let html = '';
-            if (level === 0) {
-                html += `
-                    <div class="bg-dark text-light rounded p-2 mt-2">
-                        <ul class="m-0">`;
-            }
-
-            let children = '';
-            if (hasChildren) {
-                children = `
-                    <div id="${childrenId}" class="collapse ${isExpanded(childrenId) ? 'show' : ''}">
-                        ${renderOverviewRowsRecursive(row.childRows, path + row.id, level + 1)}
-                    </div>
-                `;
-            }
-
-            const renderAmount = row.amount > 0.005;
-
+        function renderRow(row, children, childrenId) {
             let title = row.title;
             if (row.ex) {
                 title = decorateTags(row.title);
@@ -901,22 +889,36 @@
                 title = decorateTags('#' + row.title);
             }
 
-            html += `
-                    <li>
-                        <a href="#" class="btn text-light ${row.ex && row.ex === state.selected ? 'btn-secondary active' : ''}" data-xpns-id="${row.ex || ''}" ${hasChildren ? `data-bs-toggle="collapse" data-bs-target="#${childrenId}"` : ''}>
-                            ${title}
-                        </a>
-                        <span class="float-end">
-                            <span>${renderAmount ? renderFloat(row.amount) : ''}</span>
-                            <span class="currency">${isDefaultCurrency(row.currency) ? '' : row.currency}</span>
-                        </span>
-                        ${children}
-                    </li>`
+            const renderAmount = row.amount > 0.005;
+
+            return `
+                <li>
+                    <a href="#" class="btn text-light ${row.ex && row.ex === state.selected ? 'btn-secondary active' : ''}" data-xpns-id="${row.ex || ''}" ${children ? `data-bs-toggle="collapse" data-bs-target="#${childrenId}"` : ''}>
+                        ${title}
+                    </a>
+                    <span class="float-end">
+                        <span>${renderAmount ? renderFloat(row.amount) : ''}</span>
+                        <span class="currency">${isDefaultCurrency(row.currency) ? '' : row.currency}</span>
+                    </span>
+                    ${children ? children : ''}
+                </li>`;
+        }
+
+        function renderOverviewRowRecursive(row, path, level) {
+            const childrenId = `child-items-${path !== '' ? path + '-' : ''}${row.id}`;
+            let children = null;
+            if (row.childRows.length !== 0) {
+                children = `
+                    <div id="${childrenId}" class="collapse ${isExpanded(childrenId) ? 'show' : ''}">
+                        ${renderOverviewRowsRecursive(row.childRows, path + row.id, level + 1)}
+                    </div>
+                `;
+            }
+
+            let html = renderRow(row, children, childrenId);
 
             if (level === 0) {
-                html += `
-                        </ul>
-                    </div>`;
+                html = renderTopLevelRow(html);
             }
 
             return html;
@@ -940,10 +942,20 @@
             return html;
         }
 
+        function computeTotal(rows) {
+            const sum = rows.reduce((sum, row) => row.id === 'income' ? sum + row.amount : sum - row.amount, 0);
+            return {
+                title: 'Verbleibend',
+                amount: sum,
+                currency: DEFAULT_CURRENCY
+            };
+        }
+
         function renderOverviewSections() {
             const rows = getOverviewData();
-
-            return renderOverviewRowsRecursive(rows, '', 0);
+            let result = renderOverviewRowsRecursive(rows, '', 0);
+            result += renderTopLevelRow(renderRow(computeTotal(rows)));
+            return result;
         }
 
         function toggleOverviewFilter(filter) {
@@ -1031,7 +1043,7 @@
                         <input class="form-control text-end" id="exchange-rate" oninput="handleAmountOrExchangeRateInput();" onchange="validateDecimalField(getExchangeRateInput(), 5);" value="${expense ? expense.getExchangeRate() : defaultExchangeRate}" />
                         <span class="input-group-text">
                             <span id="computed-chf-value">${defaultCurrency ? '0.00' : renderFloat(expense?.computeAmountChf())}</span>
-                            <span>&nbsp;CHF</span>
+                            <span>&nbsp;${DEFAULT_CURRENCY}</span>
                         </span>
                     </div>
                     <div class="form-floating mt-3">
@@ -1120,7 +1132,7 @@
         function handleTypeChanged() {
             if (getTypeSelect().value === 'goal') {
                 getRecurringCheckbox().checked = false;
-                getCurrencySelect().value = 'CHF';
+                getCurrencySelect().value = DEFAULT_CURRENCY;
                 getExchangeRateInput().value = defaultExchangeRate;
             }
             refreshView();
@@ -1156,7 +1168,7 @@
         }
 
         function isDefaultCurrency(currency) {
-            return currency === 'CHF';
+            return currency === DEFAULT_CURRENCY;
         }
 
         function validateDecimalField(decimalField, fractionalDigits) {
