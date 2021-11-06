@@ -800,6 +800,7 @@
             }
 
             setVisible(getModificationButtonsForm(), !!state.selected);
+            getModificationButtonsForm().querySelectorAll('button').forEach(b => b.disabled = !!state.edit);
         }
 
         function saveExpandedPath(newPath) {
@@ -1067,8 +1068,8 @@
                         <input id="recurring-to" type="date" value="${expense?.getRecurrenceTo() ? dateToYmd(expense.getRecurrenceTo()) : ''}" />
                     </div>
                     <div class="text-end">
-                        ${expense ? `<button class="btn btn-secondary" type="button" title="Abbrechen" onclick="cancelLineEdit();">❌</button>` : ''}
-                        <button class="btn btn-primary" type="submit" title="${expense ? 'Speichern' : 'Hinzufügen'}">${expense ? '✅' : '➕'}</button>
+                        ${expense ? `<button class="btn btn-secondary" type="button" title="Abbrechen" onclick="cancelLineEdit();"><i class="bi-x-circle"></i> Abbrechen</button>` : ''}
+                        <button class="btn btn-primary" type="submit" title="${expense ? 'Speichern' : 'Hinzufügen'}">${expense ? '<i class="bi-check-circle"></i> Speichern' : '<i class="bi-plus-circle"></i> Hinzufügen'}</button>
                     </div>
                 </form>`;
 
@@ -1076,7 +1077,6 @@
         }
 
         function getLastExchangeRate(currency, date) {
-            // TODO Wechselkurse für wiederkehrende Ausgaben
             const expensesOfDay = getExpenses()
                 .filter(e => e.getCurrency() && e.getDate() && isSameDay(e.getDate(), date));
             let relevantExpenses = expensesOfDay;
@@ -1417,10 +1417,13 @@
                     onclick="removeExpense(state.selected);"><i class="bi-trash"></i> Löschen</button>
             </form>
             <form class="d-flex">
-                <button class="btn btn-light me-2" type="button" title="Öffnen" onclick="openFile();">📂</button>
+                <button class="btn btn-light me-2" type="button" title="Öffnen" onclick="openFile();">
+                    <i class="bi-folder2-open"></i> Öffnen
+                </button>
                 <input type="file" id="file-input" class="display-none" onchange="loadExpenses()" />
-                <button class="btn btn-light" type="button" id="save-button" title="Speichern"
-                    onclick="save();">💾</button>
+                <button class="btn btn-light" type="button" id="save-button" title="Speichern" onclick="save();">
+                    <i class="bi-save"></i> Speichern
+                </button>
             </form>
         </div>
     </nav>
