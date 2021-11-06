@@ -5,7 +5,8 @@
     <title>Ausgaben</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="node_modules/bootstrap-icons/font/bootstrap-icons.css">
     <style>
         html {
             font-family: sans-serif;
@@ -15,7 +16,7 @@
             display: inline;
         }
 
-        .modal {
+        .xpns-modal {
             color: gray;
         }
 
@@ -36,18 +37,6 @@
             vertical-align: bottom;
         }
 
-        tr>td .visible-on-tr-hover {
-            visibility: hidden;
-        }
-
-        tr.modal:hover>td .visible-on-tr-hover {
-            visibility: hidden;
-        }
-
-        tr:hover>td .visible-on-tr-hover {
-            visibility: visible;
-        }
-
         tr.heading {
             font-weight: bold;
         }
@@ -64,6 +53,8 @@
         const state = {
             saved: true,
             edit: null,
+            selected: null,
+            expandedPaths: {},
             month: null,
             monthDisplay: 'overview',
             chartTags: [],
@@ -653,6 +644,10 @@
             return document.getElementById('main-area');
         }
 
+        function getModificationButtonsForm() {
+            return document.getElementById('modification-buttons');
+        }
+
         function getMonthLabel() {
             return document.getElementById('month-label');
         }
@@ -725,6 +720,7 @@
                 return;
             }
             state.monthDisplay = monthDisplay;
+            state.selected = null;
             render();
         }
 
@@ -779,6 +775,56 @@
             getSaveButton().disabled = state.saved;
             getDescriptionInput().focus();
             getExpenseForm().addEventListener('submit', submitForm);
+
+            const collapsibles = document.querySelectorAll('.collapse');
+            if (collapsibles) {
+                collapsibles.forEach(n => {
+                    n.addEventListener('show.bs.collapse', e => { saveExpandedPath(e.target.id); });
+                    n.addEventListener('hide.bs.collapse', e => { removeExpandedPath(e.target.id); });
+                });
+            }
+
+            const expenseLis = document.querySelectorAll('[data-xpns-id]:not([data-xpns-id=""])');
+            for (const li of expenseLis) {
+                li.addEventListener('click', selectExpense);
+            }
+
+            setVisible(getModificationButtonsForm(), !!state.selected);
+        }
+
+        function saveExpandedPath(newPath) {
+            const components = newPath.split('-');
+
+            let expandedPath = state.expandedPaths;
+            for (let component of components) {
+                expandedPath = (expandedPath[component] = expandedPath[component] || {});
+            }
+        }
+
+        function removeExpandedPath(path) {
+            const components = path.split('-');
+
+            let expandedPath = state.expandedPaths;
+            components.forEach((component, i) => {
+                if (i === components.length - 1) {
+                    expandedPath[component] = null;
+                    return;
+                }
+                expandedPath = expandedPath[component];
+            });
+        }
+
+        function isExpanded(path) {
+            const components = path.split('-');
+
+            let expandedPath = state.expandedPaths;
+            for (let component of components) {
+                expandedPath = expandedPath[component];
+                if (!expandedPath) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         function renderSection(heading, filter, sort) {
@@ -801,16 +847,15 @@
                             <td>${heading}</td>
                             ${renderAmountTd(renderSum ? renderFloat(sum) : '')}
                             <td></td>
-                            <td></td>
-                            <td></td>
                         </tr>`;
 
             section += expenses
-                .map(e => renderExpenseTr(`
+                .map(e => `
+                    <tr data-xpns-id="${e.getId()}" class="${!state.edit ? '' : 'xpns-modal pe-none'} ${state.selected === e.getId() ? 'table-active' : ''}">
                         <td>${decorateTags(e.getDescription())}</td>
                         ${renderAmountTd(renderFloat(e.computeMonthlyAmount()))}
                         <td>${isDefaultCurrency(e.getCurrency()) ? '' : e.getCurrency()}</td>
-                        ${renderModificationButtons(e)}`))
+                    </tr>`)
                 .join('\n');
 
             return section;
@@ -830,7 +875,7 @@
             let children = '';
             if (hasChildren) {
                 children = `
-                    <div id="${childrenId}" class="collapse">
+                    <div id="${childrenId}" class="collapse ${isExpanded(childrenId) ? 'show' : ''}">
                         ${renderOverviewRowsRecursive(row.childRows, path + row.id, level + 1)}
                     </div>
                 `;
@@ -847,15 +892,15 @@
             }
 
             html += `
-                    <li ${hasChildren ? `data-bs-toggle="collapse" data-bs-target="#${childrenId}"` : ''}>
-                        <div>
-                            <span>${title}</span>
-                            <span class="float-end">
-                                <span>${renderAmount ? renderFloat(row.amount) : ''}</span>
-                                <span class="currency">${isDefaultCurrency(row.currency) ? '' : row.currency}</span>
-                            </span>
-                            ${children}
-                        </div>
+                    <li>
+                        <a href="#" class="btn btn-secondary ${row.ex && row.ex === state.selected ? 'active' : ''}" data-xpns-id="${row.ex || ''}" ${hasChildren ? `data-bs-toggle="collapse" data-bs-target="#${childrenId}"` : ''}>
+                            ${title}
+                        </a>
+                        <span class="float-end">
+                            <span>${renderAmount ? renderFloat(row.amount) : ''}</span>
+                            <span class="currency">${isDefaultCurrency(row.currency) ? '' : row.currency}</span>
+                        </span>
+                        ${children}
                     </li>`
 
             if (level === 0) {
@@ -928,7 +973,7 @@
                 .forEach(d => {
                     const [ymd, row] = d;
                     tableContent += `
-                        <tr onclick="setDay('${ymd.substring(8, 10)}');">
+                        <tr onclick="setDay('${ymd.substring(8, 10)}');" ${getCurrentDayString() === ymd ? 'class="table-active"' : ''}>
                             <td class="text-end">${renderDay(new Date(ymd))}</td>
                             ${renderAmountTd(row.amount ? renderFloat(row.amount) : '')}
                             <td>${row.description.join(', ')}</td>
@@ -1104,20 +1149,6 @@
             return currency === 'CHF';
         }
 
-        function renderModificationButtons(expense) {
-            return `
-                    <td>
-                        <button type="button" title="Bearbeiten" class="visible-on-tr-hover" onclick="startLineEdit('${expense.getId()}')">🖊</button>
-                    </td>
-                    <td>
-                        <button type="button" title="Löschen" class="visible-on-tr-hover" onclick="removeExpense('${expense.getId()}');">🚮</button>
-                    </td>`;
-        }
-
-        function renderExpenseTr(content) {
-            return `<tr ${!state.edit ? '' : 'class="modal"'}>${content}</tr> `;
-        }
-
         function validateDecimalField(decimalField, fractionalDigits) {
             validateField(decimalField, decimalRegex, () => {
                 const components = decimalField.value.split('.');
@@ -1189,7 +1220,15 @@
         function removeExpense(id) {
             const index = getExpenses().findIndex(e => e.getId() === id);
             getExpenses().splice(index, 1);
+            state.selected = null;
             setSaved(false);
+            render();
+        }
+
+        function selectExpense(evt) {
+            evt.preventDefault();
+
+            state.selected = evt.currentTarget.dataset.xpnsId;
             render();
         }
 
@@ -1346,9 +1385,15 @@
 </head>
 
 <body>
-    <nav class="navbar navbar-dark bg-dark px-3">
+    <nav class="navbar navbar-dark bg-dark">
         <div class="container">
             <span id="month-label" class="navbar-brand">Ausgaben</span>
+            <form id="modification-buttons" class="display-none">
+                <button class="btn btn-light me-2" type="button" title="Bearbeiten"
+                    onclick="startLineEdit(state.selected);"><i class="bi-pencil"></i> Bearbeiten</button>
+                <button class="btn btn-light me-2" type="button" title="Löschen"
+                    onclick="removeExpense(state.selected);"><i class="bi-trash"></i> Löschen</button>
+            </form>
             <form class="d-flex">
                 <button class="btn btn-light me-2" type="button" title="Öffnen" onclick="openFile();">📂</button>
                 <input type="file" id="file-input" class="display-none" onchange="loadExpenses()" />
