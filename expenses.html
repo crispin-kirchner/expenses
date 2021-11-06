@@ -453,13 +453,13 @@
             const income = getExpenses()
                 .filter(e => e.getType() === 'income')
                 .filter(e => e.isValidOnDate(new Date(getCurrentDayString())))
-                .reduce((sum, e) => sum + e.computeAmountChf(), 0);
+                .reduce((sum, e) => sum + e.computeMonthlyAmountChf(), 0);
 
             const recurringExpenses = getExpenses()
                 .filter(e => e.getType() === 'expense')
                 .filter(e => e.isRecurring())
                 .filter(e => e.isValidOnDate(new Date(getCurrentDayString())))
-                .reduce((sum, e) => sum + e.computeAmountChf(), 0);
+                .reduce((sum, e) => sum + e.computeMonthlyAmountChf(), 0);
 
             const availableAmount = income - recurringExpenses;
 
