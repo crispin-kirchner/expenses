@@ -787,7 +787,6 @@
             refreshView();
 
             getSaveButton().disabled = state.saved;
-            getDescriptionInput().focus();
             getExpenseForm().addEventListener('submit', submitForm);
 
             const collapsibles = document.querySelectorAll('.collapse');
@@ -1444,6 +1443,7 @@
     <script>
         "use strict";
         render();
+        getDescriptionInput().focus();
     </script>
 </body>
 
