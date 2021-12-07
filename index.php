@@ -1,8 +1,21 @@
+<?php
+    namespace Xpns;
+
+    function getTitle() {
+        $title = 'Ausgaben';
+        $appzone = getenv('XPNS_APPZONE');
+        if(!empty($appzone)) {
+            $title .= " **$appzone**";
+        }
+        return $title;
+    }
+?>
+
 <!doctype html>
 <html>
 
 <head>
-    <title>Ausgaben</title>
+    <title><?php echo getTitle(); ?></title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
@@ -45,7 +58,7 @@
             padding-top: 0.5em;
         }
     </style>
-    <script src="lib/uuidv4.min.js"></script>
+    <script src="node_modules/uuid/dist/umd/uuidv4.min.js"></script>
     <script src="node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         "use strict";
@@ -58,7 +71,6 @@
             monthDisplay: 'overview',
             chartTags: [],
             date: new Date(Date.now()),
-            filename: null,
             overviewConfiguration: {
                 typeFilter: ['income', 'recurring', 'expense']
             },
@@ -127,7 +139,7 @@
 
         const typeFilters = {
             income: {
-                name: 'Einkommen',
+                name: 'Einnahmen',
                 filter: ex => ex.getType() === 'income'
             },
             recurring: {
@@ -653,10 +665,6 @@
             return document.getElementById('save-button');
         }
 
-        function getFileInput() {
-            return document.getElementById('file-input');
-        }
-
         function getMainArea() {
             return document.getElementById('main-area');
         }
@@ -786,7 +794,6 @@
 
             refreshView();
 
-            getSaveButton().disabled = state.saved;
             getExpenseForm().addEventListener('submit', submitForm);
 
             const collapsibles = document.querySelectorAll('.collapse');
@@ -1316,20 +1323,20 @@
             if (!state.saved && !confirm('Beim Öffnen werden ungespeicherte Änderungen überschrieben. Bist du sicher dass du eine Datei öffnen möchtest?')) {
                 return;
             }
-            getFileInput().click();
+            let req = new XMLHttpRequest();
+            req.open('get', '/open.php');
+            req.responseType = 'json';
+            req.addEventListener('load', () => {
+                loadExpenses(req.response);
+            });
+            req.send();
         }
 
         function save() {
-            let jsonString = JSON.stringify(state.data, null, 2);
-            let dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(jsonString);
-            let a = document.createElement('a');
-            a.rel = 'noopener';
-            a.download = state.filename || 'ausgaben.json';
-            a.target = '_blank';
-            a.href = dataStr;
-            a.dispatchEvent(new MouseEvent('click'));
-            setSaved(true);
-            render();
+            let req = new XMLHttpRequest();
+            req.open('post', '/save.php');
+            req.setRequestHeader('Content-Type', 'application/json');
+            req.send(JSON.stringify(state.data, null, 2));
         }
 
         function setSaved(value) {
@@ -1338,41 +1345,29 @@
                 return;
             }
             state.saved = value;
-            if (!state.saved) {
-                getFileInput().value = '';
-            }
         }
 
-        function loadExpenses() {
-            const file = getFileInput().files[0];
-            if (!file) {
-                return;
-            }
-            const reader = new FileReader();
-            reader.onload = evt => {
-                const migratedData = migrate(JSON.parse(evt.target.result));
-                setExpenses(migratedData.expenses
-                    .map(obj => {
-                        const expense = new Expense();
-                        expense.setId(obj._id);
-                        expense.setType(obj._type);
-                        expense.setDate(obj._date);
-                        expense.setAmount(obj._amount);
-                        expense.setCurrency(obj._currency);
-                        expense.setExchangeRate(obj._exchangeRate);
-                        expense.setDescription(obj._description);
-                        expense.setCreateDate(obj._createDate);
-                        expense.setRecurring(obj._recurring);
-                        expense.setRecurrencePeriodicity(obj._recurrencePeriodicity);
-                        expense.setRecurrenceFrequency(obj._recurrenceFrequency);
-                        expense.setRecurrenceFrom(obj._recurrenceFrom);
-                        expense.setRecurrenceTo(obj._recurrenceTo);
-                        return expense;
-                    }));
-                render();
-                state.filename = file.name;
-            }
-            reader.readAsText(file);
+        function loadExpenses(loadedData) {
+            const migratedData = migrate(loadedData);
+            setExpenses(migratedData.expenses
+                .map(obj => {
+                    const expense = new Expense();
+                    expense.setId(obj._id);
+                    expense.setType(obj._type);
+                    expense.setDate(obj._date);
+                    expense.setAmount(obj._amount);
+                    expense.setCurrency(obj._currency);
+                    expense.setExchangeRate(obj._exchangeRate);
+                    expense.setDescription(obj._description);
+                    expense.setCreateDate(obj._createDate);
+                    expense.setRecurring(obj._recurring);
+                    expense.setRecurrencePeriodicity(obj._recurrencePeriodicity);
+                    expense.setRecurrenceFrequency(obj._recurrenceFrequency);
+                    expense.setRecurrenceFrom(obj._recurrenceFrom);
+                    expense.setRecurrenceTo(obj._recurrenceTo);
+                    return expense;
+                }));
+            render();
         }
 
         function migrate(loadedData) {
@@ -1423,7 +1418,6 @@
                 <button class="btn btn-light me-2" type="button" title="Öffnen" onclick="openFile();">
                     <i class="bi-folder2-open"></i> Öffnen
                 </button>
-                <input type="file" id="file-input" class="display-none" onchange="loadExpenses()" />
                 <button class="btn btn-light" type="button" id="save-button" title="Speichern" onclick="save();">
                     <i class="bi-save"></i> Speichern
                 </button>
