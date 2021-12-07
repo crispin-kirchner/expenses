@@ -1415,9 +1415,6 @@
                     onclick="removeExpense(state.selected);"><i class="bi-trash"></i> Löschen</button>
             </form>
             <form class="d-flex">
-                <button class="btn btn-light me-2" type="button" title="Öffnen" onclick="openFile();">
-                    <i class="bi-folder2-open"></i> Öffnen
-                </button>
                 <button class="btn btn-light" type="button" id="save-button" title="Speichern" onclick="save();">
                     <i class="bi-save"></i> Speichern
                 </button>
@@ -1436,7 +1433,7 @@
 
     <script>
         "use strict";
-        render();
+        openFile();
         getDescriptionInput().focus();
     </script>
 </body>
