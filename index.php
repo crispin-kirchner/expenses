@@ -794,6 +794,7 @@
 
             refreshView();
 
+            getSaveButton().disabled = state.saved;
             getExpenseForm().addEventListener('submit', submitForm);
 
             const collapsibles = document.querySelectorAll('.collapse');
@@ -1336,6 +1337,10 @@
             let req = new XMLHttpRequest();
             req.open('post', '/save.php');
             req.setRequestHeader('Content-Type', 'application/json');
+            req.addEventListener('load', () => {
+                setSaved(true);
+                render();
+            });
             req.send(JSON.stringify(state.data, null, 2));
         }
 
