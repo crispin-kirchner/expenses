@@ -700,14 +700,17 @@ function setMonthDisplay(monthDisplay) {
 function renderMainArea() {
     const items = {
         overview: {
+            icon: 'eyeglasses',
             name: 'Übersicht',
             callback: renderMonthOverview
         },
         calendar: {
+            icon: 'calendar3',
             name: 'Kalender',
             callback: renderMonthTable
         },
         chart: {
+            icon: 'graph-up',
             name: 'Diagramm',
             callback: renderMonthChartTab
         }
@@ -718,7 +721,7 @@ function renderMainArea() {
             const [item, props] = en;
             return `
                     <li class="nav-item">
-                        <a class="nav-link ${state.monthDisplay === item ? 'active' : ''}" onclick="setMonthDisplay('${item}');" href="#">${props.name}</a>
+                        <a class="nav-link ${state.monthDisplay === item ? 'active' : ''}" onclick="setMonthDisplay('${item}');" href="#"><i class="bi-${props.icon}"></i> ${props.name}</a>
                     </li>`;
         });
 
