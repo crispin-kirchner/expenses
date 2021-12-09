@@ -17,7 +17,7 @@
     "assert": "^2.0.0",
     "bootstrap": "^5.1.3",
     "bootstrap-icons": "^1.6.1",
-    "expenses": "file:../../../AppData/Local/Expenses",
+    "chart.js": "^3.6.2",
     "selenium-webdriver": "^4.0.0",
     "uuid": "^8.3.2"
   }

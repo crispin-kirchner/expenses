@@ -60,6 +60,7 @@
     </style>
     <script src="node_modules/uuid/dist/umd/uuidv4.min.js"></script>
     <script src="node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="node_modules/chart.js/dist/chart.js"></script>
     <script src="expenses.js"></script>
 </head>
 
@@ -101,7 +102,6 @@
     <script>
         "use strict";
         openFile();
-        getDescriptionInput().focus();
     </script>
 </body>
 

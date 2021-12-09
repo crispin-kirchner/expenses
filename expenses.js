@@ -610,6 +610,10 @@ function getModificationButtonsForm() {
     return document.getElementById('modification-buttons');
 }
 
+function getMonthChart() {
+    return document.getElementById('month-chart');
+}
+
 function getMonthLabel() {
     return document.getElementById('month-label');
 }
@@ -654,8 +658,15 @@ function renderFloat(f) {
     return numberFormat.format(f);
 }
 
-function renderDay(d) {
-    return dayFormat.format(d);
+function renderDay(dateString) {
+    return dayFormat.format(new Date(dateString));
+}
+
+function renderDayHeading(date) {
+    if (typeof date === 'string') {
+        date = new Date(date);
+    }
+    return dayHeadingFormat.format(date);
 }
 
 function decorateTags(description) {
@@ -695,6 +706,10 @@ function renderMainArea() {
         calendar: {
             name: 'Kalender',
             callback: renderMonthTable
+        },
+        chart: {
+            name: 'Diagramm',
+            callback: renderMonthChartTab
         }
     };
 
@@ -722,9 +737,11 @@ function render() {
 
     renderMainArea();
 
+    renderMonthChart();
+
     const dayTable = `
                 <table class="table table-sm table-hover">
-                    ${renderSection(dayHeadingFormat.format(new Date(getCurrentDayString())), e => e.getType() === 'expense' && !e.isRecurring(), false)}
+                    ${renderSection(renderDayHeading(state.date), e => e.getType() === 'expense' && !e.isRecurring(), false)}
                 </table>`;
     const form = renderForm();
     getDayExpensesDiv().innerHTML = dayTable + form;
@@ -945,7 +962,7 @@ function renderMonthTable() {
             const [ymd, row] = d;
             tableContent += `
                         <tr onclick="setDate(new Date('${ymd}'));" ${getCurrentDayString() === ymd ? 'class="table-active"' : ''}>
-                            <td class="text-end">${renderDay(new Date(ymd))}</td>
+                            <td class="text-end">${renderDay(ymd)}</td>
                             ${renderAmountTd(row.amount ? renderFloat(row.amount) : '')}
                             <td>${row.description.join(', ')}</td>
                             ${renderAmountTd(row.saved ? renderFloat(row.saved) : '')}
@@ -953,6 +970,78 @@ function renderMonthTable() {
             `;
         });
     return tableContent + '</table>';
+}
+
+function renderMonthChartTab() {
+    return `
+        <h5>Gespart</h5>
+        <div>
+            <canvas id="month-chart"></canvas>
+        </div>`;
+}
+
+function renderMonthChart() {
+    if (state.monthDisplay !== 'chart') {
+        return;
+    }
+
+    const days = getDaysOfMonth(state.date);
+    let savedCumulative = 0;
+    const dataset = Object.entries(days)
+        .map(e => {
+            const [ymd, day] = e;
+            return {
+                x: ymd,
+                y: (savedCumulative += day.saved)
+            };
+        });
+
+    dataset.splice(0, 0, { x: '', y: 0 });
+
+    const myChart = new Chart(getMonthChart(), {
+        type: 'line',
+        data: {
+            datasets: [{
+                data: dataset,
+                borderColor: '#0d6efd',
+                tension: 0.25,
+                fill: true
+            }]
+        },
+        options: {
+            animation: false,
+            aspectRatio: 1.5,
+            color: '#212529',
+            scales: {
+                x: {
+                    ticks: {
+                        align: 'end',
+                        callback: function (v) { return this.getLabelForValue(v) === '' ? '' : renderDay(this.getLabelForValue(v)); }
+                    }
+                }
+            },
+            onClick(e, activeElements, chart) {
+                if (activeElements.length) {
+                    const ymd = dataset[activeElements[0].index].x;
+                    if (ymd.length === 10) {
+                        setDate(new Date(ymd));
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    displayColors: false,
+                    callbacks: {
+                        label: ctx => `Gesamt: ${DEFAULT_CURRENCY} ${renderFloat(ctx.dataset.data[ctx.dataIndex].y)}`,
+                        title: ctx => ctx.map(c => renderDayHeading(c.dataset.data[c.dataIndex].x))
+                    }
+                }
+            }
+        }
+    });
 }
 
 function renderForm() {
@@ -1310,6 +1399,7 @@ function loadExpenses(loadedData) {
             return expense;
         }));
     render();
+    getDescriptionInput().focus();
 }
 
 function migrate(loadedData) {
