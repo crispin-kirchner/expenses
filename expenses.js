@@ -5,7 +5,7 @@ const state = {
     edit: null,
     selected: null,
     expandedPaths: {},
-    monthDisplay: 'overview',
+    monthDisplay: 'chart',
     chartTags: [],
     date: new Date(Date.now()),
     overviewConfiguration: {
@@ -974,7 +974,6 @@ function renderMonthTable() {
 
 function renderMonthChartTab() {
     return `
-        <h5>Gespart</h5>
         <div>
             <canvas id="month-chart"></canvas>
         </div>`;
@@ -986,27 +985,61 @@ function renderMonthChart() {
     }
 
     const days = getDaysOfMonth(state.date);
-    let savedCumulative = 0;
-    const dataset = Object.entries(days)
-        .map(e => {
-            const [ymd, day] = e;
-            return {
-                x: ymd,
-                y: (savedCumulative += day.saved)
-            };
-        });
 
-    dataset.splice(0, 0, { x: '', y: 0 });
+    let savedCumulativeAmount = 0;
+    const savedCumulativeData = Object.values(days)
+        .map(day => (savedCumulativeAmount += day.saved));
+    savedCumulativeData.splice(0, 0, 0);
 
+    const labels = Object.keys(days);
+    labels.splice(0, 0, '');
+
+    const expensesData = Object.values(days)
+        .map(day => day.amount);
+    expensesData.splice(0, 0, 0);
+
+    const isValidDay = function (day) {
+        return day > 0 && day <= Object.entries(days).length;
+    }
+
+    const highlightDay = function (ctx, chart, day, color) {
+        if (!day) {
+            return;
+        }
+
+        ctx.fillStyle = color;
+
+        const xStart = chart.scales.x.getPixelForValue(day - 0.5);
+        const xEnd = chart.scales.x.getPixelForValue(day + 0.5);
+
+        const yStart = chart.scales.y.getPixelForValue(chart.scales.y.min);
+        const yEnd = chart.scales.y.getPixelForValue(chart.scales.y.max);
+        ctx.fillRect(xStart, yStart, xEnd - xStart, yEnd - yStart);
+    }
+
+    let hoverDay = null;
     const myChart = new Chart(getMonthChart(), {
-        type: 'line',
         data: {
-            datasets: [{
-                data: dataset,
-                borderColor: '#0d6efd',
-                tension: 0.25,
-                fill: true
-            }]
+            datasets: [
+                {
+                    type: 'bar',
+                    label: 'Ausgaben',
+                    data: expensesData,
+                    borderColor: 'rgb(255,193,7)',
+                    backgroundColor: 'rgb(255,193,7,0.2)',
+                    borderWidth: 1
+                },
+                {
+                    type: 'line',
+                    label: 'Gespart kumuliert',
+                    data: savedCumulativeData,
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(108,117,125, 0.05)',
+                    tension: 0.25,
+                    fill: true
+                }
+            ],
+            labels: labels
         },
         options: {
             animation: false,
@@ -1014,18 +1047,36 @@ function renderMonthChart() {
             color: '#212529',
             scales: {
                 x: {
+                    min: 0.5,
                     ticks: {
-                        align: 'end',
                         callback: function (v) { return this.getLabelForValue(v) === '' ? '' : renderDay(this.getLabelForValue(v)); }
                     }
                 }
             },
             onClick(e, activeElements, chart) {
                 if (activeElements.length) {
-                    const ymd = dataset[activeElements[0].index].x;
+                    const ymd = labels[activeElements[0].index];
                     if (ymd.length === 10) {
                         setDate(new Date(ymd));
+                        return;
                     }
+                }
+                const day = chart.scales.x.getValueForPixel(e.x);
+                if (!isValidDay(day)) {
+                    return;
+                }
+                const newDate = new Date(state.date);
+                newDate.setDate(day);
+                setDate(newDate);
+            },
+            onHover(e, activeElements, chart) {
+                let day = chart.scales.x.getValueForPixel(e.x);
+                if (!isValidDay(day) || e.y <= chart.scales.y.top || e.y >= chart.scales.y.bottom) {
+                    day = null;
+                }
+                if (hoverDay !== day) {
+                    hoverDay = day;
+                    chart.render();
                 }
             },
             plugins: {
@@ -1035,12 +1086,25 @@ function renderMonthChart() {
                 tooltip: {
                     displayColors: false,
                     callbacks: {
-                        label: ctx => `Gesamt: ${DEFAULT_CURRENCY} ${renderFloat(ctx.dataset.data[ctx.dataIndex].y)}`,
-                        title: ctx => ctx.map(c => renderDayHeading(c.dataset.data[c.dataIndex].x))
+                        label: ctx => `${ctx.dataset.label}: ${DEFAULT_CURRENCY} ${renderFloat(ctx.dataset.data[ctx.dataIndex])}`,
+                        title: ctx => ctx.map(c => renderDayHeading(c.label))
                     }
                 }
             }
-        }
+        },
+        plugins: [{
+            id: 'custom-canvas-background',
+            beforeDraw: (chart) => {
+                const ctx = chart.canvas.getContext('2d');
+                ctx.save();
+                ctx.globalCompositeOperation = 'destination-over';
+
+                highlightDay(ctx, chart, state.date.getDate(), 'rgba(0,0,0,0.1)');
+                highlightDay(ctx, chart, hoverDay, 'rgba(0,0,0,0.075)');
+
+                ctx.restore();
+            }
+        }]
     });
 }
 

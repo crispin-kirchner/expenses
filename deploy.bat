@@ -2,14 +2,15 @@ set TARGET_PATH="%LocalAppData%\Expenses"
 mkdir %TARGET_PATH%
 
 set FILE_LIST=^
+    "common.php"^
+    "expenses.bat"^
+    "expenses.js"^
+    "expenses.vbs"^
+    "index.php"^
+    "open.php"^
     "package.json"^
     "package-lock.json"^
-    "open.php"^
-    "save.php"^
-    "common.php"^
-    "index.php"^
-    "expenses.bat"^
-    "expenses.vbs"
+    "save.php"
 
 (for %%f in (%FILE_LIST%) do (
     copy %%f %TARGET_PATH%
