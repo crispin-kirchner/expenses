@@ -1002,6 +1002,13 @@ function renderMonthChart() {
         return day > 0 && day <= Object.entries(days).length;
     }
 
+    const isInsideGrid = function (e, chart) {
+        return e.y > chart.scales.y.top
+            && e.y < chart.scales.y.bottom
+            && e.x > chart.scales.x.left
+            && e.x < chart.scales.x.right;
+    }
+
     const highlightDay = function (ctx, chart, day, color) {
         if (!day) {
             return;
@@ -1071,7 +1078,7 @@ function renderMonthChart() {
             },
             onHover(e, activeElements, chart) {
                 let day = chart.scales.x.getValueForPixel(e.x);
-                if (!isValidDay(day) || e.y <= chart.scales.y.top || e.y >= chart.scales.y.bottom) {
+                if (!isValidDay(day) || !isInsideGrid(e, chart)) {
                     day = null;
                 }
                 if (hoverDay !== day) {
