@@ -11,6 +11,8 @@ const state = {
     overviewConfiguration: {
         typeFilter: ['income', 'recurring', 'expense']
     },
+    proposalSelection: false,
+    descriptionCaretPosition: null,
     data: {
         version: 2,
         expenses: [],
@@ -320,14 +322,26 @@ document.onkeydown = e => {
         }
     }
     if (e.ctrlKey) {
-        if (e.key === 'o') {
-            openFile();
-            return false;
-        }
         if (e.key === 's') {
             save();
             return false;
         }
+    }
+    if (e.target.id === 'description' && e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        if (!getProposalField().querySelector('option')) {
+            return false;
+        }
+        const selectedOption = getProposalField().querySelector('option:checked');
+        let sibling;
+        if (!selectedOption || !(sibling = e.key === 'ArrowDown' ? selectedOption.nextElementSibling : selectedOption.previousElementSibling)) {
+            sibling = e.key === 'ArrowDown' ? getProposalField().querySelector('option:first-child') : getProposalField().querySelector('option:last-child');
+        }
+        sibling.selected = true;
+        getDescriptionInput().value = sibling.value;
+        if (typeof state.descriptionCaretPosition === 'number') {
+            getDescriptionInput().setSelectionRange(state.descriptionCaretPosition, state.descriptionCaretPosition);
+        }
+        return false;
     }
     return true;
 };
@@ -598,10 +612,6 @@ function getExpenseForm() {
     return document.getElementById('expense-form');
 }
 
-function getSaveButton() {
-    return document.getElementById('save-button');
-}
-
 function getMainArea() {
     return document.getElementById('main-area');
 }
@@ -616,6 +626,10 @@ function getMonthChart() {
 
 function getMonthLabel() {
     return document.getElementById('month-label');
+}
+
+function getProposalField() {
+    return document.getElementById('proposal-field');
 }
 
 function getRecurringCheckbox() {
@@ -648,6 +662,10 @@ function getRecurringTo() {
 
 function getRecurringYearly() {
     return document.getElementById('recurring-yearly');
+}
+
+function getSaveButton() {
+    return document.getElementById('save-button');
 }
 
 function getTypeSelect() {
@@ -822,7 +840,7 @@ function renderSection(heading, filter, sort) {
     const renderSum = sum > 0.005;
 
     let section = `
-                        <tr class="heading">
+                        <tr class="heading fw-bold">
                             <td>${heading}</td>
                             ${renderAmountTd(renderSum ? renderFloat(sum) : '')}
                             <td></td>
@@ -1028,7 +1046,7 @@ function renderMonthChart() {
     }
 
     let hoverDay = null;
-    const myChart = new Chart(getMonthChart(), {
+    new Chart(getMonthChart(), {
         data: {
             datasets: [
                 {
@@ -1118,6 +1136,72 @@ function renderMonthChart() {
     });
 }
 
+function getDictionary() {
+    return getExpenses()
+        .filter(e => e.getType() === getTypeSelect().value)
+        .map(e => e.getDescription())
+        .reduce((dict, desc) => {
+            if (dict[desc]) {
+                dict[desc] += 1;
+            }
+            else {
+                dict[desc] = 1;
+            }
+            return dict;
+        }, {});
+}
+
+function setProposalFieldVisible(visible) {
+    setVisible(getProposalField(), visible);
+    toggleClass(getDescriptionInput(), 'rounded-0', visible);
+}
+
+function handleDescriptionInput() {
+    state.proposalSelection = false;
+    state.descriptionCaretPosition = getDescriptionInput().selectionStart;
+
+    let searchString;
+    if (state.descriptionCaretPosition) {
+        searchString = getDescriptionInput().value.substring(0, state.descriptionCaretPosition);
+    }
+    else {
+        searchString = getDescriptionInput().value;
+    }
+    const hasText = !!searchString.length;
+    setProposalFieldVisible(hasText);
+    if (hasText) {
+        const dictionary = getDictionary();
+        const proposals = Object.entries(dictionary)
+            .filter(e => e[0].toLowerCase().startsWith(searchString.toLowerCase()))
+            .sort((a, b) => b[1] - a[1]);
+
+        if (proposals.findIndex(e => e[0] === getDescriptionInput().value) < 0) {
+            getDescriptionInput().value = searchString;
+        }
+
+        getProposalField().innerHTML = proposals
+            .map(p => `<option>${p[0]}</option>`)
+            .join('\n');
+    }
+}
+
+function handleDescriptionBlur() {
+    state.descriptionCaretPosition = null;
+    setProposalFieldVisible(state.proposalSelection);
+    state.proposalSelection = false;
+}
+
+function handleProposalSelect() {
+    state.descriptionCaretPosition = null;
+    getDescriptionInput().value = getProposalField().value;
+}
+
+function handleProposalClick() {
+    if (!getProposalField().classList.contains('d-none')) {
+        state.proposalSelection = true;
+    }
+}
+
 function renderForm() {
     const expense = getEditExpense();
     const currencies = ['CHF', '€'];
@@ -1134,9 +1218,13 @@ function renderForm() {
                         </select>
                         <label for="type-select">Typ</label>
                     </div>
-                    <div class="form-floating mb-3">
-                        <input id="description" class="form-control" placeholder="Beschreibung" value="${expense ? expense.getDescription() : ''}" />
+                    <div class="form-floating">
+                        <input id="description" class="form-control rounded-top" placeholder="Beschreibung" value="${expense ? expense.getDescription() : ''}" oninput="handleDescriptionInput()" onmousedown="handleProposalClick()" onblur="handleDescriptionBlur()" />
                         <label for="description">Beschreibung</label>
+                    </div>
+                    <div class="mb-3">
+                        <select id="proposal-field" class="form-select d-none overflow-auto border-top-0 rounded-bottom rounded-0" size="4" tabindex="-1" onchange="handleProposalSelect()" onmousedown="handleProposalClick()" onblur="handleDescriptionBlur()">
+                        </select>
                     </div>
                     <div class="row g-2">
                         <div class="col-8 form-floating">
@@ -1213,11 +1301,15 @@ function setVisible(field, visible) {
     if (label) {
         elements.push(label);
     }
-    if (visible) {
-        elements.forEach(el => el.classList.remove('display-none'));
+    elements.forEach(el => toggleClass(el, 'd-none', !visible));
+}
+
+function toggleClass(element, clazz, on) {
+    if (on) {
+        element.classList.add(clazz);
     }
     else {
-        elements.forEach(el => el.classList.add('display-none'));
+        element.classList.remove(clazz);
     }
 }
 
@@ -1473,7 +1565,6 @@ function loadExpenses(loadedData) {
             return expense;
         }));
     render();
-    getDescriptionInput().focus();
 }
 
 function migrate(loadedData) {

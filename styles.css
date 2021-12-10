@@ -1,0 +1,16 @@
+.xpns-modal {
+    color: gray;
+}
+
+.error {
+    border-color: red;
+}
+
+.currency {
+    width: 3ex;
+    display: inline-block;
+}
+
+tr.heading:not(:first-child) td {
+    padding-top: 0.5em;
+}

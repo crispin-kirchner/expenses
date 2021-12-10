@@ -20,44 +20,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="node_modules/bootstrap-icons/font/bootstrap-icons.css">
-    <style>
-        html {
-            font-family: sans-serif;
-        }
+    <link rel="stylesheet" href="styles.css">
 
-        h1 {
-            display: inline;
-        }
-
-        .xpns-modal {
-            color: gray;
-        }
-
-        .display-none {
-            display: none;
-        }
-
-        .error {
-            border-color: red;
-        }
-
-        .currency {
-            width: 3ex;
-            display: inline-block;
-        }
-
-        .va-bottom {
-            vertical-align: bottom;
-        }
-
-        tr.heading {
-            font-weight: bold;
-        }
-
-        tr.heading:not(:first-child) td {
-            padding-top: 0.5em;
-        }
-    </style>
     <script src="node_modules/uuid/dist/umd/uuidv4.min.js"></script>
     <script src="node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="node_modules/chart.js/dist/chart.js"></script>
@@ -76,7 +40,7 @@
                 </button>
                 <span id="month-label">Ausgaben</span>
             </div>
-            <form id="modification-buttons" class="display-none">
+            <form id="modification-buttons" class="d-none">
                 <button class="btn btn-light me-2" type="button" title="Bearbeiten"
                     onclick="startLineEdit(state.selected);"><i class="bi-pencil"></i> Bearbeiten</button>
                 <button class="btn btn-light me-2" type="button" title="Löschen"
