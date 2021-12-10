@@ -621,10 +621,6 @@ function getMainArea() {
     return document.getElementById('main-area');
 }
 
-function getModificationButtonsForm() {
-    return document.getElementById('modification-buttons');
-}
-
 function getMonthChart() {
     return document.getElementById('month-chart');
 }
@@ -788,8 +784,6 @@ function render() {
     for (const li of expenseLis) {
         li.addEventListener('click', selectExpense);
     }
-
-    setVisible(getModificationButtonsForm(), !!state.edit);
 }
 
 function saveExpandedPath(newPath) {
@@ -1270,9 +1264,14 @@ function renderForm() {
                         <input id="recurring-from" type="date" value="${expense?.isRecurring() ? dateToYmd(expense.getRecurrenceFrom()) : ''}" />
                         <input id="recurring-to" type="date" value="${expense?.getRecurrenceTo() ? dateToYmd(expense.getRecurrenceTo()) : ''}" />
                     </div>
-                    <div class="text-end">
-                        ${expense ? `<button class="btn btn-secondary" type="button" title="Abbrechen" onclick="cancelLineEdit();"><i class="bi-x-circle"></i> Abbrechen</button>` : ''}
-                        <button class="btn btn-primary" type="submit" title="${expense ? 'Speichern' : 'Hinzufügen'}">${expense ? '<i class="bi-check-circle"></i> Speichern' : '<i class="bi-plus-circle"></i> Hinzufügen'}</button>
+                    <div>
+                        <div class="float-start">
+                            ${expense ? `<button class="btn btn-secondary" type="button" title="Löschen" onclick="removeExpense(state.edit);"><i class="bi-trash"></i> Löschen</button>` : ''}
+                        </div>
+                        <div class="float-end">
+                            ${expense ? `<button class="btn btn-secondary" type="button" title="Abbrechen" onclick="cancelLineEdit();"><i class="bi-x-circle"></i> Abbrechen</button>` : ''}
+                            <button class="btn btn-primary" type="submit" title="${expense ? 'Speichern' : 'Hinzufügen'}">${expense ? '<i class="bi-check-circle"></i> Speichern' : '<i class="bi-plus-circle"></i> Hinzufügen'}</button>
+                        </div>
                     </div>
                 </form>`;
 
