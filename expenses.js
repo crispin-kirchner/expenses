@@ -1507,9 +1507,8 @@ function submitForm(event) {
     else {
         getExpenses().push(expense);
     }
-
     setSaved(false);
-    render();
+    setDate(expense.getDate());
 }
 
 function openFile() {
