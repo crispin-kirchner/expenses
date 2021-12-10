@@ -432,7 +432,7 @@ function getDaysOfMonth(month) {
 
     const income = getExpenses()
         .filter(e => e.getType() === 'income')
-        .filter(e => e.isValidOnDate(new Date(getCurrentDayString())))
+        .filter(e => e.isValidInMonth(new Date(getCurrentDayString())))
         .reduce((sum, e) => sum + e.computeMonthlyAmountChf(), 0);
 
     const recurringExpenses = getExpenses()
