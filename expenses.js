@@ -443,7 +443,7 @@ function getDaysOfMonth(month) {
     const availableAmount = income - recurringExpenses;
 
     while (date.getMonth() === month.getMonth()) {
-        days[dateToYmd(date)] = getOnetimeExpenses()
+        const day = getOnetimeExpenses()
             .filter(e => e.getType() === 'expense' && e.isValidOnDate(date))
             .reduce((day, e) => {
                 day.amount += e.computeAmountChf();
@@ -454,6 +454,12 @@ function getDaysOfMonth(month) {
                 }
                 return day;
             }, { amount: 0, description: [] });
+
+        const dayOfWeek = date.getDay();
+        day.weekend = dayOfWeek === 6 || dayOfWeek === 0;
+        day.index = date.getDate();
+
+        days[dateToYmd(date)] = day;
         date.setDate(date.getDate() + 1);
     }
 
@@ -1123,6 +1129,10 @@ function renderMonthChart() {
                 const ctx = chart.canvas.getContext('2d');
                 ctx.save();
                 ctx.globalCompositeOperation = 'destination-over';
+
+                Object.values(days)
+                    .filter(d => d.weekend)
+                    .forEach(d => highlightDay(ctx, chart, d.index, 'rgba(25,134,84,0.1)'));
 
                 highlightDay(ctx, chart, state.date.getDate(), 'rgba(0,0,0,0.1)');
                 highlightDay(ctx, chart, hoverDay, 'rgba(0,0,0,0.075)');
