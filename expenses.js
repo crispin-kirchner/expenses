@@ -3,7 +3,6 @@
 const state = {
     saved: true,
     edit: null,
-    selected: null,
     expandedPaths: {},
     monthDisplay: 'chart',
     chartTags: [],
@@ -711,7 +710,6 @@ function setMonthDisplay(monthDisplay) {
         return;
     }
     state.monthDisplay = monthDisplay;
-    state.selected = null;
     render();
 }
 
@@ -785,8 +783,7 @@ function render() {
         li.addEventListener('click', selectExpense);
     }
 
-    setVisible(getModificationButtonsForm(), !!state.selected);
-    getModificationButtonsForm().querySelectorAll('button').forEach(b => b.disabled = !!state.edit);
+    setVisible(getModificationButtonsForm(), !!state.edit);
 }
 
 function saveExpandedPath(newPath) {
@@ -848,7 +845,7 @@ function renderSection(heading, filter, sort) {
 
     section += expenses
         .map(e => `
-                    <tr data-xpns-id="${e.getId()}" class="${!state.edit ? '' : 'xpns-modal pe-none'} ${state.selected === e.getId() ? 'table-active' : ''}">
+                    <tr data-xpns-id="${e.getId()}" class="${state.edit === e.getId() ? 'table-active' : ''}">
                         <td>${decorateTags(e.getDescription())}</td>
                         ${renderAmountTd(renderFloat(e.computeMonthlyAmount()))}
                         <td>${isDefaultCurrency(e.getCurrency()) ? '' : e.getCurrency()}</td>
@@ -880,7 +877,7 @@ function renderRow(row, children, childrenId) {
 
     return `
                 <li>
-                    <a href="#" class="btn text-light ${row.ex && row.ex === state.selected ? 'btn-secondary active' : ''}" data-xpns-id="${row.ex || ''}" ${children ? `data-bs-toggle="collapse" data-bs-target="#${childrenId}"` : ''}>
+                    <a href="#" class="btn text-light ${row.ex && row.ex === state.edit ? 'btn-secondary active' : ''}" data-xpns-id="${row.ex || ''}" ${children ? `data-bs-toggle="collapse" data-bs-target="#${childrenId}"` : ''}>
                         ${title}
                     </a>
                     <span class="float-end">
@@ -1429,7 +1426,7 @@ function validateForm() {
 function removeExpense(id) {
     const index = getExpenses().findIndex(e => e.getId() === id);
     getExpenses().splice(index, 1);
-    state.selected = null;
+    state.edit = null;
     setSaved(false);
     render();
 }
@@ -1437,7 +1434,7 @@ function removeExpense(id) {
 function selectExpense(evt) {
     evt.preventDefault();
 
-    state.selected = evt.currentTarget.dataset.xpnsId;
+    state.edit = evt.currentTarget.dataset.xpnsId;
     render();
 }
 

@@ -41,10 +41,8 @@
                 <span id="month-label">Ausgaben</span>
             </div>
             <form id="modification-buttons" class="d-none">
-                <button class="btn btn-light me-2" type="button" title="Bearbeiten"
-                    onclick="startLineEdit(state.selected);"><i class="bi-pencil"></i> Bearbeiten</button>
                 <button class="btn btn-light me-2" type="button" title="Löschen"
-                    onclick="removeExpense(state.selected);"><i class="bi-trash"></i> Löschen</button>
+                    onclick="removeExpense(state.edit);"><i class="bi-trash"></i> Löschen</button>
             </form>
             <form class="d-flex">
                 <button class="btn btn-light" type="button" id="save-button" title="Speichern" onclick="save();">
