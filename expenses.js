@@ -1138,7 +1138,6 @@ function renderMonthChart() {
 
 function getDictionary() {
     return getExpenses()
-        .filter(e => e.getType() === getTypeSelect().value)
         .map(e => e.getDescription())
         .reduce((dict, desc) => {
             if (dict[desc]) {
@@ -1214,7 +1213,6 @@ function renderForm() {
                         <select id="type-select" class="form-select" placeholder="Typ" onchange="handleTypeChanged();">
                             <option value="expense" ${expenseSelected ? 'selected' : ''}>Ausgabe</option>
                             <option value="income" ${expense?.getType() === 'income' ? 'selected' : ''}>Einnahme</option>
-                            <option value="goal" ${expense?.getType() === 'goal' ? 'selected' : ''}>Sparziel</option>
                         </select>
                         <label for="type-select">Typ</label>
                     </div>
@@ -1259,7 +1257,6 @@ function renderForm() {
                         <input id="recurring-monthly" name="recurring-periodicity" type="radio" ${!expense?.isRecurring() || expense.getRecurrencePeriodicity() === 'monthly' ? 'checked' : ''} /><label for="recurring-monthly">Monatlich</label>
                         <input id="recurring-yearly" name="recurring-periodicity" type="radio" ${expense?.getRecurrencePeriodicity() === 'yearly' ? 'checked' : ''} /><label for="recurring-yearly">Jährlich</label>
                     </div>`;
-    const isRecurringToEnabled = expense?.isRecurring() || expense?.getType() === 'goal';
     form += `
                     <div id="recurring-fromto">
                         <label for="recurring-from">Start</label><label id="recurring-fromto-label-sep">/</label><label for="recurring-to">Ende</label>
@@ -1323,21 +1320,13 @@ function refreshView() {
     [getRecurringFrom(),
     getRecurringFromToLabelSep(),
     getRecurringTo()]
-        .forEach(f => setVisible(f, getRecurringCheckbox().checked || getTypeSelect().value === 'goal'));
+        .forEach(f => setVisible(f, getRecurringCheckbox().checked));
 
-    setVisible(getRecurringCheckbox(), getTypeSelect().value !== 'goal');
-    setVisible(getDateInput(), !getRecurringCheckbox().checked && getTypeSelect().value !== 'goal');
+    setVisible(getDateInput(), !getRecurringCheckbox().checked);
     setVisible(document.getElementById('form-line2'), !isDefaultCurrency(getCurrencySelect().value));
-
-    getCurrencySelect().disabled = getTypeSelect().value === 'goal';
 }
 
 function handleTypeChanged() {
-    if (getTypeSelect().value === 'goal') {
-        getRecurringCheckbox().checked = false;
-        getCurrencySelect().value = DEFAULT_CURRENCY;
-        getExchangeRateInput().value = defaultExchangeRate;
-    }
     refreshView();
 }
 
@@ -1417,11 +1406,6 @@ function validateForm() {
         mandatoryFields.push(
             getRecurringFrequency(),
             getRecurringFrom());
-    }
-    else if (getTypeSelect().value === 'goal') {
-        mandatoryFields.push(
-            getRecurringFrom(),
-            getRecurringTo());
     }
     else {
         mandatoryFields.push(getDateInput());
@@ -1508,7 +1492,7 @@ function submitForm(event) {
         getExpenses().push(expense);
     }
     setSaved(false);
-    setDate(expense.getDate());
+    setDate(expense.getDate() || expense.getRecurrenceFrom());
 }
 
 function openFile() {
