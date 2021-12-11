@@ -1076,6 +1076,9 @@ function renderMonthChart() {
                     ticks: {
                         callback: function (v) { return this.getLabelForValue(v) === '' ? '' : renderDay(this.getLabelForValue(v)); }
                     }
+                },
+                y: {
+                    max: 1400
                 }
             },
             onClick(e, activeElements, chart) {
