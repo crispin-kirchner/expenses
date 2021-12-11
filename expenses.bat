@@ -1,4 +1,4 @@
 setlocal
 call env.bat
-php -S localhost:%XPNS_PORT%
+php -S 0.0.0.0:%XPNS_PORT%
 endlocal

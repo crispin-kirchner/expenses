@@ -3,6 +3,7 @@
 const state = {
     saved: true,
     edit: null,
+    new: false,
     expandedPaths: {},
     monthDisplay: 'chart',
     chartTags: [],
@@ -589,6 +590,10 @@ function getAmountInput() {
     return document.getElementById('amount');
 }
 
+function getAppArea() {
+    return document.getElementById('app-area');
+}
+
 function getComputedChfValue() {
     return document.getElementById('computed-chf-value');
 }
@@ -601,10 +606,6 @@ function getDateInput() {
     return document.getElementById('date-input');
 }
 
-function getDayExpensesDiv() {
-    return document.getElementById('day-expenses');
-}
-
 function getDescriptionInput() {
     return document.getElementById('description');
 }
@@ -615,10 +616,6 @@ function getExchangeRateInput() {
 
 function getExpenseForm() {
     return document.getElementById('expense-form');
-}
-
-function getMainArea() {
-    return document.getElementById('main-area');
 }
 
 function getMonthChart() {
@@ -739,38 +736,39 @@ function renderMainArea() {
             const [item, props] = en;
             return `
                     <li class="nav-item">
-                        <a class="nav-link ${state.monthDisplay === item ? 'active' : ''}" onclick="setMonthDisplay('${item}');" href="#"><i class="bi-${props.icon}"></i> ${props.name}</a>
+                        <a class="nav-link ${state.monthDisplay === item ? 'active' : ''}" onclick="setMonthDisplay('${item}');" href="#"><i class="bi-${props.icon}"></i><span class="d-none d-sm-inline">&nbsp;${props.name}</span></a>
                     </li>`;
         });
 
     const content = items[state.monthDisplay].callback();
 
-    getMainArea().innerHTML = `
-                <ul class="nav nav-tabs mb-2">
-                    ${lis.join('\n')}
-                </ul>
-                ${content}`;
+    return `
+        <div id="main-area" class="col-lg-8 mt-content">
+            <ul class="nav nav-tabs mb-2">
+                ${lis.join('\n')}
+            </ul>
+            <div class="mb-4">
+                ${content}
+            </div>
+        </div>`;
 }
 
 function render() {
     let monthLabel = monthFormat.format(state.date);
     getMonthLabel().textContent = monthLabel;
 
-    renderMainArea();
+    const mainArea = renderMainArea();
+    const dayTable = renderDayExpenses(renderDayHeading(state.date), e => e.getType() === 'expense' && !e.isRecurring(), false);
+    const form = renderForm();
+    getAppArea().innerHTML = mainArea + dayTable + form;
 
     renderMonthChart();
-
-    const dayTable = `
-                <table class="table table-sm table-hover">
-                    ${renderSection(renderDayHeading(state.date), e => e.getType() === 'expense' && !e.isRecurring(), false)}
-                </table>`;
-    const form = renderForm();
-    getDayExpensesDiv().innerHTML = dayTable + form;
-
-    refreshView();
+    if (form) {
+        refreshFormView();
+        getExpenseForm().addEventListener('submit', submitForm);
+    }
 
     getSaveButton().disabled = state.saved;
-    getExpenseForm().addEventListener('submit', submitForm);
 
     const collapsibles = document.querySelectorAll('.collapse');
     if (collapsibles) {
@@ -821,7 +819,7 @@ function isExpanded(path) {
     return true;
 }
 
-function renderSection(heading, filter, sort) {
+function renderDayExpenses(heading, filter, sort) {
     const currentDay = new Date(getCurrentDayString());
     const expenses = getExpenses()
         .filter(filter)
@@ -836,32 +834,31 @@ function renderSection(heading, filter, sort) {
 
     const renderSum = sum > 0.005;
 
-    let section = `
-                        <tr class="heading fw-bold">
-                            <td>${heading}</td>
-                            ${renderAmountTd(renderSum ? renderFloat(sum) : '')}
-                            <td></td>
-                        </tr>`;
-
-    section += expenses
+    let rows = `
+        <div id="day-expenses" class="col-lg-4 mt-lg-content">
+            <nav class="nav border-bottom border-top"><span class="nav-link px-0 me-auto">${heading}</span><span class="nav-link px-2">${renderSum ? renderFloat(sum) : ''}</span></nav>
+            <table class="table table-sm table-hover">`;
+    rows += expenses
         .map(e => `
-                    <tr data-xpns-id="${e.getId()}" class="${state.edit === e.getId() ? 'table-active' : ''}">
-                        <td>${decorateTags(e.getDescription())}</td>
-                        ${renderAmountTd(renderFloat(e.computeMonthlyAmount()))}
-                        <td>${isDefaultCurrency(e.getCurrency()) ? '' : e.getCurrency()}</td>
-                    </tr>`)
+            <tr data-xpns-id="${e.getId()}" class="${state.edit === e.getId() ? 'table-active' : ''}">
+                <td class="text-nowrap">${decorateTags(e.getDescription())}</td>
+                ${renderAmountTd(renderFloat(e.computeMonthlyAmount()))}
+                <td>${isDefaultCurrency(e.getCurrency()) ? '' : e.getCurrency()}</td>
+            </tr>`)
         .join('\n');
+    rows += `</table>
+        </div>`;
 
-    return section;
+    return rows;
 }
 
 function renderTopLevelRow(content) {
     return `
-                <div class="bg-dark text-light rounded p-2 mt-2">
-                    <ul class="m-0">
-                        ${content}
-                    </ul>
-                </div>`;
+        <div class="bg-dark text-light rounded p-2 mt-2">
+            <ul class="m-0">
+                ${content}
+            </ul>
+        </div>`;
 }
 
 function renderRow(row, children, childrenId) {
@@ -876,16 +873,16 @@ function renderRow(row, children, childrenId) {
     const renderAmount = row.amount > 0.005;
 
     return `
-                <li>
-                    <a href="#" class="btn text-light ${row.ex && row.ex === state.edit ? 'btn-secondary active' : ''}" data-xpns-id="${row.ex || ''}" ${children ? `data-bs-toggle="collapse" data-bs-target="#${childrenId}"` : ''}>
-                        ${title}
-                    </a>
-                    <span class="float-end">
-                        <span>${renderAmount ? renderFloat(row.amount) : ''}</span>
-                        <span class="currency">${isDefaultCurrency(row.currency) ? '' : row.currency}</span>
-                    </span>
-                    ${children ? children : ''}
-                </li>`;
+        <li>
+            <a href="#" class="btn text-light ${row.ex && row.ex === state.edit ? 'btn-secondary active' : ''}" data-xpns-id="${row.ex || ''}" ${children ? `data-bs-toggle="collapse" data-bs-target="#${childrenId}"` : ''}>
+                ${title}
+            </a>
+            <span class="float-end">
+                <span>${renderAmount ? renderFloat(row.amount) : ''}</span>
+                <span class="currency">${isDefaultCurrency(row.currency) ? '' : row.currency}</span>
+            </span>
+            ${children ? children : ''}
+        </li>`;
 }
 
 function renderOverviewRowRecursive(row, path, level) {
@@ -893,10 +890,9 @@ function renderOverviewRowRecursive(row, path, level) {
     let children = null;
     if (row.childRows.length !== 0) {
         children = `
-                    <div id="${childrenId}" class="collapse ${isExpanded(childrenId) ? 'show' : ''}">
-                        ${renderOverviewRowsRecursive(row.childRows, path + row.id, level + 1)}
-                    </div>
-                `;
+                <div id="${childrenId}" class="collapse ${isExpanded(childrenId) ? 'show' : ''}">
+                    ${renderOverviewRowsRecursive(row.childRows, path + row.id, level + 1)}
+                </div>`;
     }
 
     let html = renderRow(row, children, childrenId);
@@ -960,17 +956,17 @@ function renderMonthOverview() {
         .map(en => {
             const [item, props] = en;
             return `
-                        <input id="overview-filter-${item}-checkbox" type="checkbox" class="btn-check" onchange="toggleOverviewFilter('${item}')">
-                        <label class="btn btn-sm ${state.overviewConfiguration.typeFilter.includes(item) ? 'btn-primary active' : 'btn-outline-primary'}" for="overview-filter-${item}-checkbox">${props.name}</label>`;
+                    <input id="overview-filter-${item}-checkbox" type="checkbox" class="btn-check" onchange="toggleOverviewFilter('${item}')">
+                    <label class="btn btn-sm ${state.overviewConfiguration.typeFilter.includes(item) ? 'btn-primary active' : 'btn-outline-primary'}" for="overview-filter-${item}-checkbox">${props.name}</label>`;
         });
 
     return `
-                <form>
-                    <div class="btn-group">
-                        ${typeFilterButtons.join('\n')}
-                    </div>
-                </form>
-                ${renderOverviewSections()}`;
+            <form>
+                <div class="btn-group">
+                    ${typeFilterButtons.join('\n')}
+                </div>
+            </form>
+            ${renderOverviewSections()}`;
 }
 
 function renderMonthTable() {
@@ -979,22 +975,25 @@ function renderMonthTable() {
         .forEach(d => {
             const [ymd, row] = d;
             tableContent += `
-                        <tr onclick="setDate(new Date('${ymd}'));" ${getCurrentDayString() === ymd ? 'class="table-active"' : ''}>
-                            <td class="text-end">${renderDay(ymd)}</td>
-                            ${renderAmountTd(row.amount ? renderFloat(row.amount) : '')}
-                            <td>${row.description.join(', ')}</td>
-                            ${renderAmountTd(row.saved ? renderFloat(row.saved) : '')}
-                        </tr>
-            `;
+                    <tr onclick="setDate(new Date('${ymd}'));" ${getCurrentDayString() === ymd ? 'class="table-active"' : ''}>
+                        <td class="text-end">${renderDay(ymd)}</td>
+                        ${renderAmountTd(row.amount ? renderFloat(row.amount) : '')}
+                        <td>${row.description.join(', ')}</td>
+                        ${renderAmountTd(row.saved ? renderFloat(row.saved) : '')}
+                    </tr>
+        `;
         });
     return tableContent + '</table>';
 }
 
+/*
+ * Chart
+ */
 function renderMonthChartTab() {
     return `
-        <div>
-            <canvas id="month-chart"></canvas>
-        </div>`;
+    <div>
+        <canvas id="month-chart"></canvas>
+    </div>`;
 }
 
 function renderMonthChart() {
@@ -1140,6 +1139,53 @@ function renderMonthChart() {
     });
 }
 
+/*
+ * Form
+ */
+function refreshFormView() {
+    [getRecurringFrequency(),
+    getRecurringMonthly(),
+    getRecurringYearly(),
+    getRecurringFrequencySep()]
+        .forEach(f => setVisible(f, getRecurringCheckbox().checked));
+
+    [getRecurringFrom(),
+    getRecurringFromToLabelSep(),
+    getRecurringTo()]
+        .forEach(f => setVisible(f, getRecurringCheckbox().checked));
+
+    setVisible(getDateInput(), !getRecurringCheckbox().checked);
+    setVisible(document.getElementById('form-line2'), !isDefaultCurrency(getCurrencySelect().value));
+}
+
+function handleTypeChanged() {
+    refreshFormView();
+}
+
+function handleCurrencyChanged() {
+    let exchangeRate = defaultExchangeRate;
+    if (!isDefaultCurrency(getCurrencySelect().value)) {
+        const referenceDate = new Date(getDateInput().value !== '' ? getDateInput().value : getCurrentDayString());
+        exchangeRate = getLastExchangeRate(getCurrencySelect().value, referenceDate) || exchangeRate;
+    }
+    getExchangeRateInput().value = exchangeRate;
+
+    refreshFormView();
+}
+
+function handleRecurringCheckboxChanged() {
+    if (getRecurringCheckbox().checked) {
+        getRecurringFrom().value = getDateInput().value;
+        getDateInput().value = null;
+    }
+    else {
+        getDateInput().value = getRecurringFrom().value;
+        getRecurringFrom().value = null;
+    }
+
+    refreshFormView();
+}
+
 function getDictionary() {
     return getExpenses()
         .map(e => e.getDescription())
@@ -1206,77 +1252,80 @@ function handleProposalClick() {
 }
 
 function renderForm() {
+    if (!state.edit && !state.new) {
+        return '';
+    }
+
     const expense = getEditExpense();
     const currencies = ['CHF', '€'];
     const defaultCurrency = expense ? isDefaultCurrency(expense.getCurrency()) : true;
     const expenseSelected = !expense || expense.getType() === 'expense';
     let form = `
-                <form id="expense-form" autocomplete="off" novalidate>
-                    <h2>${state.edit ? 'Bearbeiten' : 'Neu'}</h2>
-                    <div class="form-floating mb-3">
-                        <select id="type-select" class="form-select" placeholder="Typ" onchange="handleTypeChanged();">
-                            <option value="expense" ${expenseSelected ? 'selected' : ''}>Ausgabe</option>
-                            <option value="income" ${expense?.getType() === 'income' ? 'selected' : ''}>Einnahme</option>
+        <div class="col-lg-4 position-absolute end-0 bg-white pt-3 pt-lg-0 mt-lg-content h-100" style="z-index: 1100">
+            <form id="expense-form" autocomplete="off" novalidate>
+                <div class="d-flex align-items-center mb-2">
+                    <h2 class="me-auto">${state.edit ? 'Bearbeiten' : 'Neu'}</h2>
+                    <button type="button" class="btn-close" aria-label="Close" onclick="cancelLineEdit();"></button>
+                </div>
+                <div class="form-floating mb-3">
+                    <select id="type-select" class="form-select" placeholder="Typ" onchange="handleTypeChanged();">
+                        <option value="expense" ${expenseSelected ? 'selected' : ''}>Ausgabe</option>
+                        <option value="income" ${expense?.getType() === 'income' ? 'selected' : ''}>Einnahme</option>
+                    </select>
+                    <label for="type-select">Typ</label>
+                </div>
+                <div class="form-floating">
+                    <input id="description" class="form-control rounded-top" placeholder="Beschreibung" value="${expense ? expense.getDescription() : ''}" oninput="handleDescriptionInput()" onmousedown="handleProposalClick()" onblur="handleDescriptionBlur()" />
+                    <label for="description">Beschreibung</label>
+                </div>
+                <div class="mb-3">
+                    <select id="proposal-field" class="form-select d-none overflow-auto border-top-0 rounded-bottom rounded-0" size="4" tabindex="-1" onchange="handleProposalSelect()" onmousedown="handleProposalClick()" onblur="handleDescriptionBlur()">
+                    </select>
+                </div>
+                <div class="row g-2">
+                    <div class="col-8 form-floating">
+                        <input id="amount" class="form-control text-end" placeholder="Betrag" oninput="handleAmountOrExchangeRateInput();" onchange="validateDecimalField(getAmountInput(), 2);" value="${expense ? expense.getAmount() : ''}" />
+                        <label for="amount">Betrag</label>
+                    </div>
+                    <div class="col-4 form-floating">
+                        <select id="currency-input" class="form-select" onchange="handleCurrencyChanged()" required>
+                            ${currencies.map(c => `<option value="${c}" ${c === expense?.getCurrency() ? 'selected' : ''}>${c}</option>`)}
                         </select>
-                        <label for="type-select">Typ</label>
+                        <label for="currency-input">Währung</label>
                     </div>
-                    <div class="form-floating">
-                        <input id="description" class="form-control rounded-top" placeholder="Beschreibung" value="${expense ? expense.getDescription() : ''}" oninput="handleDescriptionInput()" onmousedown="handleProposalClick()" onblur="handleDescriptionBlur()" />
-                        <label for="description">Beschreibung</label>
-                    </div>
-                    <div class="mb-3">
-                        <select id="proposal-field" class="form-select d-none overflow-auto border-top-0 rounded-bottom rounded-0" size="4" tabindex="-1" onchange="handleProposalSelect()" onmousedown="handleProposalClick()" onblur="handleDescriptionBlur()">
-                        </select>
-                    </div>
-                    <div class="row g-2">
-                        <div class="col-8 form-floating">
-                            <input id="amount" class="form-control text-end" placeholder="Betrag" oninput="handleAmountOrExchangeRateInput();" onchange="validateDecimalField(getAmountInput(), 2);" value="${expense ? expense.getAmount() : ''}" />
-                            <label for="amount">Betrag</label>
-                        </div>
-                        <div class="col-4 form-floating">
-                            <select id="currency-input" class="form-select" onchange="handleCurrencyChanged()" required>
-                                ${currencies.map(c => `<option value="${c}" ${c === expense?.getCurrency() ? 'selected' : ''}>${c}</option>`)}
-                            </select>
-                            <label for="currency-input">Währung</label>
-                        </div>
-                    </div>
-                    <div id="form-line2" class="input-group mt-2">
-                        <span class="input-group-text">Wechselkurs</span>
-                        <input class="form-control text-end" id="exchange-rate" oninput="handleAmountOrExchangeRateInput();" onchange="validateDecimalField(getExchangeRateInput(), 5);" value="${expense ? expense.getExchangeRate() : defaultExchangeRate}" />
-                        <span class="input-group-text">
-                            <span id="computed-chf-value">${defaultCurrency ? '0.00' : renderFloat(expense?.computeAmountChf())}</span>
-                            <span>&nbsp;${DEFAULT_CURRENCY}</span>
-                        </span>
-                    </div>
-                    <div class="form-floating mt-3">
-                        <input id="date-input" class="form-control" type="date" value="${expense?.getDate() ? dateToYmd(expense.getDate()) : (expense ? '' : getCurrentDayString())}" />
-                        <label for="date-input">Datum</label>
-                    </div>
-                    <div class="form-check form-switch mt-4">
-                        <input id="recurring-checkbox" class="form-check-input" type="checkbox" onchange="handleRecurringCheckboxChanged();" ${expense?.isRecurring() ? 'checked' : ''} />
-                        <label for="recurring-checkbox" class="form-check-label">Wiederkehrend</label>
-                    </div>
-                    <div>
-                        <input id="recurring-frequency" type="number" class="text-end" size="2" maxlength="2" value="${expense?.isRecurring() ? expense.getRecurrenceFrequency() : '1'}" onchange="validateIntegerField(getRecurringFrequency());" /><span id="recurring-frequency-sep">-</span>
-                        <input id="recurring-monthly" name="recurring-periodicity" type="radio" ${!expense?.isRecurring() || expense.getRecurrencePeriodicity() === 'monthly' ? 'checked' : ''} /><label for="recurring-monthly">Monatlich</label>
-                        <input id="recurring-yearly" name="recurring-periodicity" type="radio" ${expense?.getRecurrencePeriodicity() === 'yearly' ? 'checked' : ''} /><label for="recurring-yearly">Jährlich</label>
-                    </div>`;
-    form += `
-                    <div id="recurring-fromto">
-                        <label for="recurring-from">Start</label><label id="recurring-fromto-label-sep">/</label><label for="recurring-to">Ende</label>
-                        <input id="recurring-from" type="date" value="${expense?.isRecurring() ? dateToYmd(expense.getRecurrenceFrom()) : ''}" />
-                        <input id="recurring-to" type="date" value="${expense?.getRecurrenceTo() ? dateToYmd(expense.getRecurrenceTo()) : ''}" />
-                    </div>
-                    <div>
-                        <div class="float-start">
-                            ${expense ? `<button class="btn btn-secondary" type="button" title="Löschen" onclick="removeExpense(state.edit);"><i class="bi-trash"></i> Löschen</button>` : ''}
-                        </div>
-                        <div class="float-end">
-                            ${expense ? `<button class="btn btn-secondary" type="button" title="Abbrechen" onclick="cancelLineEdit();"><i class="bi-x-circle"></i> Abbrechen</button>` : ''}
-                            <button class="btn btn-primary" type="submit" title="${expense ? 'Speichern' : 'Hinzufügen'}">${expense ? '<i class="bi-check-circle"></i> Speichern' : '<i class="bi-plus-circle"></i> Hinzufügen'}</button>
-                        </div>
-                    </div>
-                </form>`;
+                </div>
+                <div id="form-line2" class="input-group mt-2">
+                    <span class="input-group-text">Wechselkurs</span>
+                    <input class="form-control text-end" id="exchange-rate" oninput="handleAmountOrExchangeRateInput();" onchange="validateDecimalField(getExchangeRateInput(), 5);" value="${expense ? expense.getExchangeRate() : defaultExchangeRate}" />
+                    <span class="input-group-text">
+                        <span id="computed-chf-value">${defaultCurrency ? '0.00' : renderFloat(expense?.computeAmountChf())}</span>
+                        <span>&nbsp;${DEFAULT_CURRENCY}</span>
+                    </span>
+                </div>
+                <div class="form-floating mt-3">
+                    <input id="date-input" class="form-control" type="date" value="${expense?.getDate() ? dateToYmd(expense.getDate()) : (expense ? '' : getCurrentDayString())}" />
+                    <label for="date-input">Datum</label>
+                </div>
+                <div class="form-check form-switch mt-4">
+                    <input id="recurring-checkbox" class="form-check-input" type="checkbox" onchange="handleRecurringCheckboxChanged();" ${expense?.isRecurring() ? 'checked' : ''} />
+                    <label for="recurring-checkbox" class="form-check-label">Wiederkehrend</label>
+                </div>
+                <div>
+                    <input id="recurring-frequency" type="number" class="text-end" size="2" maxlength="2" value="${expense?.isRecurring() ? expense.getRecurrenceFrequency() : '1'}" onchange="validateIntegerField(getRecurringFrequency());" /><span id="recurring-frequency-sep">-</span>
+                    <input id="recurring-monthly" name="recurring-periodicity" type="radio" ${!expense?.isRecurring() || expense.getRecurrencePeriodicity() === 'monthly' ? 'checked' : ''} /><label for="recurring-monthly">Monatlich</label>
+                    <input id="recurring-yearly" name="recurring-periodicity" type="radio" ${expense?.getRecurrencePeriodicity() === 'yearly' ? 'checked' : ''} /><label for="recurring-yearly">Jährlich</label>
+                </div>
+                <div id="recurring-fromto">
+                    <label for="recurring-from">Start</label><label id="recurring-fromto-label-sep">/</label><label for="recurring-to">Ende</label>
+                    <input id="recurring-from" type="date" value="${expense?.isRecurring() ? dateToYmd(expense.getRecurrenceFrom()) : ''}" />
+                    <input id="recurring-to" type="date" value="${expense?.getRecurrenceTo() ? dateToYmd(expense.getRecurrenceTo()) : ''}" />
+                </div>
+                <div class="d-flex mt-4">
+                    ${expense ? `<button class="btn btn-secondary" type="button" title="Löschen" onclick="removeExpense(state.edit);"><i class="bi-trash"></i> Löschen</button>` : ''}
+                    <button class="btn btn-primary ms-auto" type="submit" title="${expense ? 'Speichern' : 'Hinzufügen'}">${expense ? '<i class="bi-check-circle"></i> Speichern' : '<i class="bi-plus-circle"></i> Hinzufügen'}</button>
+                </div>
+            </form>
+        </div>`;
 
     return form;
 }
@@ -1317,50 +1366,6 @@ function toggleClass(element, clazz, on) {
     else {
         element.classList.remove(clazz);
     }
-}
-
-function refreshView() {
-    [getRecurringFrequency(),
-    getRecurringMonthly(),
-    getRecurringYearly(),
-    getRecurringFrequencySep()]
-        .forEach(f => setVisible(f, getRecurringCheckbox().checked));
-
-    [getRecurringFrom(),
-    getRecurringFromToLabelSep(),
-    getRecurringTo()]
-        .forEach(f => setVisible(f, getRecurringCheckbox().checked));
-
-    setVisible(getDateInput(), !getRecurringCheckbox().checked);
-    setVisible(document.getElementById('form-line2'), !isDefaultCurrency(getCurrencySelect().value));
-}
-
-function handleTypeChanged() {
-    refreshView();
-}
-
-function handleCurrencyChanged() {
-    let exchangeRate = defaultExchangeRate;
-    if (!isDefaultCurrency(getCurrencySelect().value)) {
-        const referenceDate = new Date(getDateInput().value !== '' ? getDateInput().value : getCurrentDayString());
-        exchangeRate = getLastExchangeRate(getCurrencySelect().value, referenceDate) || exchangeRate;
-    }
-    getExchangeRateInput().value = exchangeRate;
-
-    refreshView();
-}
-
-function handleRecurringCheckboxChanged() {
-    if (getRecurringCheckbox().checked) {
-        getRecurringFrom().value = getDateInput().value;
-        getDateInput().value = null;
-    }
-    else {
-        getDateInput().value = getRecurringFrom().value;
-        getRecurringFrom().value = null;
-    }
-
-    refreshView();
 }
 
 function handleAmountOrExchangeRateInput() {
@@ -1457,6 +1462,7 @@ function startLineEdit(id) {
 
 function cancelLineEdit() {
     state.edit = null;
+    state.new = false;
     render();
 }
 
@@ -1498,6 +1504,7 @@ function submitForm(event) {
         state.edit = null;
     }
     else {
+        state.new = false;
         getExpenses().push(expense);
     }
     setSaved(false);

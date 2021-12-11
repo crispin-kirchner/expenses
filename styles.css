@@ -14,3 +14,13 @@
 tr.heading:not(:first-child) td {
     padding-top: 0.5em;
 }
+
+.mt-content {
+    margin-top: 80px;
+}
+
+@media (min-width: 992px) {
+    .mt-lg-content {
+        margin-top: 80px;
+    }
+}

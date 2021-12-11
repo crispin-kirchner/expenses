@@ -12,11 +12,11 @@
 ?>
 
 <!doctype html>
-<html>
+<html lang="de">
 
 <head>
     <title><?php echo getTitle(); ?></title>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="node_modules/bootstrap-icons/font/bootstrap-icons.css">
@@ -29,7 +29,7 @@
 </head>
 
 <body>
-    <nav class="navbar navbar-dark bg-dark">
+    <nav class="navbar navbar-dark bg-dark fixed-top">
         <div class="container">
             <div class="navbar-brand">
                 <button class="btn text-light" onclick="setDate(decrementMonth(state.date));">
@@ -41,19 +41,18 @@
                 <span id="month-label">Ausgaben</span>
             </div>
             <form class="d-flex">
-                <button class="btn btn-light" type="button" id="save-button" title="Speichern" onclick="save();">
-                    <i class="bi-save"></i> Speichern
+                <button class="btn btn-light me-2" type="button" id="save-button" title="Speichern" onclick="save();">
+                    <i class="bi-save"></i><span class="d-none d-sm-inline-block">&nbsp;Speichern</span>
+                </button>
+                <button class="btn btn-light" type="button" title="Neu" onclick="state.new = true; render();">
+                    <i class="bi-plus-square"></i><span class="d-none d-sm-inline-block">&nbsp;Neu</span>
                 </button>
             </form>
         </div>
     </nav>
 
-    <div class="container my-4">
-        <div class="row">
-            <div id="main-area" class="col col-8"> </div>
-            <div class="col col-4">
-                <div id="day-expenses"></div>
-            </div>
+    <div class="container">
+        <div id="app-area" class="row position-relative">
         </div>
     </div>
 
