@@ -10,7 +10,8 @@ set FILE_LIST=^
     "open.php"^
     "package.json"^
     "package-lock.json"^
-    "save.php"
+    "save.php"^
+    "styles.css"
 
 (for %%f in (%FILE_LIST%) do (
     copy %%f %TARGET_PATH%
