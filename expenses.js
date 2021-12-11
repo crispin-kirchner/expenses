@@ -443,10 +443,12 @@ function getDaysOfMonth(month) {
 
     const availableAmount = income - recurringExpenses;
 
+    let hasExpenses = false;
     while (date.getMonth() === month.getMonth()) {
         const day = getOnetimeExpenses()
             .filter(e => e.getType() === 'expense' && e.isValidOnDate(date))
             .reduce((day, e) => {
+                hasExpenses = true;
                 day.amount += e.computeAmountChf();
                 const firstHashPosition = e.getDescription().indexOf('#');
                 const dealer = e.getDescription().substr(0, firstHashPosition === -1 ? undefined : firstHashPosition).trim();
@@ -462,6 +464,9 @@ function getDaysOfMonth(month) {
 
         days[dateToYmd(date)] = day;
         date.setDate(date.getDate() + 1);
+    }
+    if (!hasExpenses) {
+        return {};
     }
 
     const numDays = Object.entries(days).length;
