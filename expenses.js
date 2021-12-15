@@ -1082,7 +1082,7 @@ function renderMonthChart() {
                     }
                 },
                 y: {
-                    max: 1400
+                    max: 1200
                 }
             },
             onClick(e, activeElements, chart) {
