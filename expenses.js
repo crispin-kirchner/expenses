@@ -471,7 +471,7 @@ function getDaysOfMonth(month) {
 
     const numDays = Object.entries(days).length;
     Object.entries(days)
-        .filter(entry => new Date(entry[0]) < new Date(today))
+        .filter(entry => new Date(entry[0]) <= new Date(today))
         .forEach(entry => {
             entry[1].saved = availableAmount / numDays - entry[1].amount
         });
