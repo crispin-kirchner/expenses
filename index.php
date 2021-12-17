@@ -44,7 +44,7 @@
                 <button class="btn btn-light me-2" type="button" id="save-button" title="Speichern" onclick="save();">
                     <i class="bi-save"></i><span class="d-none d-sm-inline-block">&nbsp;Speichern</span>
                 </button>
-                <button class="btn btn-light" type="button" title="Neu" onclick="state.new = true; render();">
+                <button class="btn btn-light" type="button" title="Neu" onclick="startNew();">
                     <i class="bi-plus-square"></i><span class="d-none d-sm-inline-block">&nbsp;Neu</span>
                 </button>
             </form>

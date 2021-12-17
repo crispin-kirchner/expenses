@@ -1,3 +1,4 @@
 *.ods
 *.ods#
 node_modules
+data

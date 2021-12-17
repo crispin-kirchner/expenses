@@ -1460,6 +1460,12 @@ function selectExpense(evt) {
     render();
 }
 
+function startNew() {
+    state.edit = null;
+    state.new = true;
+    render();
+}
+
 function startLineEdit(id) {
     state.edit = id;
     render();
