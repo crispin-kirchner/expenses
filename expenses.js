@@ -675,10 +675,6 @@ function getRecurringYearly() {
     return document.getElementById('recurring-yearly');
 }
 
-function getSaveButton() {
-    return document.getElementById('save-button');
-}
-
 function getTypeSelect() {
     return document.getElementById('type-select');
 }
@@ -779,9 +775,8 @@ function render() {
     if (form) {
         refreshFormView();
         getExpenseForm().addEventListener('submit', submitForm);
+        getDescriptionInput().focus();
     }
-
-    getSaveButton().disabled = state.saved;
 
     const collapsibles = document.querySelectorAll('.collapse');
     if (collapsibles) {
@@ -1482,6 +1477,7 @@ function removeExpense(id) {
     getExpenses().splice(index, 1);
     state.edit = null;
     setSaved(false);
+    save();
     render();
 }
 
@@ -1551,7 +1547,13 @@ function submitForm(event) {
         getExpenses().push(expense);
     }
     setSaved(false);
-    setDate(expense.getDate() || expense.getRecurrenceFrom());
+    if (!expense.isRecurring()) {
+        setDate(expense.getDate() || expense.getRecurrenceFrom());
+    }
+    else {
+        render();
+    }
+    save();
 }
 
 function openFile() {
