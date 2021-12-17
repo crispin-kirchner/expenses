@@ -384,7 +384,7 @@ function incrementMonth(date) {
 
 function decrementMonth(date) {
     if (date.getMonth() == 0) {
-        return new Date(date.getFullYear() - 1, 0, date.getDate());
+        return new Date(date.getFullYear() - 1, 11, date.getDate());
     }
     return new Date(date.getFullYear(), date.getMonth() - 1, date.getDate());
 }
@@ -1073,7 +1073,10 @@ function renderMonthChart() {
                     label: 'Gespart kumuliert',
                     data: savedCumulativeData,
                     borderColor: '#0d6efd',
-                    backgroundColor: 'rgba(108,117,125, 0.05)',
+                    backgroundColor: 'transparent',
+                    pointRadius: 0,
+                    pointHoverRadius: 4,
+                    pointHitRadius: 5,
                     tension: 0.25,
                     fill: true
                 }
@@ -1108,7 +1111,9 @@ function renderMonthChart() {
                     },
                     ticks: {
                         mirror: true,
-                        padding: -5
+                        padding: -5,
+                        z: 1,
+                        showLabelBackdrop: true
                     }
                 }
             },
