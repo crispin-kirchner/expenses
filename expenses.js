@@ -321,9 +321,17 @@ document.onkeydown = e => {
             return false;
         }
     }
+    if (e.key === 'Escape') {
+        cancelLineEdit();
+        return false;
+    }
     if (e.ctrlKey) {
         if (e.key === 's') {
             save();
+            return false;
+        }
+        if (e.key === 'Insert') {
+            startNew();
             return false;
         }
     }
