@@ -1052,6 +1052,7 @@ function renderMonthChart() {
     }
 
     let hoverDay = null;
+    let areaLeft = null;
     // bootstrap default fonts
     Chart.defaults.font.family = 'system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"';
     new Chart(getMonthChart(), {
@@ -1072,8 +1073,8 @@ function renderMonthChart() {
                     borderColor: '#0d6efd',
                     backgroundColor: 'transparent',
                     pointRadius: 0,
-                    pointHoverRadius: 4,
-                    pointHitRadius: 5,
+                    pointHoverRadius: 0,
+                    pointHitRadius: 10,
                     tension: 0.25,
                     fill: true
                 }
@@ -1168,6 +1169,25 @@ function renderMonthChart() {
                 highlightDay(ctx, chart, state.date.getDate(), 'rgba(0,0,0,0.1)');
                 highlightDay(ctx, chart, hoverDay, 'rgba(0,0,0,0.075)');
 
+                ctx.restore();
+            },
+            beforeDatasetDraw: (chart, dataset) => {
+                if (dataset.meta.type !== 'line') {
+                    return;
+                }
+                const ctx = chart.canvas.getContext('2d');
+                ctx.save();
+                const offset = chart.scales.x.getPixelForValue(0.5) - chart.scales.x.getPixelForValue(0);
+                areaLeft = chart.chartArea.left;
+                chart.chartArea.left -= offset;
+                ctx.translate(offset, 0);
+            },
+            afterDatasetDraw: (chart, dataset) => {
+                if (dataset.meta.type !== 'line') {
+                    return;
+                }
+                chart.chartArea.left = areaLeft;
+                const ctx = chart.canvas.getContext('2d');
                 ctx.restore();
             }
         }]
