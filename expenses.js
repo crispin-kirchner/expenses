@@ -64,10 +64,12 @@ const state = {
     }
 }
 
-const dayHeadingFormat = new Intl.DateTimeFormat([], { weekday: 'long', day: '2-digit', month: '2-digit' });
-const dayFormat = new Intl.DateTimeFormat([], { day: 'numeric' });
-const monthFormat = new Intl.DateTimeFormat([], { month: 'long', year: 'numeric' });
-const numberFormat = new Intl.NumberFormat(['de-CH'], { useGrouping: true, minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const preferredLocale = 'de-CH';
+const dayHeadingFormat = new Intl.DateTimeFormat([preferredLocale], { weekday: 'long', day: '2-digit', month: '2-digit' });
+const dayFormat = new Intl.DateTimeFormat([preferredLocale], { day: 'numeric' });
+const monthFormat = new Intl.DateTimeFormat([preferredLocale], { month: 'long', year: 'numeric' });
+const numberFormat = new Intl.NumberFormat([preferredLocale], { useGrouping: true, minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const bigNumberFormat = new Intl.NumberFormat([preferredLocale], { useGrouping: true, maximumFractionDigits: 0 });
 const decimalRegex = /^([0-9]+\.?[0-9]*|\.[0-9]+)$/;
 const integerRegex = /^([0-9]+)$/;
 const tagRegex = /#(\p{Letter}+)\b/ug;
@@ -1108,7 +1110,8 @@ function renderMonthChart() {
                         mirror: true,
                         padding: -5,
                         z: 1,
-                        showLabelBackdrop: true
+                        showLabelBackdrop: true,
+                        callback: x => bigNumberFormat.format(x)
                     }
                 }
             },
