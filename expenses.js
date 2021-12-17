@@ -1055,6 +1055,8 @@ function renderMonthChart() {
     }
 
     let hoverDay = null;
+    // bootstrap default fonts
+    Chart.defaults.font.family = 'system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"';
     new Chart(getMonthChart(), {
         data: {
             datasets: [
@@ -1082,15 +1084,32 @@ function renderMonthChart() {
             animation: false,
             aspectRatio: 1.5,
             color: '#212529',
+            layout: {
+                padding: {
+                    top: 7
+                }
+            },
             scales: {
                 x: {
                     min: 0.5,
+                    grid: {
+                        drawOnChartArea: false
+                    },
                     ticks: {
                         callback: function (v) { return this.getLabelForValue(v) === '' ? '' : renderDay(this.getLabelForValue(v)); }
                     }
                 },
                 y: {
-                    max: 1200
+                    max: 1200,
+                    position: 'right',
+                    afterBuildTicks: scale => { scale.ticks = scale.ticks.filter(t => t.value !== 0); },
+                    grid: {
+                        drawTicks: false
+                    },
+                    ticks: {
+                        mirror: true,
+                        padding: -5
+                    }
                 }
             },
             onClick(e, activeElements, chart) {
