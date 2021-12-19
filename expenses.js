@@ -16,51 +16,7 @@ const state = {
     data: {
         version: 2,
         expenses: [],
-        categories: [
-            {
-                name: 'lebensmittel',
-                classes: 'bg-success'
-            },
-            {
-                name: 'kommunikation',
-            },
-            {
-                name: 'zehnt',
-                classes: 'bg-light text-dark border'
-            },
-            {
-                name: 'kultur',
-                classes: 'bg-warning'
-            },
-            {
-                name: 'haushalt',
-                classes: 'bg-dark border'
-            },
-            {
-                name: 'mobilität',
-                classes: 'bg-danger'
-            },
-            {
-                name: 'kleidung',
-                classes: 'bg-info'
-            },
-            {
-                name: 'gesundheit',
-            },
-            {
-                name: 'geld',
-                classes: 'bg-secondary'
-            },
-            {
-                name: 'hobby',
-                classes: 'bg-info'
-            }
-        ],
-        tags: [
-            {
-                name: 'kreditkarte'
-            }
-        ]
+        categories: []
     }
 }
 
@@ -1631,6 +1587,7 @@ function loadExpenses(loadedData) {
             expense.setRecurrenceTo(obj._recurrenceTo);
             return expense;
         }));
+    state.data.categories = loadedData.categories;
     render();
 }
 
