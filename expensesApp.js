@@ -1,36 +1,10 @@
 "use strict";
 
-const state = {
-    saved: true,
-    edit: null,
-    new: false,
-    expandedPaths: {},
-    monthDisplay: 'chart',
-    chartTags: [],
-    date: new Date(Date.now()),
-    overviewConfiguration: {
-        typeFilter: ['income', 'recurring', 'expense']
-    },
-    proposalSelection: false,
-    descriptionCaretPosition: null,
-    data: {
-        version: 2,
-        expenses: [],
-        categories: []
-    }
-}
-
-const preferredLocale = 'de-CH';
-const dayHeadingFormat = new Intl.DateTimeFormat([preferredLocale], { weekday: 'long', day: '2-digit', month: '2-digit' });
-const dayFormat = new Intl.DateTimeFormat([preferredLocale], { day: 'numeric' });
-const monthFormat = new Intl.DateTimeFormat([preferredLocale], { month: 'long', year: 'numeric' });
-const numberFormat = new Intl.NumberFormat([preferredLocale], { useGrouping: true, minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const bigNumberFormat = new Intl.NumberFormat([preferredLocale], { useGrouping: true, maximumFractionDigits: 0 });
-const decimalRegex = /^([0-9]+\.?[0-9]*|\.[0-9]+)$/;
-const integerRegex = /^([0-9]+)$/;
-const tagRegex = /#(\p{Letter}+)\b/ug;
-const DEFAULT_CURRENCY = 'CHF';
-const defaultExchangeRate = '1.00000';
+import * as Navbar from './Navbar.js';
+import * as ManageTags from './ManageTags.js';
+import * as constants from './constants.js';
+import * as tags from './tags.js';
+import state from './state.js';
 
 const today = dateToYmd(new Date(Date.now()));
 
@@ -204,7 +178,7 @@ class Expense {
     getTags() {
         let m = null;
         const tags = [];
-        while (m = tagRegex.exec(this.getDescription())) {
+        while (m = constants.tagRegex.exec(this.getDescription())) {
             tags.push(m[1]);
         }
         return tags;
@@ -315,10 +289,6 @@ document.onkeydown = e => {
 /*
  * DateUtility
  */
-function getMonth(ymd) {
-    return ymd.substring(0, 7);
-}
-
 function dateToYmd(date) {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, 0)}`;
 }
@@ -364,14 +334,6 @@ function isValidInMonth(validFrom, validTo, month) {
  */
 function getExpenses() {
     return state.data.expenses;
-}
-
-function getCategoryByName(name) {
-    const index = state.data.categories.findIndex(c => c.name === name);
-    if (index < 0) {
-        return null;
-    }
-    return state.data.categories[index];
 }
 
 function setExpenses(newExpenses) {
@@ -471,7 +433,7 @@ function groupByType(rowsFeatured, subGroupingFn) {
             id: fd[0],
             amountChf: amountChf,
             amount: amountChf,
-            currency: DEFAULT_CURRENCY,
+            currency: constants.DEFAULT_CURRENCY,
             childRows: childRows
         });
     }
@@ -494,7 +456,7 @@ function groupByCategory(rowsFeatured) {
                     id: row.category,
                     amountChf: 0,
                     amount: 0,
-                    currency: DEFAULT_CURRENCY,
+                    currency: constants.DEFAULT_CURRENCY,
                     category: row.category,
                     childRows: []
                 };
@@ -520,7 +482,6 @@ function getOverviewData() {
     const currentDay = new Date(getCurrentDayString());
     const filterDatas = getActiveTypeFilters();
     const filters = filterDatas.map(fd => fd[1].filter);
-    const categories = state.data.categories.map(cat => cat.name);
 
     const rowsFeatured = getExpenses()
         .filter(ex => or(ex, filters))
@@ -597,6 +558,10 @@ function getMonthLabel() {
     return document.getElementById('month-label');
 }
 
+function getNavbar() {
+    return document.getElementById('navbar');
+}
+
 function getProposalField() {
     return document.getElementById('proposal-field');
 }
@@ -638,25 +603,22 @@ function getTypeSelect() {
 }
 
 function renderFloat(f) {
-    return numberFormat.format(f);
+    return constants.numberFormat.format(f);
 }
 
 function renderDay(dateString) {
-    return dayFormat.format(new Date(dateString));
+    return constants.dayFormat.format(new Date(dateString));
 }
 
 function renderDayHeading(date) {
     if (typeof date === 'string') {
         date = new Date(date);
     }
-    return dayHeadingFormat.format(date);
+    return constants.dayHeadingFormat.format(date);
 }
 
 function decorateTags(description) {
-    return description.replaceAll(tagRegex, (m, p0) => {
-        const classes = getCategoryByName(p0)?.classes;
-        return `<span class="badge ${classes ? classes : 'bg-primary'}">${p0}</span>`
-    });
+    return description.replaceAll(constants.tagRegex, (m, p0) => tags.render(p0));
 }
 
 function getEditExpense() {
@@ -676,6 +638,13 @@ function setMonthDisplay(monthDisplay) {
         return;
     }
     state.monthDisplay = monthDisplay;
+    render();
+}
+
+function setViewMode(viewMode) {
+    state.edit = null;
+    state.new = false;
+    state.viewMode = viewMode;
     render();
 }
 
@@ -710,7 +679,7 @@ function renderMainArea() {
     const content = items[state.monthDisplay].callback();
 
     return `
-        <div id="main-area" class="col-lg-8 mt-content">
+        <div class="col-lg-8 mt-content">
             <ul class="nav nav-tabs mb-2">
                 ${lis.join('\n')}
             </ul>
@@ -721,16 +690,25 @@ function renderMainArea() {
 }
 
 function render() {
-    let monthLabel = monthFormat.format(state.date);
-    getMonthLabel().textContent = monthLabel;
+    getNavbar().innerHTML = Navbar.render();
 
-    const mainArea = renderMainArea();
-    const dayTable = renderDayExpenses(renderDayHeading(state.date), e => e.getType() === 'expense' && !e.isRecurring(), false);
-    const form = renderForm();
-    getAppArea().innerHTML = mainArea + dayTable + form;
+    let appArea;
+    let expenseForm;
+    if (state.viewMode === 'monthDisplay') {
+        const mainArea = renderMainArea();
+        const dayTable = state.monthDisplay === 'overview' ? '' : renderDayExpenses(renderDayHeading(state.date), e => e.getType() === 'expense' && !e.isRecurring(), false);
+        expenseForm = renderForm();
+        appArea = mainArea + dayTable + expenseForm;
+    } else if (state.viewMode === 'manageTags') {
+        appArea = ManageTags.render();
+    }
+    getAppArea().innerHTML = appArea;
+    if (state.viewMode === 'manageTags') {
+        ManageTags.onAttach();
+    }
 
     renderMonthChart();
-    if (form) {
+    if (expenseForm) {
         refreshFormView();
         getExpenseForm().addEventListener('submit', submitForm);
         getDescriptionInput().focus();
@@ -893,7 +871,7 @@ function computeTotal(rows) {
     return {
         title: 'Verbleibend',
         amount: sum,
-        currency: DEFAULT_CURRENCY
+        currency: constants.DEFAULT_CURRENCY
     };
 }
 
@@ -963,7 +941,7 @@ function renderMonthChartTab() {
 }
 
 function renderMonthChart() {
-    if (state.monthDisplay !== 'chart') {
+    if (state.viewMode !== 'monthDisplay' || state.monthDisplay !== 'chart') {
         return;
     }
 
@@ -1068,7 +1046,7 @@ function renderMonthChart() {
                         padding: -5,
                         z: 1,
                         showLabelBackdrop: true,
-                        callback: x => bigNumberFormat.format(x)
+                        callback: x => constants.bigNumberFormat.format(x)
                     }
                 }
             },
@@ -1105,7 +1083,7 @@ function renderMonthChart() {
                 tooltip: {
                     displayColors: false,
                     callbacks: {
-                        label: ctx => `${ctx.dataset.label}: ${DEFAULT_CURRENCY} ${renderFloat(ctx.dataset.data[ctx.dataIndex])}`,
+                        label: ctx => `${ctx.dataset.label}: ${constants.DEFAULT_CURRENCY} ${renderFloat(ctx.dataset.data[ctx.dataIndex])}`,
                         title: ctx => ctx.map(c => renderDayHeading(c.label))
                     }
                 }
@@ -1174,7 +1152,7 @@ function handleTypeChanged() {
 }
 
 function handleCurrencyChanged() {
-    let exchangeRate = defaultExchangeRate;
+    let exchangeRate = constants.defaultExchangeRate;
     if (!isDefaultCurrency(getCurrencySelect().value)) {
         const referenceDate = new Date(getDateInput().value !== '' ? getDateInput().value : getCurrentDayString());
         exchangeRate = getLastExchangeRate(getCurrencySelect().value, referenceDate) || exchangeRate;
@@ -1307,10 +1285,10 @@ function renderForm() {
                 </div>
                 <div id="form-line2" class="input-group mt-2">
                     <span class="input-group-text">Wechselkurs</span>
-                    <input class="form-control text-end" id="exchange-rate" oninput="handleAmountOrExchangeRateInput();" onchange="validateDecimalField(getExchangeRateInput(), 5);" value="${expense ? expense.getExchangeRate() : defaultExchangeRate}" />
+                    <input class="form-control text-end" id="exchange-rate" oninput="handleAmountOrExchangeRateInput();" onchange="validateDecimalField(getExchangeRateInput(), 5);" value="${expense ? expense.getExchangeRate() : constants.defaultExchangeRate}" />
                     <span class="input-group-text">
                         <span id="computed-chf-value">${defaultCurrency ? '0.00' : renderFloat(expense?.computeAmountChf())}</span>
-                        <span>&nbsp;${DEFAULT_CURRENCY}</span>
+                        <span>&nbsp;${constants.DEFAULT_CURRENCY}</span>
                     </span>
                 </div>
                 <div class="form-floating mt-3">
@@ -1385,11 +1363,11 @@ function handleAmountOrExchangeRateInput() {
 }
 
 function isDefaultCurrency(currency) {
-    return currency === DEFAULT_CURRENCY;
+    return currency === constants.DEFAULT_CURRENCY;
 }
 
 function validateDecimalField(decimalField, fractionalDigits) {
-    validateField(decimalField, decimalRegex, () => {
+    validateField(decimalField, constants.decimalRegex, () => {
         const components = decimalField.value.split('.');
         const integerPart = components[0] ? parseInt(components[0]) : '0';
         const fractionalPart = components[1] ? components[1].substring(0, fractionalDigits).padEnd(fractionalDigits, '0') : '00';
@@ -1398,7 +1376,7 @@ function validateDecimalField(decimalField, fractionalDigits) {
 }
 
 function validateIntegerField(integerField) {
-    validateField(integerField, integerRegex, () => parseInt(integerField.value));
+    validateField(integerField, constants.integerRegex, () => parseInt(integerField.value));
 }
 
 function validateField(field, regex, prettyPrinter) {
@@ -1475,6 +1453,7 @@ function startNew() {
 
 function startLineEdit(id) {
     state.edit = id;
+    state.new = false;
     render();
 }
 
@@ -1592,25 +1571,34 @@ function loadExpenses(loadedData) {
 }
 
 function migrate(loadedData) {
-    if (!loadedData.expenses[0]._id) {
-        loadedData.expenses = loadedData.expenses.map(obj => {
-            return {
-                _id: obj.id,
-                _type: 'expense',
-                _date: obj.date,
-                _amount: obj.amount,
-                _currency: obj.currency,
-                _exchangeRate: obj.exchangeRate,
-                _description: obj.description,
-                _createDate: obj.createDate,
-                _recurring: obj.recurrence ? true : false,
-                _recurrencePeriodicity: obj.recurrence ? obj.recurrence.periodicity : null,
-                _recurrenceFrequency: obj.recurrence ? obj.recurrence.frequency : null,
-                _recurrenceFrom: obj.recurrence ? obj.recurrence.from : null,
-                _recurrenceTo: obj.recurrence ? obj.recurrence.to : null
-            };
-        });
-        state.saved = false;
-    }
     return loadedData;
 }
+
+export {
+    openFile,
+    startLineEdit,
+    cancelLineEdit,
+    setViewMode,
+    startNew,
+    setSaved,
+    render,
+    save,
+    handleProposalClick,
+    handleDescriptionInput,
+    handleDescriptionBlur,
+    handleProposalSelect,
+    handleAmountOrExchangeRateInput,
+    validateDecimalField,
+    getAmountInput,
+    handleCurrencyChanged,
+    setDate,
+    decrementMonth,
+    incrementMonth,
+    handleTypeChanged,
+    getExchangeRateInput,
+    handleRecurringCheckboxChanged,
+    validateIntegerField,
+    getRecurringFrequency,
+    setMonthDisplay,
+    removeExpense
+};

@@ -15,6 +15,10 @@ tr.heading:not(:first-child) td {
     padding-top: 0.5em;
 }
 
+.fit-content {
+    width: fit-content;
+}
+
 .mt-content {
     margin-top: 80px;
 }

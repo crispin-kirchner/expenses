@@ -25,27 +25,10 @@
     <script src="node_modules/uuid/dist/umd/uuidv4.min.js"></script>
     <script src="node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="node_modules/chart.js/dist/chart.js"></script>
-    <script src="expenses.js"></script>
 </head>
 
 <body>
-    <nav class="navbar navbar-dark bg-dark fixed-top">
-        <div class="container">
-            <div class="navbar-brand">
-                <button class="btn text-light" onclick="setDate(decrementMonth(state.date));">
-                    <i class="bi-chevron-left"></i>
-                </button>
-                <button class="btn text-light" onclick="setDate(incrementMonth(state.date));">
-                    <i class="bi-chevron-right"></i>
-                </button>
-                <span id="month-label">Ausgaben</span>
-            </div>
-            <form class="d-flex">
-                <button class="btn btn-light" type="button" title="Neu" onclick="startNew();">
-                    <i class="bi-plus-square"></i><span class="d-none d-sm-inline-block">&nbsp;Neu</span>
-                </button>
-            </form>
-        </div>
+    <nav id="navbar" class="navbar navbar-dark bg-dark fixed-top">
     </nav>
 
     <div class="container">
@@ -53,9 +36,42 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
         "use strict";
-        openFile();
+        import * as expensesApp from './expensesApp.js';
+        import state from './state.js';
+        expensesApp.openFile();
+
+        [
+            'openFile',
+            'startLineEdit',
+            'cancelLineEdit',
+            'setViewMode',
+            'startNew',
+            'setSaved',
+            'render',
+            'save',
+            'handleProposalClick',
+            'handleDescriptionInput',
+            'handleDescriptionBlur',
+            'handleProposalSelect',
+            'handleAmountOrExchangeRateInput',
+            'validateDecimalField',
+            'getAmountInput',
+            'handleCurrencyChanged',
+            'setDate',
+            'decrementMonth',
+            'incrementMonth',
+            'handleTypeChanged',
+            'getExchangeRateInput',
+            'handleRecurringCheckboxChanged',
+            'validateIntegerField',
+            'getRecurringFrequency',
+            'setMonthDisplay',
+            'removeExpense'
+        ].forEach(fn => window[fn] = expensesApp[fn]);
+
+        window.state = state;
     </script>
 </body>
 
