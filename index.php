@@ -37,7 +37,6 @@
     </div>
 
     <script type="module">
-        "use strict";
         import * as expensesApp from './expensesApp.js';
         import state from './state.js';
         expensesApp.openFile();

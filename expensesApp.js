@@ -1,5 +1,3 @@
-"use strict";
-
 import * as Navbar from './Navbar.js';
 import * as ManageTags from './ManageTags.js';
 import * as constants from './constants.js';

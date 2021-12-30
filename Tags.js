@@ -1,5 +1,6 @@
 import state from './state.js'
 import * as colors from './colors.js';
+import * as constants from './constants.js';
 
 function getIndexByName(name) {
     return state.data.categories.findIndex(c => c.name === name);
@@ -20,7 +21,7 @@ function render(tagName, additionalClasses) {
 
 function getClasses(tagName) {
     const classes = colors.getClasses(getByName(tagName)?.color);
-    return classes ? classes : colors.get('gray').classes;
+    return classes ? classes : colors.get(constants.defaultTagColor).classes;
 }
 
 function getAll() {

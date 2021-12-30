@@ -9,6 +9,7 @@ const integerRegex = /^([0-9]+)$/;
 const tagRegex = /#(\p{Letter}+)\b/ug;
 const DEFAULT_CURRENCY = 'CHF';
 const defaultExchangeRate = '1.00000';
+const defaultTagColor = 'grayWhite';
 
 export {
     preferredLocale,
@@ -21,5 +22,6 @@ export {
     integerRegex,
     tagRegex,
     DEFAULT_CURRENCY,
-    defaultExchangeRate
+    defaultExchangeRate,
+    defaultTagColor
 };

@@ -1,5 +1,3 @@
-"use strict";
-
 import * as colors from '/colors.js';
 import * as tags from './tags.js';
 import * as expenses from './expensesApp.js';
@@ -7,12 +5,13 @@ import * as constants from './constants.js';
 import state from './state.js';
 
 function renderLine(tagName) {
-    const tag = tags.getByName(tagName) || { name: tagName, color: 'gray' };
+    const tag = tags.getByName(tagName) || { name: tagName, color: constants.defaultTagColor };
 
     const editColor = tag.color;
 
     const colorOptions = Object.entries(colors.all)
-        .map(e => `<option ${e[0] === editColor ? 'selected' : ''} class="${e[1].classes.join(' ')}" value="${e[0]}">${e[1].name}</option>`)
+        .sort((e1, e2) => e1[1].name.localeCompare(e2[1].name, constants.preferredLocale))
+        .map(e => `<option ${e[0] === editColor ? 'selected' : ''} class="${e[1].classes.join(' ')} fw-bold" value="${e[0]}">${e[1].name}</option>`)
         .join('\n');
 
     const colorClasses = colors.getClasses(editColor);
@@ -21,7 +20,7 @@ function renderLine(tagName) {
         <div class="d-flex mb-2 align-items-center">
             ${tags.render(tag.name, 'me-auto')}
             <select
-                class="form-select ${colorClasses.join(' ')} fit-content"
+                class="form-select ${colorClasses.join(' ')} fit-content fw-bold"
                 data-xpns-tag="${tag.name}"
                 data-xpns-old-value="${tag.color}">
                 ${colorOptions}
