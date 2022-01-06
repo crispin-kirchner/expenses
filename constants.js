@@ -10,6 +10,23 @@ const tagRegex = /#(\p{Letter}+)\b/ug;
 const DEFAULT_CURRENCY = 'CHF';
 const defaultExchangeRate = '1.00000';
 const defaultTagColor = 'grayWhite';
+const unspecificDimension = 'Andere';
+const standardDimension = 'Standard';
+
+const typeFilters = {
+    income: {
+        name: 'Einnahmen',
+        filter: ex => ex.getType() === 'income'
+    },
+    recurring: {
+        name: 'Wiederkehrend',
+        filter: ex => ex.getType() === 'expense' && ex.isRecurring()
+    },
+    expense: {
+        name: 'Ausgaben',
+        filter: ex => ex.getType() === 'expense' && !ex.isRecurring()
+    }
+}
 
 export {
     preferredLocale,
@@ -23,5 +40,8 @@ export {
     tagRegex,
     DEFAULT_CURRENCY,
     defaultExchangeRate,
-    defaultTagColor
+    defaultTagColor,
+    unspecificDimension,
+    standardDimension,
+    typeFilters
 };

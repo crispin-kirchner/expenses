@@ -7,9 +7,6 @@ const state = {
     monthDisplay: 'chart',
     chartTags: [],
     date: new Date(Date.now()),
-    overviewConfiguration: {
-        typeFilter: ['income', 'recurring', 'expense']
-    },
     proposalSelection: false,
     descriptionCaretPosition: null,
     data: {

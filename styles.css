@@ -11,20 +11,30 @@
     display: inline-block;
 }
 
-tr.heading:not(:first-child) td {
-    padding-top: 0.5em;
+.cursor-pointer {
+    cursor: pointer;
 }
 
-.fit-content {
-    width: fit-content;
+tr.heading:not(:first-child) td {
+    padding-top: 0.5em;
 }
 
 .mt-content {
     margin-top: 80px;
 }
 
+.z-top {
+    z-index: 1100;
+}
+
 @media (min-width: 992px) {
     .mt-lg-content {
+        margin-top: 80px;
+    }
+}
+
+@media (min-width: 576px) {
+    .mt-sm-content {
         margin-top: 80px;
     }
 }

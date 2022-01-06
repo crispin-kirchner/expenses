@@ -3,23 +3,9 @@ import * as ManageTags from './ManageTags.js';
 import * as constants from './constants.js';
 import * as tags from './tags.js';
 import state from './state.js';
+import * as Migration from './Migration.js';
 
 const today = dateToYmd(new Date(Date.now()));
-
-const typeFilters = {
-    income: {
-        name: 'Einnahmen',
-        filter: ex => ex.getType() === 'income'
-    },
-    recurring: {
-        name: 'Wiederkehrend',
-        filter: ex => ex.getType() === 'expense' && ex.isRecurring()
-    },
-    expense: {
-        name: 'Ausgaben',
-        filter: ex => ex.getType() === 'expense' && !ex.isRecurring()
-    }
-}
 
 class ExpensesError {
     constructor(message, origins) {
@@ -404,11 +390,6 @@ function getDaysOfMonth(month) {
     return days;
 }
 
-function getActiveTypeFilters() {
-    return Object.entries(typeFilters)
-        .filter(en => state.overviewConfiguration.typeFilter.includes(en[0]));
-}
-
 function or(item, filters) {
     for (const filter of filters) {
         if (filter(item)) {
@@ -420,7 +401,7 @@ function or(item, filters) {
 
 function groupByType(rowsFeatured, subGroupingFn) {
     const rows = [];
-    for (const fd of getActiveTypeFilters()) {
+    for (const fd of Object.entries(constants.typeFilters)) {
         const childRows = subGroupingFn(rowsFeatured
             .filter(r => r.type === fd[0]))
             .sort((e1, e2) => e2.amountChf - e1.amountChf);
@@ -478,7 +459,7 @@ function groupByCategory(rowsFeatured) {
 
 function getOverviewData() {
     const currentDay = new Date(getCurrentDayString());
-    const filterDatas = getActiveTypeFilters();
+    const filterDatas = Object.entries(constants.typeFilters);
     const filters = filterDatas.map(fd => fd[1].filter);
 
     const rowsFeatured = getExpenses()
@@ -501,7 +482,10 @@ function getOverviewData() {
                 }
             })();
             row['category'] = (() => {
-                for (const category of state.data.categories) {
+                const standardCategories = state.data.categories
+                    .filter(c => c.parent === constants.standardDimension);
+
+                for (const category of standardCategories) {
                     if (ex.hasCategory(category.name)) {
                         return category.name;
                     }
@@ -651,7 +635,7 @@ function renderMainArea() {
         overview: {
             icon: 'eyeglasses',
             name: 'Übersicht',
-            callback: renderMonthOverview
+            callback: renderOverviewSections
         },
         calendar: {
             icon: 'calendar3',
@@ -878,37 +862,6 @@ function renderOverviewSections() {
     let result = renderOverviewRowsRecursive(rows, '', 0);
     result += renderTopLevelRow(renderRow(computeTotal(rows)));
     return result;
-}
-
-function toggleOverviewFilter(filter) {
-    const typeFilter = state.overviewConfiguration.typeFilter;
-    const numFiltersBefore = typeFilter.length;
-    const index = typeFilter.indexOf(filter);
-    if (index > -1) {
-        typeFilter.splice(index, 1);
-    }
-    else {
-        typeFilter.push(filter);
-    }
-    render();
-}
-
-function renderMonthOverview() {
-    const typeFilterButtons = Object.entries(typeFilters)
-        .map(en => {
-            const [item, props] = en;
-            return `
-                    <input id="overview-filter-${item}-checkbox" type="checkbox" class="btn-check" onchange="toggleOverviewFilter('${item}')">
-                    <label class="btn btn-sm ${state.overviewConfiguration.typeFilter.includes(item) ? 'btn-primary active' : 'btn-outline-primary'}" for="overview-filter-${item}-checkbox">${props.name}</label>`;
-        });
-
-    return `
-            <form>
-                <div class="btn-group">
-                    ${typeFilterButtons.join('\n')}
-                </div>
-            </form>
-            ${renderOverviewSections()}`;
 }
 
 function renderMonthTable() {
@@ -1248,7 +1201,7 @@ function renderForm() {
     const defaultCurrency = expense ? isDefaultCurrency(expense.getCurrency()) : true;
     const expenseSelected = !expense || expense.getType() === 'expense';
     let form = `
-        <div class="col-lg-4 position-absolute end-0 bg-white pt-3 pt-lg-0 mt-lg-content h-100" style="z-index: 1100">
+        <div class="col-lg-4 position-absolute end-0 bg-white pt-3 pt-lg-0 mt-lg-content h-100 z-top">
             <form id="expense-form" autocomplete="off" novalidate>
                 <div class="d-flex align-items-center mb-2">
                     <h2 class="me-auto">${state.edit ? 'Bearbeiten' : 'Neu'}</h2>
@@ -1545,7 +1498,7 @@ function setSaved(value) {
 }
 
 function loadExpenses(loadedData) {
-    const migratedData = migrate(loadedData);
+    const [isSaveNecessary, migratedData] = Migration.migrate(loadedData);
     setExpenses(migratedData.expenses
         .map(obj => {
             const expense = new Expense();
@@ -1565,11 +1518,12 @@ function loadExpenses(loadedData) {
             return expense;
         }));
     state.data.categories = loadedData.categories;
-    render();
-}
-
-function migrate(loadedData) {
-    return loadedData;
+    if (isSaveNecessary) {
+        save();
+    }
+    else {
+        render();
+    }
 }
 
 export {

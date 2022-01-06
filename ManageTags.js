@@ -1,81 +1,54 @@
-import * as colors from '/colors.js';
 import * as tags from './tags.js';
-import * as expenses from './expensesApp.js';
+import * as expensesApp from './expensesApp.js';
 import * as constants from './constants.js';
+import * as TagForm from './TagForm.js';
 import state from './state.js';
 
-function renderLine(tagName) {
-    const tag = tags.getByName(tagName) || { name: tagName, color: constants.defaultTagColor };
-
-    const editColor = tag.color;
-
-    const colorOptions = Object.entries(colors.all)
-        .sort((e1, e2) => e1[1].name.localeCompare(e2[1].name, constants.preferredLocale))
-        .map(e => `<option ${e[0] === editColor ? 'selected' : ''} class="${e[1].classes.join(' ')} fw-bold" value="${e[0]}">${e[1].name}</option>`)
-        .join('\n');
-
-    const colorClasses = colors.getClasses(editColor);
-
-    return `
-        <div class="d-flex mb-2 align-items-center">
-            ${tags.render(tag.name, 'me-auto')}
-            <select
-                class="form-select ${colorClasses.join(' ')} fit-content fw-bold"
-                data-xpns-tag="${tag.name}"
-                data-xpns-old-value="${tag.color}">
-                ${colorOptions}
-            </select>
-        </div>`
-}
-
-function removeClasses(elem, classArray) {
-    elem.classList.remove.apply(elem.classList, classArray);
-}
-
-function addClasses(elem, classArray) {
-    elem.classList.add.apply(elem.classList, classArray);
-}
-
-function handleColorSelectChange(evt) {
-    const oldColorValue = evt.target.dataset.xpnsOldValue;
-    const oldColorClasses = colors.getClasses(oldColorValue);
-    const tagSpan = document.querySelector(`span.badge[data-xpns-tag="${evt.target.dataset.xpnsTag}"]`);
-    removeClasses(evt.target, oldColorClasses);
-    removeClasses(tagSpan, oldColorClasses);
-
-    const newColorClasses = colors.getClasses(evt.target.value);
-    addClasses(evt.target, newColorClasses);
-    addClasses(tagSpan, newColorClasses);
-    evt.target.dataset.xpnsOldValue = evt.target.value;
-
-    let tag = tags.getByName(evt.target.dataset.xpnsTag);
-    if (!tag) {
-        tag = { name: evt.target.dataset.xpnsTag };
-        state.data.categories.push(tag);
-    }
-    tag.color = evt.target.value;
-
-    expenses.setSaved(false);
-    expenses.render();
-    expenses.save();
+function renderCategoryHierarchy() {
+    let result = '';
+    let previousLevel = 0;
+    tags.visitHierarchy((name, level, children) => {
+        if (previousLevel < level) {
+            result += '<ul class="mt-1 mb-1">'.repeat(level - previousLevel);
+        }
+        if (previousLevel > level) {
+            result += '</ul>'.repeat(previousLevel - level);
+        }
+        if (level === 0) {
+            result += `<h2>${name}</h2>`;
+            if (Object.entries(children).length === 0) {
+                result += `<p>Keine Markierungen</p>`;
+            }
+        }
+        else {
+            result += `
+                <li class="mt-2 mb-1">
+                    ${tags.render(name, 'cursor-pointer')}
+                </li>`;
+        }
+        previousLevel = level;
+    });
+    return result;
 }
 
 function render() {
-    const categoryList = tags.getAll()
-        .sort((a, b) => a.localeCompare(b, constants.preferredLocale))
-        .map(renderLine)
-        .join('\n');
-
-    return `
-        <div class="mt-content">
-            ${categoryList}
+    const categoryHierarchy = `
+        <div class="mt-content col-lg-8 col-sm-6">
+            ${renderCategoryHierarchy()}
         </div>`;
+
+    let tagForm = state.edit ? TagForm.render() : '';
+
+    return categoryHierarchy + tagForm;
 }
 
 function onAttach() {
-    const colorSelects = document.querySelectorAll('select[data-xpns-tag]');
-    for (const colorSelect of colorSelects) {
-        colorSelect.addEventListener('change', handleColorSelectChange);
+    const categoryBadges = document.querySelectorAll('span[data-xpns-tag]');
+    for (const categoryBadge of categoryBadges) {
+        categoryBadge.addEventListener('click', evt => expensesApp.startLineEdit(evt.target.dataset.xpnsTag));
+    }
+    if (state.edit) {
+        TagForm.onAttach();
     }
 }
 

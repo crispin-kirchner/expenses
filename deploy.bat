@@ -10,6 +10,7 @@ set FILE_LIST=^
     "expenses.vbs"^
     "index.php"^
     "ManageTags.js"^
+    "Migration.js"^
     "Navbar.js"^
     "open.php"^
     "package.json"^
@@ -17,6 +18,7 @@ set FILE_LIST=^
     "save.php"^
     "state.js"^
     "styles.css"^
+    "TagForm.js"^
     "tags.js"
 
 (for %%f in (%FILE_LIST%) do (
