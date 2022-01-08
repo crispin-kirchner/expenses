@@ -1,11 +1,14 @@
 import state from './state.js';
 import * as constants from './constants.js';
+import * as expensesApp from './expensesApp.js';
 
 function renderBrandContent() {
     if (state.viewMode === 'monthDisplay') {
         const monthLabel = constants.monthFormat.format(state.date);
         return `
-            <button class="btn text-light" title="Tags bearbeiten" onclick="setViewMode('manageTags')"><i class="bi-tags-fill"></i></button>
+            <button class="btn text-light" title="Tags bearbeiten" onclick="setViewMode('manageTags')">
+                <i class="bi-tags-fill"></i>
+            </button>
             <button class="btn text-light" onclick="setDate(decrementMonth(state.date));">
                 <i class="bi-chevron-left"></i>
             </button>
@@ -21,6 +24,16 @@ function renderBrandContent() {
             </button>
             Markierungen verwalten`;
     }
+}
+
+function renderTodayButton() {
+    if (expensesApp.isSameDay(constants.today, state.date)) {
+        return '';
+    }
+    return `
+        <button type="button" id="today-button" class="btn text-light">
+            <i class="bi-calendar-date-fill"></i>
+        </button>`;
 }
 
 function renderNewButton() {
@@ -41,9 +54,17 @@ function render() {
             </div>
             ${state.viewMode !== 'manageTags' ? `
             <form class="d-flex">
+                ${renderTodayButton()}
                 ${renderNewButton()}
             </form>` : ''}
         </div>`;
 }
 
-export { render };
+function onAttach() {
+    const todayButton = document.getElementById('today-button');
+    if (todayButton) {
+        todayButton.addEventListener('click', () => expensesApp.setDate(constants.today));
+    }
+}
+
+export { render, onAttach };

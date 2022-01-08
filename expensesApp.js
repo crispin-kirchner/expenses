@@ -604,6 +604,7 @@ function renderMainArea() {
 
 function render() {
     getNavbar().innerHTML = Navbar.render();
+    Navbar.onAttach();
 
     let appArea;
     let expenseForm;
