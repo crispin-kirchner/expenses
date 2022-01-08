@@ -4,7 +4,7 @@ const state = {
     new: false,
     expandedPaths: {},
     viewMode: 'monthDisplay',
-    monthDisplay: 'calendar',
+    monthDisplay: localStorage.getItem('monthDisplay') || 'overview',
     chartTags: [],
     date: new Date(Date.now()),
     proposalSelection: false,

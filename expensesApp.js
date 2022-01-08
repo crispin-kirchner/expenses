@@ -551,6 +551,7 @@ function setMonthDisplay(monthDisplay) {
         return;
     }
     state.monthDisplay = monthDisplay;
+    localStorage.setItem('monthDisplay', monthDisplay);
     render();
 }
 
