@@ -299,6 +299,10 @@ function decrementMonth(date) {
     if (date.getMonth() == 0) {
         return new Date(date.getFullYear() - 1, 11, date.getDate());
     }
+    const lastDayOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+    if (isSameDay(lastDayOfMonth, date)) {
+        return new Date(date.getFullYear(), date.getMonth(), 0);
+    }
     return new Date(date.getFullYear(), date.getMonth() - 1, date.getDate());
 }
 
