@@ -1,11 +1,12 @@
 import * as Navbar from './Navbar.js';
 import * as ManageTags from './ManageTags.js';
+import * as MonthChart from './MonthChart.js';
+import * as Calendar from './Calendar.js';
 import * as constants from './constants.js';
 import * as tags from './tags.js';
 import state from './state.js';
 import * as Migration from './Migration.js';
-
-const today = dateToYmd(new Date(Date.now()));
+import * as expenses from './expenses.js';
 
 class ExpensesError {
     constructor(message, origins) {
@@ -316,14 +317,6 @@ function isValidInMonth(validFrom, validTo, month) {
 /*
  * Data store
  */
-function getExpenses() {
-    return state.data.expenses;
-}
-
-function setExpenses(newExpenses) {
-    state.data.expenses = newExpenses;
-}
-
 function setDate(date) {
     state.date = date;
     render();
@@ -331,63 +324,6 @@ function setDate(date) {
 
 function getCurrentDayString() {
     return dateToYmd(state.date);
-}
-
-function getOnetimeExpenses() {
-    return getExpenses()
-        .filter(e => !e.isRecurring());
-}
-
-function getDaysOfMonth(month) {
-    let days = {};
-    let date = new Date(month.getFullYear(), month.getMonth(), 1);
-
-    const income = getExpenses()
-        .filter(e => e.getType() === 'income')
-        .filter(e => e.isValidInMonth(new Date(getCurrentDayString())))
-        .reduce((sum, e) => sum + e.computeMonthlyAmountChf(), 0);
-
-    const recurringExpenses = getExpenses()
-        .filter(e => e.getType() === 'expense')
-        .filter(e => e.isRecurring())
-        .filter(e => e.isValidOnDate(new Date(getCurrentDayString())))
-        .reduce((sum, e) => sum + e.computeMonthlyAmountChf(), 0);
-
-    const availableAmount = income - recurringExpenses;
-
-    let hasExpenses = false;
-    while (date.getMonth() === month.getMonth()) {
-        const day = getOnetimeExpenses()
-            .filter(e => e.getType() === 'expense' && e.isValidOnDate(date))
-            .reduce((day, e) => {
-                hasExpenses = true;
-                day.amount += e.computeAmountChf();
-                const firstHashPosition = e.getDescription().indexOf('#');
-                const dealer = e.getDescription().substr(0, firstHashPosition === -1 ? undefined : firstHashPosition).trim();
-                if (!day.description.includes(dealer)) {
-                    day.description.push(dealer);
-                }
-                return day;
-            }, { amount: 0, description: [] });
-
-        const dayOfWeek = date.getDay();
-        day.weekend = dayOfWeek === 6 || dayOfWeek === 0;
-        day.index = date.getDate();
-
-        days[dateToYmd(date)] = day;
-        date.setDate(date.getDate() + 1);
-    }
-    if (!hasExpenses) {
-        return {};
-    }
-
-    const numDays = Object.entries(days).length;
-    Object.entries(days)
-        .filter(entry => new Date(entry[0]) <= new Date(today))
-        .forEach(entry => {
-            entry[1].saved = availableAmount / numDays - entry[1].amount
-        });
-    return days;
 }
 
 function or(item, filters) {
@@ -458,11 +394,11 @@ function groupByCategory(rowsFeatured) {
 }
 
 function getOverviewData() {
-    const currentDay = new Date(getCurrentDayString());
+    const currentDay = state.date;
     const filterDatas = Object.entries(constants.typeFilters);
     const filters = filterDatas.map(fd => fd[1].filter);
 
-    const rowsFeatured = getExpenses()
+    const rowsFeatured = state.data.expenses
         .filter(ex => or(ex, filters))
         .filter(ex => ex.isValidInMonth(currentDay))
         .map(ex => {
@@ -532,14 +468,6 @@ function getExpenseForm() {
     return document.getElementById('expense-form');
 }
 
-function getMonthChart() {
-    return document.getElementById('month-chart');
-}
-
-function getMonthLabel() {
-    return document.getElementById('month-label');
-}
-
 function getNavbar() {
     return document.getElementById('navbar');
 }
@@ -588,8 +516,11 @@ function renderFloat(f) {
     return constants.numberFormat.format(f);
 }
 
-function renderDay(dateString) {
-    return constants.dayFormat.format(new Date(dateString));
+function renderDay(date) {
+    if (typeof date === 'string') {
+        date = new Date(date);
+    }
+    return constants.dayFormat.format(date);
 }
 
 function renderDayHeading(date) {
@@ -607,7 +538,7 @@ function getEditExpense() {
     if (!state.edit) {
         return null;
     }
-    const index = getExpenses().findIndex(e => e.getId() === state.edit);
+    const index = state.data.expenses.findIndex(e => e.getId() === state.edit);
     return state.data.expenses[index];
 }
 
@@ -640,12 +571,12 @@ function renderMainArea() {
         calendar: {
             icon: 'calendar3',
             name: 'Kalender',
-            callback: renderMonthTable
+            callback: Calendar.render
         },
         chart: {
             icon: 'graph-up',
             name: 'Diagramm',
-            callback: renderMonthChartTab
+            callback: MonthChart.render
         }
     };
 
@@ -688,8 +619,14 @@ function render() {
     if (state.viewMode === 'manageTags') {
         ManageTags.onAttach();
     }
-
-    renderMonthChart();
+    if (state.viewMode === 'monthDisplay') {
+        if (state.monthDisplay === 'chart') {
+            MonthChart.onAttach();
+        }
+        if (state.monthDisplay === 'calendar') {
+            Calendar.onAttach();
+        }
+    }
     if (expenseForm) {
         refreshFormView();
         getExpenseForm().addEventListener('submit', submitForm);
@@ -746,8 +683,8 @@ function isExpanded(path) {
 }
 
 function renderDayExpenses(heading, filter, sort) {
-    const currentDay = new Date(getCurrentDayString());
-    const expenses = getExpenses()
+    const currentDay = state.date;
+    const expenses = state.data.expenses
         .filter(filter)
         .filter(ex => ex.isValidOnDate(currentDay));
 
@@ -866,217 +803,16 @@ function renderOverviewSections() {
 
 function renderMonthTable() {
     let tableContent = '<table class="table table-sm table-hover">';
-    Object.entries(getDaysOfMonth(state.date))
-        .forEach(d => {
-            const [ymd, row] = d;
-            tableContent += `
-                    <tr onclick="setDate(new Date('${ymd}'));" ${getCurrentDayString() === ymd ? 'class="table-active"' : ''}>
-                        <td class="text-end">${renderDay(ymd)}</td>
-                        ${renderAmountTd(row.amount ? renderFloat(row.amount) : '')}
-                        <td>${row.description.join(', ')}</td>
-                        ${renderAmountTd(row.saved ? renderFloat(row.saved) : '')}
-                    </tr>
-        `;
-        });
+    expenses.getDaysOfMonth(state.date)
+        .forEach(d => tableContent += `
+            <tr onclick="setDate('${dateToYmd(d.date)}');"
+                ${getCurrentDayString() === dateToYmd(d.date) ? 'class="table-active"' : ''}>
+                <td class="text-end">${renderDay(d.date)}</td>
+                ${renderAmountTd(d.amount ? renderFloat(d.amount) : '')}
+                <td>${d.description.join(', ')}</td>
+                ${renderAmountTd(d.saved ? renderFloat(d.saved) : '')}
+            </tr>`);
     return tableContent + '</table>';
-}
-
-/*
- * Chart
- */
-function renderMonthChartTab() {
-    return `
-    <div>
-        <canvas id="month-chart"></canvas>
-    </div>`;
-}
-
-function renderMonthChart() {
-    if (state.viewMode !== 'monthDisplay' || state.monthDisplay !== 'chart') {
-        return;
-    }
-
-    const days = getDaysOfMonth(state.date);
-
-    let savedCumulativeAmount = 0;
-    const savedCumulativeData = Object.values(days)
-        .map(day => (savedCumulativeAmount += day.saved));
-    savedCumulativeData.splice(0, 0, 0);
-
-    const labels = Object.keys(days);
-    labels.splice(0, 0, '');
-
-    const expensesData = Object.values(days)
-        .map(day => day.amount);
-    expensesData.splice(0, 0, 0);
-
-    const isValidDay = function (day) {
-        return day > 0 && day <= Object.entries(days).length;
-    }
-
-    const isInsideGrid = function (e, chart) {
-        return e.y > chart.scales.y.top
-            && e.y < chart.scales.y.bottom
-            && e.x > chart.scales.x.left
-            && e.x < chart.scales.x.right;
-    }
-
-    const highlightDay = function (ctx, chart, day, color) {
-        if (!day) {
-            return;
-        }
-
-        ctx.fillStyle = color;
-
-        const xStart = chart.scales.x.getPixelForValue(day - 0.5);
-        const xEnd = chart.scales.x.getPixelForValue(day + 0.5);
-
-        const yStart = chart.scales.y.getPixelForValue(chart.scales.y.min);
-        const yEnd = chart.scales.y.getPixelForValue(chart.scales.y.max);
-        ctx.fillRect(xStart, yStart, xEnd - xStart, yEnd - yStart);
-    }
-
-    let hoverDay = null;
-    let areaLeft = null;
-    // bootstrap default fonts
-    Chart.defaults.font.family = 'system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"';
-    new Chart(getMonthChart(), {
-        data: {
-            datasets: [
-                {
-                    type: 'bar',
-                    label: 'Ausgaben',
-                    data: expensesData,
-                    borderColor: 'rgb(255,193,7)',
-                    backgroundColor: 'rgb(255,193,7,0.2)',
-                    borderWidth: 1
-                },
-                {
-                    type: 'line',
-                    label: 'Gespart kumuliert',
-                    data: savedCumulativeData,
-                    borderColor: '#0d6efd',
-                    backgroundColor: 'transparent',
-                    pointRadius: 0,
-                    pointHoverRadius: 0,
-                    pointHitRadius: 10,
-                    tension: 0.25,
-                    fill: true
-                }
-            ],
-            labels: labels
-        },
-        options: {
-            animation: false,
-            aspectRatio: 1.5,
-            color: '#212529',
-            layout: {
-                padding: {
-                    top: 7
-                }
-            },
-            scales: {
-                x: {
-                    min: 0.5,
-                    grid: {
-                        drawOnChartArea: false
-                    },
-                    ticks: {
-                        callback: function (v) { return this.getLabelForValue(v) === '' ? '' : renderDay(this.getLabelForValue(v)); }
-                    }
-                },
-                y: {
-                    max: 1200,
-                    position: 'right',
-                    afterBuildTicks: scale => { scale.ticks = scale.ticks.filter(t => t.value !== 0); },
-                    grid: {
-                        drawTicks: false
-                    },
-                    ticks: {
-                        mirror: true,
-                        padding: -5,
-                        z: 1,
-                        showLabelBackdrop: true,
-                        callback: x => constants.bigNumberFormat.format(x)
-                    }
-                }
-            },
-            onClick(e, activeElements, chart) {
-                if (activeElements.length) {
-                    const ymd = labels[activeElements[0].index];
-                    if (ymd.length === 10) {
-                        setDate(new Date(ymd));
-                        return;
-                    }
-                }
-                const day = chart.scales.x.getValueForPixel(e.x);
-                if (!isValidDay(day)) {
-                    return;
-                }
-                const newDate = new Date(state.date);
-                newDate.setDate(day);
-                setDate(newDate);
-            },
-            onHover(e, activeElements, chart) {
-                let day = chart.scales.x.getValueForPixel(e.x);
-                if (!isValidDay(day) || !isInsideGrid(e, chart)) {
-                    day = null;
-                }
-                if (hoverDay !== day) {
-                    hoverDay = day;
-                    chart.render();
-                }
-            },
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    displayColors: false,
-                    callbacks: {
-                        label: ctx => `${ctx.dataset.label}: ${constants.DEFAULT_CURRENCY} ${renderFloat(ctx.dataset.data[ctx.dataIndex])}`,
-                        title: ctx => ctx.map(c => renderDayHeading(c.label))
-                    }
-                }
-            }
-        },
-        plugins: [{
-            id: 'custom-canvas-background',
-            beforeDraw: (chart) => {
-                const ctx = chart.canvas.getContext('2d');
-                ctx.save();
-                ctx.globalCompositeOperation = 'destination-over';
-
-                Object.values(days)
-                    .filter(d => d.weekend)
-                    .forEach(d => highlightDay(ctx, chart, d.index, 'rgba(25,134,84,0.1)'));
-
-                highlightDay(ctx, chart, state.date.getDate(), 'rgba(0,0,0,0.1)');
-                highlightDay(ctx, chart, hoverDay, 'rgba(0,0,0,0.075)');
-
-                ctx.restore();
-            },
-            beforeDatasetDraw: (chart, dataset) => {
-                if (dataset.meta.type !== 'line') {
-                    return;
-                }
-                const ctx = chart.canvas.getContext('2d');
-                ctx.save();
-                const offset = chart.scales.x.getPixelForValue(0.5) - chart.scales.x.getPixelForValue(0);
-                areaLeft = chart.chartArea.left;
-                chart.chartArea.left -= offset;
-                ctx.translate(offset, 0);
-            },
-            afterDatasetDraw: (chart, dataset) => {
-                if (dataset.meta.type !== 'line') {
-                    return;
-                }
-                chart.chartArea.left = areaLeft;
-                const ctx = chart.canvas.getContext('2d');
-                ctx.restore();
-            }
-        }]
-    });
 }
 
 /*
@@ -1127,7 +863,7 @@ function handleRecurringCheckboxChanged() {
 }
 
 function getDictionary() {
-    return getExpenses()
+    return state.data.expenses
         .map(e => e.getDescription())
         .reduce((dict, desc) => {
             if (dict[desc]) {
@@ -1271,12 +1007,12 @@ function renderForm() {
 }
 
 function getLastExchangeRate(currency, date) {
-    const expensesOfDay = getExpenses()
+    const expensesOfDay = state.data.expenses
         .filter(e => e.getCurrency() && e.getDate() && isSameDay(e.getDate(), date));
     let relevantExpenses = expensesOfDay;
 
     if (expensesOfDay.length === 0) {
-        const expensesOfCurrency = getExpenses()
+        const expensesOfCurrency = state.data.expenses
             .filter(e => e.getType() === 'expense' && e.getCurrency() === getCurrencySelect().value);
 
         if (expensesOfCurrency.length === 0) {
@@ -1381,8 +1117,8 @@ function validateForm() {
 }
 
 function removeExpense(id) {
-    const index = getExpenses().findIndex(e => e.getId() === id);
-    getExpenses().splice(index, 1);
+    const index = state.data.expenses.findIndex(e => e.getId() === id);
+    state.data.expenses.splice(index, 1);
     state.edit = null;
     setSaved(false);
     save();
@@ -1453,7 +1189,7 @@ function submitForm(event) {
     }
     else {
         state.new = false;
-        getExpenses().push(expense);
+        state.data.expenses.push(expense);
     }
     setSaved(false);
     if (!expense.isRecurring()) {
@@ -1490,7 +1226,7 @@ function save() {
 }
 
 function setSaved(value) {
-    if (getExpenses().length === 0) {
+    if (state.data.expenses.length === 0) {
         state.saved = true;
         return;
     }
@@ -1499,7 +1235,7 @@ function setSaved(value) {
 
 function loadExpenses(loadedData) {
     const [isSaveNecessary, migratedData] = Migration.migrate(loadedData);
-    setExpenses(migratedData.expenses
+    state.data.expenses = migratedData.expenses
         .map(obj => {
             const expense = new Expense();
             expense.setId(obj._id);
@@ -1516,7 +1252,7 @@ function loadExpenses(loadedData) {
             expense.setRecurrenceFrom(obj._recurrenceFrom);
             expense.setRecurrenceTo(obj._recurrenceTo);
             return expense;
-        }));
+        });
     state.data.categories = loadedData.categories;
     if (isSaveNecessary) {
         save();
@@ -1527,30 +1263,35 @@ function loadExpenses(loadedData) {
 }
 
 export {
-    openFile,
-    startLineEdit,
     cancelLineEdit,
-    setViewMode,
-    startNew,
-    setSaved,
-    render,
-    save,
-    handleProposalClick,
-    handleDescriptionInput,
-    handleDescriptionBlur,
-    handleProposalSelect,
-    handleAmountOrExchangeRateInput,
-    validateDecimalField,
-    getAmountInput,
-    handleCurrencyChanged,
-    setDate,
+    dateToYmd,
     decrementMonth,
-    incrementMonth,
-    handleTypeChanged,
+    getAmountInput,
     getExchangeRateInput,
-    handleRecurringCheckboxChanged,
-    validateIntegerField,
     getRecurringFrequency,
+    handleAmountOrExchangeRateInput,
+    handleCurrencyChanged,
+    handleDescriptionBlur,
+    handleDescriptionInput,
+    handleProposalClick,
+    handleProposalSelect,
+    handleRecurringCheckboxChanged,
+    handleTypeChanged,
+    incrementMonth,
+    isSameDay,
+    openFile,
+    validateIntegerField,
+    removeExpense,
+    render,
+    renderDay,
+    renderDayHeading,
+    renderFloat,
+    save,
+    setDate,
     setMonthDisplay,
-    removeExpense
+    setSaved,
+    setViewMode,
+    startLineEdit,
+    startNew,
+    validateDecimalField
 };

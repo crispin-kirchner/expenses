@@ -27,14 +27,54 @@ tr.heading:not(:first-child) td {
     z-index: 1100;
 }
 
+.px-05 {
+    padding-left: 3px;
+    padding-right: 3px;
+}
+
+.ratio-1x1 {
+    --bs-aspect-ratio: 100%;
+}
+
+.xpns-day:hover {
+    background-color: rgba(0, 0, 0, 0.075) !important;
+}
+
+.xpns-day.active {
+    background-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+.border-success-opacity-25 {
+    border-color: rgba(25, 135, 84, 0.25) !important;
+}
+
+/* lg */
 @media (min-width: 992px) {
     .mt-lg-content {
         margin-top: 80px;
     }
 }
 
+/* md */
+@media (min-width: 768px) {
+    .ratio-1x1 {
+        --bs-aspect-ratio: 90%;
+    }
+
+    .lh-md-base {
+        line-height: 1.5 !important;
+    }
+}
+
+/* sm */
 @media (min-width: 576px) {
     .mt-sm-content {
         margin-top: 80px;
+    }
+}
+
+@media (max-width: 576px) {
+    .sm-small {
+        font-size: 0.875em;
     }
 }

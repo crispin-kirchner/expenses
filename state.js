@@ -4,7 +4,7 @@ const state = {
     new: false,
     expandedPaths: {},
     viewMode: 'monthDisplay',
-    monthDisplay: 'chart',
+    monthDisplay: 'calendar',
     chartTags: [],
     date: new Date(Date.now()),
     proposalSelection: false,
