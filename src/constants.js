@@ -7,28 +7,13 @@ const numberFormat = new Intl.NumberFormat([preferredLocale], { useGrouping: tru
 const bigNumberFormat = new Intl.NumberFormat([preferredLocale], { useGrouping: true, maximumFractionDigits: 0 });
 const decimalRegex = /^([0-9]+\.?[0-9]*|\.[0-9]+)$/;
 const integerRegex = /^([0-9]+)$/;
-const tagRegex = /#(\p{Letter}+)\b/ug;
+const labelRegex = /#(\p{Letter}+)\b/ug;
 const DEFAULT_CURRENCY = 'CHF';
 const defaultExchangeRate = '1.00000';
 const defaultTagColor = 'grayWhite';
 const unspecificDimension = 'Andere';
 const standardDimension = 'Standard';
 const today = new Date(Date.now());
-
-const typeFilters = {
-    income: {
-        name: 'Einnahmen',
-        filter: ex => ex.getType() === 'income'
-    },
-    recurring: {
-        name: 'Wiederkehrend',
-        filter: ex => ex.getType() === 'expense' && ex.isRecurring()
-    },
-    expense: {
-        name: 'Ausgaben',
-        filter: ex => ex.getType() === 'expense' && !ex.isRecurring()
-    }
-}
 
 export {
     preferredLocale,
@@ -39,13 +24,12 @@ export {
     bigNumberFormat,
     decimalRegex,
     integerRegex,
-    tagRegex,
+    labelRegex,
     DEFAULT_CURRENCY,
     defaultExchangeRate,
-    defaultTagColor,
+    defaultTagColor as defaultLabelColor,
     unspecificDimension,
     standardDimension,
-    typeFilters,
     today,
     dayCalendarFormat
 };

@@ -1,13 +1,14 @@
-import * as tags from './tags.js';
-import * as expensesApp from './expensesApp.js';
-import * as constants from './constants.js';
 import * as TagForm from './TagForm.js';
+import * as expensesApp from './App.js';
+import * as labels from './labels.js';
+
 import state from './state.js';
 
 function renderCategoryHierarchy() {
+    labels.refresh();
     let result = '';
     let previousLevel = 0;
-    tags.visitHierarchy((name, level, children) => {
+    labels.visitHierarchy((name, level, children) => {
         if (previousLevel < level) {
             result += '<ul class="mt-1 mb-1">'.repeat(level - previousLevel);
         }
@@ -23,7 +24,7 @@ function renderCategoryHierarchy() {
         else {
             result += `
                 <li class="mt-2 mb-1">
-                    ${tags.render(name, 'cursor-pointer')}
+                    ${labels.render(name, 'cursor-pointer')}
                 </li>`;
         }
         previousLevel = level;
@@ -37,17 +38,23 @@ function render() {
             ${renderCategoryHierarchy()}
         </div>`;
 
-    let tagForm = state.edit ? TagForm.render() : '';
+    let tagForm = state.form === 'edit' ? TagForm.render() : '';
 
     return categoryHierarchy + tagForm;
+}
+
+function startEditLabel(labelId) {
+    state.form = 'edit';
+    state.editedLabelId = labelId;
+    expensesApp.render();
 }
 
 function onAttach() {
     const categoryBadges = document.querySelectorAll('span[data-xpns-tag]');
     for (const categoryBadge of categoryBadges) {
-        categoryBadge.addEventListener('click', evt => expensesApp.startLineEdit(evt.target.dataset.xpnsTag));
+        categoryBadge.addEventListener('click', evt => startEditLabel(evt.target.dataset.xpnsTag));
     }
-    if (state.edit) {
+    if (state.form === 'edit') {
         TagForm.onAttach();
     }
 }

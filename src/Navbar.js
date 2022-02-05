@@ -1,25 +1,27 @@
-import state from './state.js';
 import * as constants from './constants.js';
-import * as expensesApp from './expensesApp.js';
+import * as dates from './dates.js';
+import * as expensesApp from './App.js';
+
+import state from './state.js';
 
 function renderBrandContent() {
     if (state.viewMode === 'monthDisplay') {
         const monthLabel = constants.monthFormat.format(state.date);
         return `
-            <button class="btn text-light" title="Tags bearbeiten" onclick="setViewMode('manageTags')">
+            <button id="manage-tags-button" class="btn text-light" title="Tags bearbeiten">
                 <i class="bi-tags-fill"></i>
             </button>
-            <button class="btn text-light" onclick="setDate(decrementMonth(state.date));">
+            <button id="previous-month-button" class="btn text-light">
                 <i class="bi-chevron-left"></i>
             </button>
-            <button class="btn text-light" onclick="setDate(incrementMonth(state.date));">
+            <button id="next-month-button" class="btn text-light">
                 <i class="bi-chevron-right"></i>
             </button>
             ${monthLabel}`
     }
     if (state.viewMode === 'manageTags') {
         return `
-            <button type="button" class="btn text-light" onclick="setViewMode('monthDisplay');">
+            <button id="month-display-button" type="button" class="btn text-light">
                 <i class="bi-arrow-left"></i>
             </button>
             Markierungen verwalten`;
@@ -27,7 +29,7 @@ function renderBrandContent() {
 }
 
 function renderTodayButton() {
-    if (expensesApp.isSameDay(constants.today, state.date)) {
+    if (dates.isSameDay(constants.today, state.date)) {
         return '';
     }
     return `
@@ -61,6 +63,16 @@ function render() {
 }
 
 function onAttach() {
+    if (state.viewMode === 'monthDisplay') {
+        document.getElementById('previous-month-button').addEventListener('click', () => expensesApp.setDate(dates.decrementMonth(state.date)));
+        document.getElementById('next-month-button').addEventListener('click', () => expensesApp.setDate(dates.incrementMonth(state.date)));
+        document.getElementById('manage-tags-button').addEventListener('click', () => expensesApp.setViewMode('manageTags'));
+    }
+    if (state.viewMode === 'manageTags') {
+        document.getElementById('month-display-button').addEventListener('click', () => expensesApp.setViewMode('monthDisplay'));
+    }
+
+
     const todayButton = document.getElementById('today-button');
     if (todayButton) {
         todayButton.addEventListener('click', () => expensesApp.setDate(constants.today));

@@ -1,22 +1,20 @@
-import state from './state.js';
-import * as tags from './tags.js';
 import * as colors from './colors.js';
 import * as constants from './constants.js';
-import * as expensesApp from './expensesApp.js';
+import * as expensesApp from './App.js';
+import * as labels from './labels.js';
 
-function handleSubmit(evt) {
+import state from './state.js';
+
+async function handleSubmit(evt) {
     evt.preventDefault();
-    const tag = tags.getByName(state.edit);
-    if (tags.getIndexByName(state.edit) < 0) {
-        state.data.categories.push(tag);
-    }
+    const label = { ...labels.getByName(state.editedLabelId) };
 
-    tag.parent = getParentSelect().value;
-    tag.color = getColorSelect().value;
+    label.parent = getParentSelect().value;
+    label.color = getColorSelect().value;
+    await labels.store(label);
 
-    state.edit = null;
-    state.new = false;
-    expensesApp.save();
+    state.form = null;
+    expensesApp.render()
 }
 
 function removeClasses(elem, classArray) {
@@ -36,10 +34,10 @@ function handleColorSelectChange(evt) {
     const oldColorValue = evt.target.dataset.xpnsOldValue;
     const oldColorClasses = colors.getClasses(oldColorValue);
 
-    const tagSpan = getTagContainer().querySelector(`span.badge[data-xpns-tag="${state.edit}"]`);
+    const tagSpan = getTagContainer().querySelector(`span.badge[data-xpns-tag="${state.editedLabelId}"]`);
     const label = document.querySelector('label[for="color-select"]');
 
-    removeClasses(evt.target, oldColorClasses);
+    removeClasses(evt.currentTarget, oldColorClasses);
     removeClasses(tagSpan, oldColorClasses);
     removeClasses(label, getTextClass(oldColorClasses));
 
@@ -67,12 +65,12 @@ function getTagContainer() {
 }
 
 function renderParentOptions() {
-    const tag = tags.getByName(state.edit);
+    const tag = labels.getByName(state.editedLabelId);
     const options = [];
     const disabledParents = [];
-    tags.visitHierarchy((name, level) => {
-        const currentTag = tags.getByName(name);
-        const isDisabled = name === tag.name || disabledParents.includes(currentTag.parent);
+    labels.visitHierarchy((name, level) => {
+        const currentTag = labels.getByName(name);
+        const isDisabled = name === tag._id || disabledParents.includes(currentTag.parent);
         if (isDisabled) {
             disabledParents.push(name);
         }
@@ -85,7 +83,7 @@ function renderParentOptions() {
 }
 
 function render() {
-    const tag = tags.getByName(state.edit);
+    const tag = labels.getByName(state.editedLabelId);
     const colorClasses = colors.getClasses(tag.color);
 
     const colorOptions = Object.entries(colors.all)
@@ -100,7 +98,7 @@ function render() {
                 <button type="button" class="btn-close" aria-label="Close" onclick="cancelLineEdit();"></button>
             </div>
             <div id="tag-container" class="mb-3">
-                ${tags.render(state.edit)}
+                ${labels.render(state.editedLabelId)}
             </div>
             <form id="tag-form" novalidate>
                 <div class="form-floating mb-3">

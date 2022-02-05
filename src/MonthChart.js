@@ -1,6 +1,65 @@
 import * as constants from './constants.js';
+import * as dates from './dates.js';
 import * as expenses from './expenses.js';
-import * as expensesApp from './expensesApp.js';
+import * as expensesApp from './App.js';
+
+import {
+    ArcElement,
+    BarController,
+    BarElement,
+    BubbleController,
+    CategoryScale,
+    Chart,
+    Decimation,
+    DoughnutController,
+    Filler,
+    Legend,
+    LineController,
+    LineElement,
+    LinearScale,
+    LogarithmicScale,
+    PieController,
+    PointElement,
+    PolarAreaController,
+    RadarController,
+    RadialLinearScale,
+    ScatterController,
+    SubTitle,
+    TimeScale,
+    TimeSeriesScale,
+    Title,
+    Tooltip
+} from 'chart.js';
+
+import state from './state.js';
+
+Chart.register(
+    ArcElement,
+    LineElement,
+    BarElement,
+    PointElement,
+    BarController,
+    BubbleController,
+    DoughnutController,
+    LineController,
+    PieController,
+    PolarAreaController,
+    RadarController,
+    ScatterController,
+    CategoryScale,
+    LinearScale,
+    LogarithmicScale,
+    RadialLinearScale,
+    TimeScale,
+    TimeSeriesScale,
+    Decimation,
+    Filler,
+    Legend,
+    Title,
+    Tooltip,
+    SubTitle
+);
+
 
 function getMonthChart() {
     return document.getElementById('month-chart');
@@ -21,23 +80,38 @@ function render() {
 }
 
 function onAttach() {
-    const days = expenses.getDaysOfMonth(state.date);
+    expenses.refreshDaysOfMonth();
+    const days = state.daysOfMonth.data;
 
+    const currentDay = dates.getFirstDayOfMonth(state.date);
+    const labels = [];
     let savedCumulativeAmount = 0;
-    const savedCumulativeData = days
-        .map(day => (savedCumulativeAmount += day.saved));
-    savedCumulativeData.splice(0, 0, 0);
+    const savedCumulativeData = [];
+    const expensesData = [];
+    while (currentDay.getMonth() === state.date.getMonth()) {
+        const currentYmd = dates.toYmd(currentDay);
+        labels.push(currentYmd);
+        const expensesDay = days[currentYmd];
+        if (expensesDay) {
+            if (expensesDay.saved) {
+                savedCumulativeAmount += expensesDay.saved;
+                savedCumulativeData.push(savedCumulativeAmount);
+            }
+            expensesData.push(expensesDay.amount);
+        }
+        else {
+            savedCumulativeData.push(null);
+            expensesData.push(null);
+        }
 
-    const labels = days
-        .map(day => day.date);
+        currentDay.setDate(currentDay.getDate() + 1);
+    }
     labels.splice(0, 0, '');
-
-    const expensesData = days
-        .map(day => day.amount);
+    savedCumulativeData.splice(0, 0, 0);
     expensesData.splice(0, 0, 0);
 
     const isValidDay = function (day) {
-        return day > 0 && day <= days.length;
+        return day > 0 && day <= labels.length;
     }
 
     const highlightDay = function (ctx, chart, day, color) {
@@ -101,7 +175,7 @@ function onAttach() {
                         drawOnChartArea: false
                     },
                     ticks: {
-                        callback: function (v) { return this.getLabelForValue(v) === '' ? '' : expensesApp.renderDay(this.getLabelForValue(v)); }
+                        callback: function (v) { return this.getLabelForValue(v) === '' ? '' : expensesApp.renderDay(new Date(this.getLabelForValue(v))); }
                     }
                 },
                 y: {
@@ -124,7 +198,7 @@ function onAttach() {
                 if (activeElements.length) {
                     const ymd = labels[activeElements[0].index];
                     if (ymd.length === 10) {
-                        setDate(new Date(ymd));
+                        expensesApp.setDate(new Date(ymd));
                         return;
                     }
                 }
@@ -134,9 +208,9 @@ function onAttach() {
                 }
                 const newDate = new Date(state.date);
                 newDate.setDate(day);
-                setDate(newDate);
+                expensesApp.setDate(newDate);
             },
-            onHover(e, activeElements, chart) {
+            onHover(e, _, chart) {
                 let day = chart.scales.x.getValueForPixel(e.x);
                 if (!isValidDay(day) || !isInsideGrid(e, chart)) {
                     day = null;
@@ -154,7 +228,7 @@ function onAttach() {
                     displayColors: false,
                     callbacks: {
                         label: ctx => `${ctx.dataset.label}: ${constants.DEFAULT_CURRENCY} ${expensesApp.renderFloat(ctx.dataset.data[ctx.dataIndex])}`,
-                        title: ctx => ctx.map(c => expensesApp.renderDayHeading(c.label))
+                        title: ctx => ctx.map(c => expensesApp.renderDayHeading(new Date(c.label)))
                     }
                 }
             }
@@ -166,9 +240,17 @@ function onAttach() {
                 ctx.save();
                 ctx.globalCompositeOperation = 'destination-over';
 
-                Object.values(days)
-                    .filter(d => d.weekend)
-                    .forEach(d => highlightDay(ctx, chart, d.index, 'rgba(25,134,84,0.1)'));
+                labels
+                    .forEach((ymd, i) => {
+                        if (!ymd) {
+                            return;
+                        }
+                        const dayOfWeek = new Date(ymd).getDay();
+                        if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+                            return;
+                        }
+                        highlightDay(ctx, chart, i, 'rgba(25,134,84,0.1)')
+                    });
 
                 highlightDay(ctx, chart, state.date.getDate(), 'rgba(0,0,0,0.1)');
                 highlightDay(ctx, chart, hoverDay, 'rgba(0,0,0,0.075)');

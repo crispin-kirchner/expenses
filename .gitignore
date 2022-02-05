@@ -1,3 +1,5 @@
 *.ods
 *.ods#
 node_modules
+build
+public/ausgaben_legacy.json

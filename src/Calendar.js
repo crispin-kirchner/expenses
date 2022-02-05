@@ -1,56 +1,50 @@
-import * as expenses from './expenses.js';
 import * as constants from './constants.js';
-import * as expensesApp from './expensesApp.js';
+import * as dates from './dates.js';
+import * as expenses from './expenses.js';
+import * as expensesApp from './App.js';
+
 import state from './state.js';
 
-function renderDayContent(day) {
+function renderDayContent(date, dayExpenses) {
     let amounts = '';
-    if (day.date <= constants.today) {
+    if (dayExpenses && date <= constants.today) {
         let savedClasses = '';
-        if (day.saved < 0) {
+        if (dayExpenses.saved < 0) {
             savedClasses = 'text-danger';
         }
-        else if (day.saved > 0) {
+        else if (dayExpenses.saved > 0) {
             savedClasses = 'text-success';
         }
         amounts = `
-            <div class="position-absolute bottom-0 end-0 text-end p-sm-1 p-lg-2 sm-small lh-1 lh-md-base w-100">
+            <div class="position-absolute bottom-0 end-0 text-end p-sm-1  py-lg-1 px-lg-2 sm-small lh-1 lh-md-base w-100">
             <span class="w-100 d-inline-flex justify-content-between">
-                <i class="bi-box-arrow-right"></i> ${expensesApp.renderFloat(day.amount)}
+                <i class="bi-box-arrow-right"></i> ${expensesApp.renderFloat(dayExpenses.amount)}
             </span><br />
             <span class="${savedClasses} w-100 d-inline-flex justify-content-between">
-                <i class="bi-piggy-bank"></i> ${expensesApp.renderFloat(day.saved)}</span>
+                <i class="bi-piggy-bank"></i> ${expensesApp.renderFloat(dayExpenses.saved)}</span>
             </div>`;
     }
     return `
         <div>
             <div class="position-absolute top-0 start-0 small lh-small">
                 <span class="bg-dark text-light rounded px-05">
-                    ${day.date.getDate()}
+                    ${expensesApp.renderDay(date)}
                 </span>
-                &nbsp;${constants.dayCalendarFormat.format(day.date)}
+                &nbsp;${constants.dayCalendarFormat.format(date)}
             </div>
             ${amounts}
         </div>`;
 }
 
-function renderDay(day, i, length) {
-    let marginClasses = '';
-    if (i === 0) {
-        marginClasses = 'ms-auto';
-    }
-    else if (i === length - 1) {
-        marginClasses = 'me-auto';
-    }
-
+function renderDay(date, dayExpenses) {
     let dayClasses = '';
-    if (day) {
+    if (date) {
         dayClasses += 'border rounded xpns-day cursor-pointer';
-        if (expensesApp.isSameDay(day.date, state.date)) {
+        if (dates.isSameDay(date, state.date)) {
             dayClasses += ' active';
         }
-        const weekday = day.date.getDay();
-        if (expensesApp.isSameDay(day.date, constants.today)) {
+        const weekday = date.getDay();
+        if (dates.isSameDay(date, constants.today)) {
             dayClasses += ' bg-warning bg-opacity-10 border-warning';
         }
         else if (weekday === 0 || weekday === 6) {
@@ -58,36 +52,39 @@ function renderDay(day, i, length) {
         }
     }
 
-    const dataTag = day ? `data-xpns-ymd="${expensesApp.dateToYmd(day.date)}"` : '';
+    const dataTag = date ? `data-xpns-ymd="${dates.toYmd(date)}"` : '';
     return `
         <div class="col gx-1 gy-1">
             <div class="${dayClasses} ratio ratio-1x1 position-relative" ${dataTag}>
-                ${day ? renderDayContent(day) : ''}
+                ${date ? renderDayContent(date, dayExpenses) : ''}
             </div>
         </div>`;
 }
 
 function shiftMondayStartOfWeek(day) {
-    return (day - 1) % 7
+    return (((day - 1) % 7) + 7) % 7;
 }
 
 function render() {
-    const days = expenses.getDaysOfMonth(state.date);
+    expenses.refreshDaysOfMonth();
+    const days = state.daysOfMonth.data;
 
     const rowPattern = '<div class="row">';
     let result = '<div class="container px-2">' + rowPattern;
-    const firstDayIndex = shiftMondayStartOfWeek(days[0].date.getDay());
+    const currentDay = dates.getFirstDayOfMonth(state.date)
+    const firstDayIndex = shiftMondayStartOfWeek(currentDay.getDay());
     for (let i = 0; i < firstDayIndex; ++i) {
         result += renderDay();
     }
-    for (let i = 0; i < days.length; ++i) {
-        result += renderDay(days[i], i, days.length);
-        const day = days[i].date.getDay();
-        if (day === 0 && i !== days.length - 1) {
+    const lastDayOfMonth = dates.getLastDayOfMonth(state.date);
+    while (currentDay.getMonth() === state.date.getMonth()) {
+        result += renderDay(currentDay, days[dates.toYmd(currentDay)]);
+        if (currentDay.getDay() === 0 && !dates.isSameDay(lastDayOfMonth, currentDay)) {
             result += `</div>${rowPattern}`;
         }
+        currentDay.setDate(currentDay.getDate() + 1);
     }
-    const lastDayIndex = shiftMondayStartOfWeek(days[days.length - 1].date.getDay());
+    const lastDayIndex = shiftMondayStartOfWeek(lastDayOfMonth.getDay());
     for (let i = lastDayIndex + 1; i < 7; ++i) {
         result += renderDay();
     }
