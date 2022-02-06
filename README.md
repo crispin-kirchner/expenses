@@ -1,4 +1,5 @@
-# Einrichtung Entwicklungsumgebung
+# Einrichtung
+## Entwicklungsumgebung
 - Chocolatey
 - Chocolatey upgrade all task
 - GitExtensions
@@ -18,8 +19,10 @@
       - Members -> Roles: _admin entfernen
   - Config -> CORS -> Restrict to specific domains `http://localhost:3000`
 
-# Einrichtung Produktivumgebung
+## Produktivumgebung
 - PHP installieren
+- CouchDB
+  - Config -> CORS -> Restrict to specific domains `http://localhost:9767`
 - neue CouchDB erstellen: `expenses-prod`
   - Members -> Roles: _admin entfernen
 - `npm run deploy`
