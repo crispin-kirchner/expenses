@@ -1,17 +1,18 @@
 import PouchDB from 'pouchdb-browser';
 
 const databaseName = getDatabaseName();
+const databaseConnectionString = `${window.location.protocol}//${window.location.hostname}:5984/${databaseName}`;
 const pouchDb = new PouchDB(databaseName);
-pouchDb.sync('http://localhost:5984/' + databaseName, {
+pouchDb.sync(databaseConnectionString, {
     live: true,
     retry: true
 });
 
 function getDatabaseName() {
-    switch (window.location.host) {
-        case 'localhost:3000':
+    switch (window.location.port) {
+        case '3000':
             return 'expenses-dev';
-        case 'localhost:9767':
+        case '9767':
             return 'expenses-prod';
         default:
             throw new Error('Could not determine database name, aborting');
