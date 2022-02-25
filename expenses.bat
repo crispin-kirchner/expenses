@@ -1,1 +1,1 @@
-php -S 0.0.0.0:9767
+npx http-server -S -C cert.pem -K key.pem -p 9767

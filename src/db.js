@@ -1,7 +1,8 @@
 import PouchDB from 'pouchdb-browser';
 
 const databaseName = getDatabaseName();
-const databaseConnectionString = `${window.location.protocol}//${window.location.hostname}:5984/${databaseName}`;
+const databasePort = window.location.protocol === 'https:' ? 6984 : 5984;
+const databaseConnectionString = `${window.location.protocol}//${window.location.hostname}:${databasePort}/${databaseName}`;
 const pouchDb = new PouchDB(databaseName);
 pouchDb.sync(databaseConnectionString, {
     live: true,

@@ -14,7 +14,8 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "deploy": "deploy.bat"
+    "deploy": "deploy.bat",
+    "int": "npm run build && npx http-server build -S -C cert.pem -K key.pem -p 3000"
   },
   "eslintConfig": {
     "extends": [
