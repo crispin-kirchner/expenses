@@ -1,3 +1,7 @@
+import * as expensesApp from './App.js';
+
+import state, { markEverythingDirty } from './state.js';
+
 import PouchDB from 'pouchdb-browser';
 
 const databaseName = getDatabaseName();
@@ -7,6 +11,11 @@ const pouchDb = new PouchDB(databaseName);
 pouchDb.sync(databaseConnectionString, {
     live: true,
     retry: true
+}).on('change', function (info) {
+    if (info.direction === 'pull' && info.change.pending === 0) {
+        markEverythingDirty();
+        expensesApp.render();
+    }
 });
 
 function getDatabaseName() {

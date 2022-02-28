@@ -48,5 +48,10 @@ async function refreshData(dataset, loadFn) {
     }
 }
 
+function markEverythingDirty() {
+    ['dayExpenses', 'daysOfMonth', 'overviewData', 'labels']
+        .forEach(ds => state[ds].loadState = 'dirty');
+}
+
 export default state;
-export { refreshData };
+export { refreshData, markEverythingDirty };
