@@ -179,7 +179,6 @@ function onAttach() {
                     }
                 },
                 y: {
-                    max: 1200,
                     position: 'right',
                     afterBuildTicks: scale => { scale.ticks = scale.ticks.filter(t => t.value !== 0); },
                     grid: {
