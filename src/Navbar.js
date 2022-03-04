@@ -4,6 +4,30 @@ import * as expensesApp from './App.js';
 
 import state from './state.js';
 
+function getPreviousMonthButton() {
+    return document.getElementById('previous-month-button');
+}
+
+function getNextMonthButton() {
+    return document.getElementById('next-month-button');
+}
+
+function getManageTagsButton() {
+    return document.getElementById('manage-tags-button');
+}
+
+function getMonthDisplayButton() {
+    return document.getElementById('month-display-button');
+}
+
+function getNewButton() {
+    return document.getElementById('new-button');
+}
+
+function getTodayButton() {
+    return document.getElementById('today-button');
+}
+
 function renderBrandContent() {
     if (state.viewMode === 'monthDisplay') {
         const monthLabel = constants.monthFormat.format(state.date);
@@ -43,7 +67,7 @@ function renderNewButton() {
         return '';
     }
     return `
-        <button class="btn btn-light" type="button" title="Neu" onclick="startNew();">
+        <button id="new-button" class="btn btn-light" type="button" title="Neu">
             <i class="bi-plus-square"></i><span class="d-none d-sm-inline-block">&nbsp;Neu</span>
         </button>`;
 }
@@ -64,19 +88,17 @@ function render() {
 
 function onAttach() {
     if (state.viewMode === 'monthDisplay') {
-        document.getElementById('previous-month-button').addEventListener('click', () => expensesApp.setDate(dates.decrementMonth(state.date)));
-        document.getElementById('next-month-button').addEventListener('click', () => expensesApp.setDate(dates.incrementMonth(state.date)));
-        document.getElementById('manage-tags-button').addEventListener('click', () => expensesApp.setViewMode('manageTags'));
+        getPreviousMonthButton().addEventListener('click', () => expensesApp.setDate(dates.decrementMonth(state.date)));
+        getNextMonthButton().addEventListener('click', () => expensesApp.setDate(dates.incrementMonth(state.date)));
+        getManageTagsButton().addEventListener('click', () => expensesApp.setViewMode('manageTags'));
+        getNewButton().addEventListener('click', expensesApp.startNew);
     }
     if (state.viewMode === 'manageTags') {
-        document.getElementById('month-display-button').addEventListener('click', () => expensesApp.setViewMode('monthDisplay'));
+        getMonthDisplayButton().addEventListener('click', () => expensesApp.setViewMode('monthDisplay'));
     }
 
 
-    const todayButton = document.getElementById('today-button');
-    if (todayButton) {
-        todayButton.addEventListener('click', () => expensesApp.setDate(constants.today));
-    }
+    getTodayButton()?.addEventListener('click', () => expensesApp.setDate(constants.today));
 }
 
 export { render, onAttach };

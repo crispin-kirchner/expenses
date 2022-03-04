@@ -1,8 +1,7 @@
 import * as expensesApp from './App.js';
 
-import state, { markEverythingDirty } from './state.js';
-
 import PouchDB from 'pouchdb-browser';
+import { markEverythingDirty } from './state.js';
 
 const databaseName = getDatabaseName();
 const databasePort = window.location.protocol === 'https:' ? 6984 : 5984;

@@ -56,6 +56,10 @@ function getParentSelect() {
     return document.getElementById('parent-select');
 }
 
+function getCloseButton() {
+    return document.getElementById('close-button');
+}
+
 function getColorSelect() {
     return document.getElementById('color-select');
 }
@@ -95,7 +99,7 @@ function render() {
         <div class="col-lg-4 col-sm-6 pt-3 pt-sm-0 mt-sm-content position-absolute h-100 bg-white end-0 z-top">
             <div class="d-flex align-items-center mb-2">
                 <h2 class="me-auto">Bearbeiten</h2>
-                <button type="button" class="btn-close" aria-label="Close" onclick="cancelLineEdit();"></button>
+                <button id="close-button" type="button" class="btn-close" aria-label="Close"></button>
             </div>
             <div id="tag-container" class="mb-3">
                 ${labels.render(state.editedLabelId)}
@@ -126,6 +130,7 @@ function render() {
 function onAttach() {
     getForm().addEventListener('submit', handleSubmit);
     getColorSelect().addEventListener('change', handleColorSelectChange);
+    getCloseButton().addEventListener('click', expensesApp.cancelLineEdit);
 }
 
 export { render, onAttach };

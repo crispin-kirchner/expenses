@@ -5,8 +5,6 @@ import * as expenses from './expenses.js';
 
 import state, { refreshData } from './state.js'
 
-import { getAllPositions } from './expenses.js';
-
 const dimensions = [constants.standardDimension, constants.unspecificDimension];
 
 function getIndexByName(name) {

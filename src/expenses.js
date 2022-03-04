@@ -289,6 +289,10 @@ function getLabels(position) {
     return labels;
 }
 
+function refreshEditedPosition() {
+    refreshData('editedPosition', () => getPosition(state.editedPosition.data._id));
+}
+
 function hasLabel(position, labelName) {
     return getLabels(position).includes(labelName);
 }
@@ -340,6 +344,7 @@ export {
     getPosition,
     refreshDaysOfMonth,
     refreshDayExpenses,
+    refreshEditedPosition,
     computeMonthlyAmount,
     refreshOverviewData,
     setRecurring,
