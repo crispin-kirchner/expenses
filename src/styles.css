@@ -1,22 +1,14 @@
-.xpns-modal {
-    color: gray;
-}
-
 .error {
     border-color: red;
 }
 
 .currency {
-    width: 3ex;
+    width: 1ex;
     display: inline-block;
 }
 
 .cursor-pointer {
     cursor: pointer;
-}
-
-tr.heading:not(:first-child) td {
-    padding-top: 0.5em;
 }
 
 .mt-content {

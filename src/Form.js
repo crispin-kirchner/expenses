@@ -362,7 +362,7 @@ function render() {
               <form id="expense-form" autocomplete="off" novalidate>
                   <div class="d-flex align-items-center mb-2">
                     <button id="close-button" class="btn" type="button" aria-label="Close"><i class="bi bi-arrow-left"></i></button>
-                    <h2 class="me-auto">${state.form === 'edit' ? 'Bearbeiten' : 'Neu'}</h2>
+                    <h4 class="me-auto">${state.form === 'edit' ? 'Bearbeiten' : 'Neu'}</h4>
                     <button class="btn btn-primary ms-auto" type="submit" title="${state.form === 'edit' ? 'Speichern' : 'Hinzufügen'}">${state.form === 'edit' ? '<i class="bi-check-circle"></i> Speichern' : '<i class="bi-plus-circle"></i> Hinzufügen'}</button>
                   </div>
                   <div class="form-floating mb-3">

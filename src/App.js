@@ -96,8 +96,24 @@ function renderDayHeading(date) {
   return constants.dayHeadingFormat.format(date);
 }
 
-function decorateTags(description) {
-  return description.replaceAll(constants.labelRegex, (_, p0) => labels.render(p0));
+function decorateTags(text, wrapperFunction) {
+  wrapperFunction = wrapperFunction || (x => x);
+
+  const parts = [];
+  for (let i = 0, m; m = constants.labelRegex.exec(text); ++i) {
+    if (i === 0 && m.index > 0) {
+      parts.push(text.substring(0, m.index).trim());
+    }
+    parts.push(labels.render(m[1]));
+    ++i;
+  }
+  if (parts.length === 0) {
+    parts.push(text);
+  }
+
+  return parts
+    .map(wrapperFunction)
+    .join(' ');
 }
 
 function setMonthDisplay(monthDisplay) {

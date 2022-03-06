@@ -13,26 +13,27 @@ function render() {
     const renderSum = state.dayExpenses.data.sum > 0.005;
 
     let rows = `
-          <div id="day-expenses" class="col-lg-4 mt-lg-content">
-              <nav class="nav border-bottom border-top">
-                <span class="nav-link px-0 me-auto">
+        <div class="col-lg-4 mt-lg-content">
+            <h5 class="d-flex">
+                <span class="me-auto">
                     ${expensesApp.renderDayHeading(state.date)}
                 </span>
-                <span class="nav-link px-2">
+                <span>
                     ${renderSum ? expensesApp.renderFloat(state.dayExpenses.data.sum) : ''}
                 </span>
-              </nav>
-              <table class="table table-sm table-hover">`;
+                <span class="currency"></span>
+            </h5>`;
     rows += state.dayExpenses.data.expenses
         .map(e => `
-              <tr data-xpns-id="${e._id}">
-                  <td class="text-nowrap">${expensesApp.decorateTags(e.description)}</td>
-                  ${renderAmountTd(expensesApp.renderFloat(expenses.computeMonthlyAmount(e)))}
-                  <td>${expensesApp.isDefaultCurrency(e.currency) ? '' : e.currency}</td>
-              </tr>`)
+            <div data-xpns-id="${e._id}" class="d-flex py-1 border-top cursor-pointer xpns-day">
+                <div class="d-flex overflow-hidden text-nowrap me-auto">
+                    ${expensesApp.decorateTags(e.description, l => `<div class="overflow-hidden me-1">${l}</div>`)}
+                </div>
+                <div class="pe-1">${renderAmountTd(expensesApp.renderFloat(expenses.computeMonthlyAmount(e)))}</div>
+                <div class="currency">${expensesApp.isDefaultCurrency(e.currency) ? '' : e.currency}</div>
+            </div>`)
         .join('\n');
-    rows += `</table>
-          </div>`;
+    rows += `</div>`;
 
     return rows;
 }
