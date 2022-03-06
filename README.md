@@ -52,6 +52,14 @@
 
 - Autostart einrichten für `%LocalAppData%\Expenses\expenses.vbs` (Verknüpfung in `C:\Users\%USER%\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup` anlegen)
 
+# Entwicklung
+## Klon von PROD nach DEV machen
+In Fauxton auf *Replication* klicken. Dort diese Einstellungen eingeben:
+
+![](doc/replication-prod-dev.png)
+
+Das ist kein richtiger Dump. Testdaten die nicht auf PROD existieren werden nicht von DEV gelöscht.
+
 # Checkliste Regressionstest
 1. Overview aufklappen/zuklappen
 2. Monat wechseln
