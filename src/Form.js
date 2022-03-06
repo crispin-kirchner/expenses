@@ -361,8 +361,9 @@ function render() {
           <div class="col-lg-4 position-absolute end-0 bg-white pt-3 pt-lg-0 mt-lg-content h-100 z-top">
               <form id="expense-form" autocomplete="off" novalidate>
                   <div class="d-flex align-items-center mb-2">
-                      <h2 class="me-auto">${state.form === 'edit' ? 'Bearbeiten' : 'Neu'}</h2>
-                      <button id="close-button" type="button" class="btn-close" aria-label="Close"></button>
+                    <button id="close-button" class="btn" type="button" aria-label="Close"><i class="bi bi-arrow-left"></i></button>
+                    <h2 class="me-auto">${state.form === 'edit' ? 'Bearbeiten' : 'Neu'}</h2>
+                    <button class="btn btn-primary ms-auto" type="submit" title="${state.form === 'edit' ? 'Speichern' : 'Hinzufügen'}">${state.form === 'edit' ? '<i class="bi-check-circle"></i> Speichern' : '<i class="bi-plus-circle"></i> Hinzufügen'}</button>
                   </div>
                   <div class="form-floating mb-3">
                       <select id="type-select" class="form-select" placeholder="Typ">
@@ -370,14 +371,6 @@ function render() {
                           <option value="income" ${position?.type === 'income' ? 'selected' : ''}>Einnahme</option>
                       </select>
                       <label for="type-select">Typ</label>
-                  </div>
-                  <div class="form-floating">
-                      <input id="description" class="form-control rounded-top" placeholder="Beschreibung" value="${position ? position.description : ''}" />
-                      <label for="description">Beschreibung</label>
-                  </div>
-                  <div class="mb-3">
-                      <select id="proposal-field" class="form-select d-none overflow-auto border-top-0 rounded-bottom rounded-0" size="4" tabindex="-1">
-                      </select>
                   </div>
                   <div class="row g-2">
                       <div class="col-8 form-floating">
@@ -400,6 +393,14 @@ function render() {
                       </span>
                   </div>
                   <div class="form-floating mt-3">
+                      <input id="description" class="form-control rounded-top" placeholder="Beschreibung" value="${position ? position.description : ''}" />
+                      <label for="description">Beschreibung</label>
+                  </div>
+                  <div class="mb-3">
+                      <select id="proposal-field" class="form-select d-none overflow-auto border-top-0 rounded-bottom rounded-0" size="4" tabindex="-1">
+                      </select>
+                  </div>
+                  <div class="form-floating">
                       <input id="date-input" class="form-control" type="date" value="${position.date ? dates.toYmd(position.date) : ''}" />
                       <label for="date-input">Datum</label>
                   </div>
@@ -419,7 +420,6 @@ function render() {
                   </div>
                   <div class="d-flex mt-4">
                       ${state.form === 'edit' ? `<button id="delete-button" class="btn btn-secondary" type="button" title="Löschen"><i class="bi-trash"></i> Löschen</button>` : ''}
-                      <button class="btn btn-primary ms-auto" type="submit" title="${state.form === 'edit' ? 'Speichern' : 'Hinzufügen'}">${state.form === 'edit' ? '<i class="bi-check-circle"></i> Speichern' : '<i class="bi-plus-circle"></i> Hinzufügen'}</button>
                   </div>
               </form>
           </div>`;
