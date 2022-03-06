@@ -1,4 +1,5 @@
 import * as Calendar from './Calendar.js';
+import * as DayExpenses from './DayExpenses.js';
 import * as Form from './Form.js';
 import * as ManageTags from './ManageTags.js';
 import * as MonthChart from './MonthChart.js';
@@ -99,10 +100,6 @@ function decorateTags(description) {
   return description.replaceAll(constants.labelRegex, (_, p0) => labels.render(p0));
 }
 
-function renderAmountTd(content) {
-  return `<td class="text-end">${content}</td>`;
-}
-
 function setMonthDisplay(monthDisplay) {
   if (monthDisplay === state.monthDisplay) {
     return;
@@ -168,7 +165,7 @@ function render() {
   let expenseForm;
   if (state.viewMode === 'monthDisplay') {
     const mainArea = renderMainArea();
-    const dayTable = renderDayExpenses();
+    const dayTable = DayExpenses.render();
     expenseForm = Form.render();
     appArea = mainArea + dayTable + expenseForm;
   } else if (state.viewMode === 'manageTags') {
@@ -198,9 +195,9 @@ function render() {
     });
   }
 
-  const expenseLis = document.querySelectorAll('[data-xpns-id]:not([data-xpns-id=""])');
-  for (const li of expenseLis) {
-    li.addEventListener('click', selectExpense);
+  const expenseElems = document.querySelectorAll('[data-xpns-id]:not([data-xpns-id=""])');
+  for (const li of expenseElems) {
+    li.addEventListener('click', editExpense);
   }
 }
 
@@ -226,35 +223,12 @@ function removeExpandedPath(path) {
   });
 }
 
-function renderDayExpenses() {
-  expenses.refreshDayExpenses();
-
-  const renderSum = state.dayExpenses.data.sum > 0.005;
-
-  let rows = `
-        <div id="day-expenses" class="col-lg-4 mt-lg-content">
-            <nav class="nav border-bottom border-top"><span class="nav-link px-0 me-auto">${renderDayHeading(state.date)}</span><span class="nav-link px-2">${renderSum ? renderFloat(state.dayExpenses.data.sum) : ''}</span></nav>
-            <table class="table table-sm table-hover">`;
-  rows += state.dayExpenses.data.expenses
-    .map(e => `
-            <tr data-xpns-id="${e._id}">
-                <td class="text-nowrap">${decorateTags(e.description)}</td>
-                ${renderAmountTd(renderFloat(expenses.computeMonthlyAmount(e)))}
-                <td>${isDefaultCurrency(e.currency) ? '' : e.currency}</td>
-            </tr>`)
-    .join('\n');
-  rows += `</table>
-        </div>`;
-
-  return rows;
-}
-
 
 function isDefaultCurrency(currency) {
   return currency === constants.DEFAULT_CURRENCY;
 }
 
-function selectExpense(evt) {
+function editExpense(evt) {
   evt.preventDefault();
 
   startEditPosition(evt.currentTarget.dataset.xpnsId);
