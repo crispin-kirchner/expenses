@@ -6,10 +6,8 @@ import * as Navbar from './Navbar.js';
 import * as Overview from './Overview.js';
 import * as constants from './constants.js';
 import * as dates from './dates.js';
-import * as db from './db.js';
 import * as expenses from './expenses.js';
 import * as labels from './labels.js';
-import * as legacySupport from './legacySupport.js';
 
 import ExpensesError from './ExpensesError.js';
 import state from './state.js';
@@ -305,10 +303,6 @@ async function onAttach() {
   window.setMonthDisplay = setMonthDisplay;
 
   render();
-  if (await db.isEmpty()) {
-    await legacySupport.loadLegacyDataIntoPouchDb();
-    render();
-  }
 }
 
 export {
