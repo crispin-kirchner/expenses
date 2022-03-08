@@ -178,20 +178,25 @@ async function handleDescriptionInput() {
     }
     const hasText = !!searchString.length;
     setProposalFieldVisible(hasText);
-    if (hasText) {
-        const dictionary = await getDictionary();
-        const proposals = Object.entries(dictionary)
-            .filter(e => e[0].toLowerCase().startsWith(searchString.toLowerCase()))
-            .sort((a, b) => b[1] - a[1]);
 
-        if (proposals.findIndex(e => e[0] === getDescriptionInput().value) < 0) {
-            getDescriptionInput().value = searchString;
-        }
-
-        getProposalField().innerHTML = proposals
-            .map(p => `<option>${p[0]}</option>`)
-            .join('\n');
+    if (!hasText) {
+        return;
     }
+    const dictionary = await getDictionary();
+    const proposals = Object.entries(dictionary)
+        .filter(e => e[0].toLowerCase().startsWith(searchString.toLowerCase()))
+        .sort((a, b) => b[1] - a[1]);
+
+    if (proposals.findIndex(e => e[0] === getDescriptionInput().value) < 0) {
+        getDescriptionInput().value = searchString;
+    }
+
+    getProposalField().innerHTML = proposals
+        .map(p => `<div class="cursor-pointer">${p[0]}</div>`)
+        .join('\n');
+
+    getProposalField().querySelectorAll('div')
+        .forEach(d => d.addEventListener('click', handleProposalSelect));
 }
 
 function handleDescriptionBlur() {
@@ -200,9 +205,11 @@ function handleDescriptionBlur() {
     state.proposalSelection = false;
 }
 
-function handleProposalSelect() {
+function handleProposalSelect(evt) {
     state.descriptionCaretPosition = null;
-    getDescriptionInput().value = getProposalField().value;
+    getDescriptionInput().value = evt.currentTarget.textContent;
+    handleDescriptionBlur();
+    getDescriptionInput().focus();
 }
 
 function handleProposalClick() {
@@ -374,7 +381,7 @@ function render() {
                   </div>
                   <div class="row g-2">
                       <div class="col-8 form-floating">
-                          <input id="amount" class="form-control text-end" placeholder="Betrag" value="${position ? position.amount : ''}" />
+                          <input id="amount" class="form-control text-end" placeholder="Betrag" inputmode="numeric" value="${position ? position.amount : ''}" />
                           <label for="amount">Betrag</label>
                       </div>
                       <div class="col-4 form-floating">
@@ -386,7 +393,7 @@ function render() {
                   </div>
                   <div id="form-line2" class="input-group mt-2">
                       <span class="input-group-text">Wechselkurs</span>
-                      <input class="form-control text-end" id="exchange-rate" value="${position ? position.exchangeRate : constants.defaultExchangeRate}" />
+                      <input class="form-control text-end" id="exchange-rate" inputmode="numeric" value="${position ? position.exchangeRate : constants.defaultExchangeRate}" />
                       <span class="input-group-text">
                           <span id="computed-chf-value">${defaultCurrency ? '0.00' : expensesApp.renderFloat(expenses.computeAmountChf(position))}</span>
                           <span>&nbsp;${constants.DEFAULT_CURRENCY}</span>
@@ -397,8 +404,8 @@ function render() {
                       <label for="description">Beschreibung</label>
                   </div>
                   <div class="mb-3">
-                      <select id="proposal-field" class="form-select d-none overflow-auto border-top-0 rounded-bottom rounded-0" size="4" tabindex="-1">
-                      </select>
+                      <div id="proposal-field" class="form-select d-none overflow-auto border-top-0 rounded-bottom rounded-0" size="4" tabindex="-1">
+                      </div>
                   </div>
                   <div class="form-floating">
                       <input id="date-input" class="form-control" type="date" value="${position.date ? dates.toYmd(position.date) : ''}" />
@@ -409,7 +416,7 @@ function render() {
                       <label for="recurring-checkbox" class="form-check-label">Wiederkehrend</label>
                   </div>
                   <div>
-                      <input id="recurring-frequency" type="number" class="text-end" size="2" maxlength="2" value="${position?.recurring ? position.recurrenceFrequency : '1'}" /><span id="recurring-frequency-sep">-</span>
+                      <input id="recurring-frequency" type="number" class="text-end" size="2" maxlength="2" inputmode="numeric" value="${position?.recurring ? position.recurrenceFrequency : '1'}" /><span id="recurring-frequency-sep">-</span>
                       <input id="recurring-monthly" name="recurring-periodicity" type="radio" ${!position?.recurring || position.recurrencePeriodicity === 'monthly' ? 'checked' : ''} /><label for="recurring-monthly">Monatlich</label>
                       <input id="recurring-yearly" name="recurring-periodicity" type="radio" ${position?.recurrencePeriodicity === 'yearly' ? 'checked' : ''} /><label for="recurring-yearly">Jährlich</label>
                   </div>
@@ -439,7 +446,6 @@ function onAttach() {
     getExpenseForm().addEventListener('submit', submit);
     getRecurringCheckbox().addEventListener('change', handleRecurringCheckboxChanged);
     getTypeSelect().addEventListener('change', handleTypeChanged);
-    getProposalField().addEventListener('change', handleProposalSelect);
     getProposalField().addEventListener('blur', handleDescriptionBlur);
     getProposalField().addEventListener('click', handleProposalClick);
     getProposalField().addEventListener('mousedown', handleProposalClick);

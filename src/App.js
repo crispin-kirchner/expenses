@@ -33,22 +33,6 @@ document.onkeydown = e => {
       return false;
     }
   }
-  if ((e.target.id === 'description' && e.key === 'ArrowDown') || e.key === 'ArrowUp') {
-    if (!Form.getProposalField().querySelector('option')) {
-      return false;
-    }
-    const selectedOption = Form.getProposalField().querySelector('option:checked');
-    let sibling;
-    if (!selectedOption || !(sibling = e.key === 'ArrowDown' ? selectedOption.nextElementSibling : selectedOption.previousElementSibling)) {
-      sibling = e.key === 'ArrowDown' ? Form.getProposalField().querySelector('option:first-child') : Form.getProposalField()().querySelector('option:last-child');
-    }
-    sibling.selected = true;
-    Form.getDescriptionInput().value = sibling.value;
-    if (typeof state.descriptionCaretPosition === 'number') {
-      Form.getDescriptionInput().setSelectionRange(state.descriptionCaretPosition, state.descriptionCaretPosition);
-    }
-    return false;
-  }
   return true;
 };
 
