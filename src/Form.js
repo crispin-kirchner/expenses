@@ -448,7 +448,7 @@ function onAttach() {
     getDeleteButton()?.addEventListener('click', () => expensesApp.removeExpense(state.editedPosition.data._id));
     getRecurringFrequency().addEventListener('change', () => validateIntegerField(getRecurringFrequency()));
 
-    getDescriptionInput().focus();
+    getAmountInput().focus();
 }
 
 export { render, onAttach, submit, getProposalField, getDescriptionInput };
