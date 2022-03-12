@@ -297,42 +297,39 @@ function hasLabel(position, labelName) {
     return getLabels(position).includes(labelName);
 }
 
+function getType(pos) {
+    const matchingFilter = Object.entries(typeFilters)
+        .find(fd => fd[1].filter(pos));
+
+    return matchingFilter[0];
+}
+
+function getLabel(pos) {
+    const standardLabels = state.labels.data.flat
+        .filter(c => c.parent === constants.standardDimension);
+
+    for (const label of standardLabels) {
+        if (hasLabel(pos, label._id)) {
+            return label._id;
+        }
+    }
+}
+
 async function getOverviewData() {
     const currentDay = state.date;
-    const filterDatas = Object.entries(typeFilters);
-    const filters = filterDatas.map(fd => fd[1].filter);
 
     const rowsFeatured = (await getAllPositions())
-        .filter(ex => or(ex, filters))
         .filter(ex => isValidInMonth(ex, currentDay))
-        .map(pos => {
-            const row = {
-                ex: pos._id,
-                title: pos.description,
-                amountChf: computeMonthlyAmountChf(pos),
-                amount: computeMonthlyAmount(pos),
-                currency: pos.currency,
-                childRows: []
-            };
-            row['type'] = (() => {
-                for (const filterData of filterDatas) {
-                    if (filterData[1].filter(pos)) {
-                        return filterData[0];
-                    }
-                }
-            })();
-            row['category'] = (() => {
-                const standardLabels = state.labels.data.flat
-                    .filter(c => c.parent === constants.standardDimension);
-
-                for (const label of standardLabels) {
-                    if (hasLabel(pos, label._id)) {
-                        return label._id;
-                    }
-                }
-            })();
-            return row;
-        });
+        .map(pos => ({
+            ex: pos._id,
+            title: pos.description,
+            amountChf: computeMonthlyAmountChf(pos),
+            amount: computeMonthlyAmount(pos),
+            currency: pos.currency,
+            type: getType(pos),
+            category: getLabel(pos),
+            childRows: []
+        }));
 
     return groupByType(rowsFeatured, groupByCategory);
 }
