@@ -84,7 +84,7 @@ function decorateTags(text, wrapperFunction) {
   wrapperFunction = wrapperFunction || (x => x);
 
   const parts = [];
-  for (let i = 0, m; m = constants.labelRegex.exec(text); ++i) {
+  for (let i = 0, m; (m = constants.labelRegex.exec(text)); ++i) {
     if (i === 0 && m.index > 0) {
       parts.push(text.substring(0, m.index).trim());
     }
@@ -115,26 +115,26 @@ function setViewMode(viewMode) {
   render();
 }
 
-function renderMainArea() {
-  const items = {
-    overview: {
-      icon: 'eyeglasses',
-      name: 'Übersicht',
-      callback: Overview.render
-    },
-    calendar: {
-      icon: 'calendar3',
-      name: 'Kalender',
-      callback: Calendar.render
-    },
-    chart: {
-      icon: 'graph-up',
-      name: 'Diagramm',
-      callback: MonthChart.render
-    }
-  };
+const mainAreaItems = {
+  overview: {
+    icon: 'columns',
+    name: 'Übersicht',
+    object: Overview
+  },
+  calendar: {
+    icon: 'calendar3',
+    name: 'Kalender',
+    object: Calendar
+  },
+  chart: {
+    icon: 'graph-up',
+    name: 'Diagramm',
+    object: MonthChart
+  }
+};
 
-  const lis = Object.entries(items)
+function renderMainArea() {
+  const lis = Object.entries(mainAreaItems)
     .map(en => {
       const [item, props] = en;
       return `
@@ -143,7 +143,7 @@ function renderMainArea() {
         </li>`;
     });
 
-  const content = items[state.monthDisplay].callback();
+  const content = mainAreaItems[state.monthDisplay].object.render();
 
   return `
         <div class="col-lg-8 mt-content">
@@ -176,12 +176,7 @@ function render() {
     ManageTags.onAttach();
   }
   if (state.viewMode === 'monthDisplay') {
-    if (state.monthDisplay === 'chart') {
-      MonthChart.onAttach();
-    }
-    if (state.monthDisplay === 'calendar') {
-      Calendar.onAttach();
-    }
+    mainAreaItems[state.monthDisplay].object.onAttach();
   }
   if (expenseForm) {
     Form.onAttach();
@@ -275,6 +270,10 @@ window.onerror = (msg, url, lineNo, columnNo, error) => {
 
 async function onAttach() {
   window.setMonthDisplay = setMonthDisplay;
+
+  if (process.env.NODE_ENV === 'development') {
+    document.title += ' *** DEV ***';
+  }
 
   render();
 }

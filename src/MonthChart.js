@@ -4,60 +4,28 @@ import * as expenses from './expenses.js';
 import * as expensesApp from './App.js';
 
 import {
-    ArcElement,
     BarController,
     BarElement,
-    BubbleController,
     CategoryScale,
     Chart,
-    Decimation,
-    DoughnutController,
-    Filler,
-    Legend,
     LineController,
     LineElement,
     LinearScale,
-    LogarithmicScale,
-    PieController,
     PointElement,
-    PolarAreaController,
-    RadarController,
-    RadialLinearScale,
-    ScatterController,
-    SubTitle,
-    TimeScale,
-    TimeSeriesScale,
-    Title,
     Tooltip
 } from 'chart.js';
 
 import state from './state.js';
 
 Chart.register(
-    ArcElement,
     LineElement,
     BarElement,
     PointElement,
     BarController,
-    BubbleController,
-    DoughnutController,
     LineController,
-    PieController,
-    PolarAreaController,
-    RadarController,
-    ScatterController,
     CategoryScale,
     LinearScale,
-    LogarithmicScale,
-    RadialLinearScale,
-    TimeScale,
-    TimeSeriesScale,
-    Decimation,
-    Filler,
-    Legend,
-    Title,
-    Tooltip,
-    SubTitle
+    Tooltip
 );
 
 
@@ -131,8 +99,6 @@ function onAttach() {
 
     let hoverDay = null;
     let areaLeft = null;
-    // bootstrap default fonts
-    Chart.defaults.font.family = 'system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"';
     new Chart(getMonthChart(), {
         data: {
             datasets: [
@@ -160,7 +126,6 @@ function onAttach() {
             labels: labels
         },
         options: {
-            animation: false,
             aspectRatio: 1.5,
             color: '#212529',
             layout: {
@@ -220,9 +185,6 @@ function onAttach() {
                 }
             },
             plugins: {
-                legend: {
-                    display: false
-                },
                 tooltip: {
                     displayColors: false,
                     callbacks: {

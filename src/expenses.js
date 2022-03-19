@@ -210,15 +210,6 @@ async function getDaysOfMonth() {
     return days;
 }
 
-function or(item, filters) {
-    for (const filter of filters) {
-        if (filter(item)) {
-            return true;
-        }
-    }
-    return false;
-}
-
 function groupByType(rowsFeatured, subGroupingFn) {
     const rows = [];
     for (const fd of Object.entries(typeFilters)) {
@@ -280,6 +271,20 @@ function refreshOverviewData() {
     refreshData('overviewData', getOverviewData);
 }
 
+function visitOverviewDataRecursive(row, visitor, path) {
+    if (visitor(row, path) !== 'continue') {
+        return;
+    }
+    for (const childRow of row.childRows) {
+        visitOverviewDataRecursive(childRow, visitor, [...path, row]);
+    }
+}
+
+function visitOverviewData(visitor) {
+    state.overviewData.data
+        .forEach(r => visitOverviewDataRecursive(r, visitor, []));
+}
+
 function getLabels(position) {
     let m = null;
     const labels = [];
@@ -315,6 +320,21 @@ function getLabel(pos) {
     }
 }
 
+function computeRemainderRow(rowsGrouped) {
+    const remainder = rowsGrouped
+        .reduce((sum, row) => row.id === 'income'
+            ? sum + row.amount
+            : sum - row.amount, 0);
+
+    return {
+        title: 'Verbleibend',
+        amount: remainder,
+        amountChf: remainder,
+        currency: constants.DEFAULT_CURRENCY,
+        childRows: []
+    };
+}
+
 async function getOverviewData() {
     const currentDay = state.date;
 
@@ -331,7 +351,10 @@ async function getOverviewData() {
             childRows: []
         }));
 
-    return groupByType(rowsFeatured, groupByCategory);
+    const rowsGrouped = groupByType(rowsFeatured, groupByCategory);
+    rowsGrouped.push(computeRemainderRow(rowsGrouped));
+
+    return rowsGrouped;
 }
 
 export {
@@ -347,5 +370,6 @@ export {
     setRecurring,
     computeAmountChf,
     storePosition,
-    deletePosition
+    deletePosition,
+    visitOverviewData
 };

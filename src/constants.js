@@ -1,3 +1,5 @@
+import { Chart } from 'chart.js';
+
 const preferredLocale = 'de-CH';
 const dayHeadingFormat = new Intl.DateTimeFormat([preferredLocale], { weekday: 'long', day: '2-digit', month: '2-digit' });
 const dayFormat = new Intl.DateTimeFormat([preferredLocale], { day: 'numeric' });
@@ -10,10 +12,14 @@ const integerRegex = /^([0-9]+)$/;
 const labelRegex = /#(\p{Letter}+)\b/ug;
 const DEFAULT_CURRENCY = 'CHF';
 const defaultExchangeRate = '1.00000';
-const defaultTagColor = 'grayWhite';
+const defaultLabelColor = 'grayWhite';
 const unspecificDimension = 'Andere';
 const standardDimension = 'Standard';
 const today = new Date(Date.now());
+
+// bootstrap default fonts
+Chart.defaults.font.family = 'system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"';
+Chart.defaults.animation = false;
 
 export {
     preferredLocale,
@@ -27,7 +33,7 @@ export {
     labelRegex,
     DEFAULT_CURRENCY,
     defaultExchangeRate,
-    defaultTagColor as defaultLabelColor,
+    defaultLabelColor,
     unspecificDimension,
     standardDimension,
     today,

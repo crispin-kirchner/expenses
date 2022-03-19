@@ -13,7 +13,7 @@ function render() {
     const renderSum = state.dayExpenses.data.sum > 0.005;
 
     let rows = `
-        <div class="col-lg-4 mt-lg-content">
+        <div class="col-lg-4 mt-lg-content ${state.monthDisplay === 'overview' ? 'd-none d-lg-block' : ''}">
             <h5 class="d-flex">
                 <span class="me-auto">
                     ${expensesApp.renderDayHeading(state.date)}
