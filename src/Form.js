@@ -352,6 +352,17 @@ async function submit(event) {
     expensesApp.render();
 }
 
+const PositionType = {
+    expense: {
+        text: 'Ausgabe',
+        default: true
+    },
+    income: {
+        text: 'Einnahme',
+        default: false
+    }
+};
+
 function render() {
     if (state.form === 'edit') {
         expenses.refreshEditedPosition();
@@ -363,19 +374,27 @@ function render() {
     const position = state.editedPosition.data;
     const currencies = ['CHF', '€'];
     const defaultCurrency = position ? expensesApp.isDefaultCurrency(position.currency) : true;
-    const isExpense = !position || position.type === 'expense';
+
+    const typeOptions = Object.entries(PositionType)
+        .map(t => `
+            <option value="${t[0]}" ${(!position && t[1].default) || position.type === t[0] ? 'selected' : ''}>
+                ${t[1].text}
+            </option>`)
+        .join('\n');
+
     let form = `
           <div class="col-lg-4 position-absolute end-0 bg-white pt-3 pt-lg-0 mt-lg-content h-100 z-top">
               <form id="expense-form" autocomplete="off" novalidate>
                   <div class="d-flex align-items-center mb-2">
                     <button id="close-button" class="btn" type="button" aria-label="Close"><i class="bi bi-arrow-left"></i></button>
                     <h4 class="me-auto">${state.form === 'edit' ? 'Bearbeiten' : 'Neu'}</h4>
-                    <button class="btn btn-primary ms-auto" type="submit" title="${state.form === 'edit' ? 'Speichern' : 'Hinzufügen'}">${state.form === 'edit' ? '<i class="bi-check-circle"></i> Speichern' : '<i class="bi-plus-circle"></i> Hinzufügen'}</button>
+                    <button class="btn btn-primary ms-auto" type="submit" title="${state.form === 'edit' ? 'Speichern' : 'Hinzufügen'}">
+                        <i class="bi-check-circle"></i> ${state.form === 'edit' ? 'Speichern' : 'Hinzufügen'}
+                    </button>
                   </div>
                   <div class="form-floating mb-3">
                       <select id="type-select" class="form-select" placeholder="Typ">
-                          <option value="expense" ${isExpense ? 'selected' : ''}>Ausgabe</option>
-                          <option value="income" ${position?.type === 'income' ? 'selected' : ''}>Einnahme</option>
+                        ${typeOptions}
                       </select>
                       <label for="type-select">Typ</label>
                   </div>
@@ -434,24 +453,34 @@ function render() {
     return form;
 }
 
+function deletePosition() {
+    if (window.confirm(`Bist du sicher, dass du diese ${PositionType[getTypeSelect().value].text} löschen möchtest?`)) {
+        expensesApp.removeExpense(state.editedPosition.data._id);
+    }
+}
+
 function onAttach() {
     refreshFormView();
+
+    getCloseButton().addEventListener('click', expensesApp.cancelLineEdit);
+    getDeleteButton()?.addEventListener('click', deletePosition);
+
     getAmountInput().addEventListener('input', handleAmountOrExchangeRateInput);
     getAmountInput().addEventListener('change', () => validateDecimalField(getAmountInput(), 2));
-    getCloseButton().addEventListener('click', expensesApp.cancelLineEdit);
     getCurrencySelect().addEventListener('change', handleCurrencyChanged);
+
     getDescriptionInput().addEventListener('input', handleDescriptionInput);
     getDescriptionInput().addEventListener('blur', handleDescriptionBlur);
     getDescriptionInput().addEventListener('mousedown', handleProposalClick);
-    getExpenseForm().addEventListener('submit', submit);
-    getRecurringCheckbox().addEventListener('change', handleRecurringCheckboxChanged);
-    getTypeSelect().addEventListener('change', handleTypeChanged);
     getProposalField().addEventListener('blur', handleDescriptionBlur);
     getProposalField().addEventListener('click', handleProposalClick);
     getProposalField().addEventListener('mousedown', handleProposalClick);
+
+    getExpenseForm().addEventListener('submit', submit);
+    getRecurringCheckbox().addEventListener('change', handleRecurringCheckboxChanged);
+    getTypeSelect().addEventListener('change', handleTypeChanged);
     getExchangeRateInput().addEventListener('input', handleAmountOrExchangeRateInput);
     getExchangeRateInput().addEventListener('change', () => validateDecimalField(getExchangeRateInput(), 5));
-    getDeleteButton()?.addEventListener('click', () => expensesApp.removeExpense(state.editedPosition.data._id));
     getRecurringFrequency().addEventListener('change', () => validateIntegerField(getRecurringFrequency()));
 
     getAmountInput().focus();
