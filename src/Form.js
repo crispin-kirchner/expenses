@@ -387,9 +387,11 @@ function render() {
               <form id="expense-form" autocomplete="off" novalidate>
                   <div class="d-flex align-items-center mb-2">
                     <button id="close-button" class="btn" type="button" aria-label="Close"><i class="bi bi-arrow-left"></i></button>
-                    <h4 class="me-auto">${state.form === 'edit' ? 'Bearbeiten' : 'Neu'}</h4>
-                    <button class="btn btn-primary ms-auto" type="submit" title="${state.form === 'edit' ? 'Speichern' : 'Hinzufügen'}">
-                        <i class="bi-check-circle"></i> ${state.form === 'edit' ? 'Speichern' : 'Hinzufügen'}
+                    <h4 class="me-auto lh-1 mb-0">${state.form === 'edit' ? 'Bearbeiten' : 'Neu'}</h4>
+                    ${state.form === 'edit' ? `<button id="delete-button" class="btn btn-outline-danger" type="button" title="Löschen"><i class="bi-trash"></i> <span class="d-lg-none d-xxl-inline-block">Löschen</span></button>` : ''}
+                    <button class="btn btn-primary ms-2" type="submit" title="${state.form === 'edit' ? 'Speichern' : 'Hinzufügen'}">
+                        <i class="bi-check-circle"></i>
+                        <span class="d-lg-none d-xxl-inline-block">${state.form === 'edit' ? 'Speichern' : 'Hinzufügen'}</span>
                     </button>
                   </div>
                   <div class="form-floating mb-3">
@@ -443,9 +445,6 @@ function render() {
                       <label for="recurring-from">Start</label><label id="recurring-fromto-label-sep">/</label><label for="recurring-to">Ende</label>
                       <input id="recurring-from" type="date" value="${position?.recurring ? dates.toYmd(position.recurrenceFrom) : ''}" />
                       <input id="recurring-to" type="date" value="${position?.recurrenceTo ? dates.toYmd(position.recurrenceTo) : ''}" />
-                  </div>
-                  <div class="d-flex mt-4">
-                      ${state.form === 'edit' ? `<button id="delete-button" class="btn btn-secondary" type="button" title="Löschen"><i class="bi-trash"></i> Löschen</button>` : ''}
                   </div>
               </form>
           </div>`;
