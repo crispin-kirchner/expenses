@@ -391,7 +391,7 @@ function render() {
                     ${state.form === 'edit' ? `<button id="delete-button" class="btn btn-outline-danger" type="button" title="Löschen"><i class="bi-trash"></i> <span class="d-lg-none d-xxl-inline-block">Löschen</span></button>` : ''}
                     <button class="btn btn-primary ms-2" type="submit" title="${state.form === 'edit' ? 'Speichern' : 'Hinzufügen'}">
                         <i class="bi-check-circle"></i>
-                        <span class="d-lg-none d-xxl-inline-block">${state.form === 'edit' ? 'Speichern' : 'Hinzufügen'}</span>
+                        <span class="${state.form === 'edit' ? 'd-lg-none d-xxl-inline-block' : ''}">${state.form === 'edit' ? 'Speichern' : 'Hinzufügen'}</span>
                     </button>
                   </div>
                   <div class="form-floating mb-3">
