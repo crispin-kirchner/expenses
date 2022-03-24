@@ -169,17 +169,11 @@ async function handleDescriptionInput() {
     state.proposalSelection = false;
     state.descriptionCaretPosition = getDescriptionInput().selectionStart;
 
-    let searchString;
-    if (state.descriptionCaretPosition) {
-        searchString = getDescriptionInput().value.substring(0, state.descriptionCaretPosition);
-    }
-    else {
-        searchString = getDescriptionInput().value;
-    }
+    const searchString = getDescriptionInput().value;
     const hasText = !!searchString.length;
-    setProposalFieldVisible(hasText);
 
     if (!hasText) {
+        setProposalFieldVisible(false);
         return;
     }
     const dictionary = await getDictionary();
@@ -187,12 +181,19 @@ async function handleDescriptionInput() {
         .filter(e => e[0].toLowerCase().startsWith(searchString.toLowerCase()))
         .sort((a, b) => b[1] - a[1]);
 
+    if (proposals.length === 0) {
+        setProposalFieldVisible(false);
+        return;
+    }
+
     getProposalField().innerHTML = proposals
         .map(p => `<div class="cursor-pointer">${p[0]}</div>`)
         .join('\n');
 
     getProposalField().querySelectorAll('div')
         .forEach(d => d.addEventListener('click', handleProposalSelect));
+
+    setProposalFieldVisible(true);
 }
 
 function handleDescriptionBlur() {
