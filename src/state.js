@@ -7,7 +7,6 @@ const state = {
     chartTags: [],
     date: new Date(Date.now()),
     proposalSelection: false,
-    descriptionCaretPosition: null,
     form: null,
     dayExpenses: {
         loadState: 'dirty',

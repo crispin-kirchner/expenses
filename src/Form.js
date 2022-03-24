@@ -167,7 +167,6 @@ function setProposalFieldVisible(visible) {
 
 async function handleDescriptionInput() {
     state.proposalSelection = false;
-    state.descriptionCaretPosition = getDescriptionInput().selectionStart;
 
     const searchString = getDescriptionInput().value;
     const hasText = !!searchString.length;
@@ -187,7 +186,10 @@ async function handleDescriptionInput() {
     }
 
     getProposalField().innerHTML = proposals
-        .map(p => `<div class="cursor-pointer">${p[0]}</div>`)
+        .map((p, i) => `
+            <div class="cursor-pointer ${i === 0 ? '' : 'border-top'} px-2 py-1" data-xpns-value="${p[0]}">
+                ${expensesApp.decorateTags(p[0])}
+            </div>`)
         .join('\n');
 
     getProposalField().querySelectorAll('div')
@@ -197,14 +199,12 @@ async function handleDescriptionInput() {
 }
 
 function handleDescriptionBlur() {
-    state.descriptionCaretPosition = null;
     setProposalFieldVisible(state.proposalSelection);
     state.proposalSelection = false;
 }
 
 function handleProposalSelect(evt) {
-    state.descriptionCaretPosition = null;
-    getDescriptionInput().value = evt.currentTarget.textContent;
+    getDescriptionInput().value = evt.currentTarget.dataset.xpnsValue;
     handleDescriptionBlur();
     getDescriptionInput().focus();
 }
@@ -422,7 +422,7 @@ function render() {
                       <label for="description">Beschreibung</label>
                   </div>
                   <div class="mb-3">
-                      <div id="proposal-field" class="form-select d-none overflow-auto border-top-0 rounded-bottom rounded-0" size="4" tabindex="-1">
+                      <div id="proposal-field" class="form-select d-none px-0 py-1 overflow-auto border-top-0 rounded-bottom rounded-0" size="4" tabindex="-1">
                       </div>
                   </div>
                   <div class="form-floating">
