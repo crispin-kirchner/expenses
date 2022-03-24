@@ -398,7 +398,7 @@ function render() {
                   </div>
                   <div class="row g-2">
                       <div class="col-8 form-floating">
-                          <input id="amount" class="form-control text-end" placeholder="Betrag" inputmode="numeric" value="${position ? position.amount : ''}" />
+                          <input id="amount" class="form-control text-end" placeholder="Betrag" inputmode="numeric" value="${position ? position.amount : ''}" autocomplete="off" />
                           <label for="amount">Betrag</label>
                       </div>
                       <div class="col-4 form-floating">
@@ -410,14 +410,14 @@ function render() {
                   </div>
                   <div id="form-line2" class="input-group mt-2">
                       <span class="input-group-text">Wechselkurs</span>
-                      <input class="form-control text-end" id="exchange-rate" inputmode="numeric" value="${position ? position.exchangeRate : constants.defaultExchangeRate}" />
+                      <input class="form-control text-end" id="exchange-rate" inputmode="numeric" value="${position ? position.exchangeRate : constants.defaultExchangeRate}" autocomplete="off" />
                       <span class="input-group-text">
                           <span id="computed-chf-value">${defaultCurrency ? '0.00' : expensesApp.renderFloat(expenses.computeAmountChf(position))}</span>
                           <span>&nbsp;${constants.DEFAULT_CURRENCY}</span>
                       </span>
                   </div>
                   <div class="form-floating mt-3">
-                      <input id="description" class="form-control rounded-top" placeholder="Beschreibung" value="${position ? position.description : ''}" />
+                      <input id="description" class="form-control rounded-top" placeholder="Beschreibung" value="${position ? position.description : ''}" autocomplete="off" />
                       <label for="description">Beschreibung</label>
                   </div>
                   <div class="mb-3">
