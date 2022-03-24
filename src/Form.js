@@ -187,10 +187,6 @@ async function handleDescriptionInput() {
         .filter(e => e[0].toLowerCase().startsWith(searchString.toLowerCase()))
         .sort((a, b) => b[1] - a[1]);
 
-    if (proposals.findIndex(e => e[0] === getDescriptionInput().value) < 0) {
-        getDescriptionInput().value = searchString;
-    }
-
     getProposalField().innerHTML = proposals
         .map(p => `<div class="cursor-pointer">${p[0]}</div>`)
         .join('\n');
