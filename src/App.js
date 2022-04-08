@@ -60,6 +60,10 @@ function getCurrentDayString() {
  * UI
  */
 
+function getLabelByField(fieldId) {
+  return document.querySelector(`label[for="${fieldId}"]`);
+}
+
 function getAppArea() {
   return document.getElementById('app-area');
 }
@@ -282,6 +286,7 @@ export {
   cancelLineEdit,
   decorateTags,
   getCurrentDayString,
+  getLabelByField,
   isDefaultCurrency,
   removeExpense,
   render,

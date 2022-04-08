@@ -35,7 +35,7 @@ function handleColorSelectChange(evt) {
     const oldColorClasses = colors.getClasses(oldColorValue);
 
     const tagSpan = getTagContainer().querySelector(`span.badge[data-xpns-tag="${state.editedLabelId}"]`);
-    const label = document.querySelector('label[for="color-select"]');
+    const label = expensesApp.getLabelByField('color-select');
 
     removeClasses(evt.currentTarget, oldColorClasses);
     removeClasses(tagSpan, oldColorClasses);

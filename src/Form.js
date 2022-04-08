@@ -34,6 +34,10 @@ function getDescriptionInput() {
     return document.getElementById('description');
 }
 
+function getDescriptionLabel() {
+    return expensesApp.getLabelByField('description');
+}
+
 function getExchangeRateInput() {
     return document.getElementById('exchange-rate');
 }
@@ -96,6 +100,9 @@ function refreshFormView() {
 
     setVisible(getDateInput(), !getRecurringCheckbox().checked);
     setVisible(document.getElementById('form-line2'), !expensesApp.isDefaultCurrency(getCurrencySelect().value));
+
+    getDescriptionLabel().textContent = getDescriptionLabelText();
+    getDescriptionInput().placeholder = getDescriptionLabelText();
 }
 
 function toggleClass(element, clazz, on) {
@@ -109,7 +116,7 @@ function toggleClass(element, clazz, on) {
 
 function setVisible(field, visible) {
     const elements = [field];
-    const label = document.querySelector(`label[for="${field.id}"]`);
+    const label = expensesApp.getLabelByField(field.id);
     if (label) {
         elements.push(label);
     }
@@ -289,7 +296,7 @@ function validateForm() {
 
     if (emptyFields.length > 0) {
         let fieldNames = emptyFields
-            .map(f => document.querySelector(`label[for="${f.id}"]`).textContent)
+            .map(f => expensesApp.getLabelByField(f.id).textContent)
             .join(' und ');
         throw new ExpensesError(`Bitte ${fieldNames} ausfüllen`, emptyFields);
     }
@@ -352,13 +359,20 @@ async function submit(event) {
 const PositionType = {
     expense: {
         text: 'Ausgabe',
-        default: true
+        default: true,
+        benefactor: 'Empfänger:in'
     },
     income: {
         text: 'Einnahme',
-        default: false
+        default: false,
+        benefactor: 'Zahler:in'
     }
 };
+
+function getDescriptionLabelText() {
+    const type = getTypeSelect()?.value || Object.entries(PositionType).find(e => e[1].default)[0];
+    return PositionType[type].benefactor + '/Beschreibung';
+}
 
 function render() {
     if (state.form === 'edit') {
@@ -418,8 +432,8 @@ function render() {
                       </span>
                   </div>
                   <div class="form-floating mt-3">
-                      <input id="description" class="form-control rounded-top" placeholder="Beschreibung" value="${position ? position.description : ''}" autocomplete="off" />
-                      <label for="description">Beschreibung</label>
+                      <input id="description" class="form-control rounded-top" placeholder="${getDescriptionLabelText()}" value="${position ? position.description : ''}" autocomplete="off" />
+                      <label for="description">${getDescriptionLabelText()}</label>
                   </div>
                   <div class="mb-3">
                       <div id="proposal-field" class="form-select d-none px-0 py-1 overflow-auto border-top-0 rounded-bottom rounded-0" size="4" tabindex="-1">
