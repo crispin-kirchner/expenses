@@ -1,6 +1,6 @@
 import * as colors from './colors.js';
+import * as constants from './constants.js';
 import * as expenses from './expenses.js';
-import * as expensesApp from './App.js';
 import * as labels from './labels.js';
 
 import { TreemapController, TreemapElement } from 'chartjs-chart-treemap';
@@ -121,7 +121,7 @@ function onAttach() {
                 },
                 labels: {
                     display: true,
-                    formatter: (ctx) => ctx.raw.g ? [ctx.raw.g, expensesApp.renderFloat(ctx.raw.v)] : expensesApp.renderFloat(ctx.raw.v),
+                    formatter: (ctx) => ctx.raw.g ? [ctx.raw.g, constants.bigNumberFormat.format(ctx.raw.v)] : constants.bigNumberFormat.format(ctx.raw.v),
                     color: (ctx) => getColor('foreground', 1, ctx)
                 }
             }]
