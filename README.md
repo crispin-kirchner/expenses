@@ -28,7 +28,7 @@
   - `http://localhost:5984/_utils` &rarr; *Config*
     - neue Datenbank: expenses-dev
       - Permissions
-        - Members &rarr; Roles: _admin entfernen
+        - Members &rarr; Roles: *_admin* entfernen
     - *Config*
       - *Main config*: 4x *Add Option*. *Section*: `ssl`
         - *Name*: `enable`, *Value*: `true`
