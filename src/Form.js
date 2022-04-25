@@ -30,6 +30,10 @@ function getDeleteButton() {
     return document.getElementById('delete-button');
 }
 
+function getDescriptionContainer() {
+    return document.getElementById('description-container');
+}
+
 function getDescriptionInput() {
     return document.getElementById('description');
 }
@@ -170,6 +174,7 @@ async function getDictionary() {
 function setProposalFieldVisible(visible) {
     setVisible(getProposalField(), visible);
     toggleClass(getDescriptionInput(), 'rounded-0', visible);
+    toggleClass(getExpenseForm(), 'dc-active', visible);
 }
 
 async function handleDescriptionInput() {
@@ -405,58 +410,62 @@ function render() {
                         <span class="${state.form === 'edit' ? 'd-lg-none d-xxl-inline-block' : ''}">${state.form === 'edit' ? 'Speichern' : 'Hinzufügen'}</span>
                     </button>
                   </div>
-                  <div class="form-floating mb-3">
-                      <select id="type-select" class="form-select" placeholder="Typ">
-                        ${typeOptions}
-                      </select>
-                      <label for="type-select">Typ</label>
-                  </div>
-                  <div class="row g-2">
-                      <div class="col-8 form-floating">
-                          <input id="amount" class="form-control text-end" placeholder="Betrag" inputmode="numeric" value="${position ? position.amount : ''}" autocomplete="off" />
-                          <label for="amount">Betrag</label>
-                      </div>
-                      <div class="col-4 form-floating">
-                          <select id="currency-input" class="form-select" required>
-                              ${currencies.map(c => `<option value="${c}" ${c === position?.currency ? 'selected' : ''}>${c}</option>`)}
-                          </select>
-                          <label for="currency-input">Währung</label>
-                      </div>
-                  </div>
-                  <div id="form-line2" class="input-group mt-2">
-                      <span class="input-group-text">Wechselkurs</span>
-                      <input class="form-control text-end" id="exchange-rate" inputmode="numeric" value="${position ? position.exchangeRate : constants.defaultExchangeRate}" autocomplete="off" />
-                      <span class="input-group-text">
-                          <span id="computed-chf-value">${defaultCurrency ? '0.00' : expensesApp.renderFloat(expenses.computeAmountChf(position))}</span>
-                          <span>&nbsp;${constants.DEFAULT_CURRENCY}</span>
-                      </span>
-                  </div>
-                  <div class="form-floating mt-3">
-                      <input id="description" class="form-control rounded-top" placeholder="${getDescriptionLabelText()}" value="${position ? position.description : ''}" autocomplete="off" />
-                      <label for="description">${getDescriptionLabelText()}</label>
-                  </div>
-                  <div class="mb-3">
-                      <div id="proposal-field" class="form-select d-none px-0 py-1 overflow-auto border-top-0 rounded-bottom rounded-0" size="4" tabindex="-1">
-                      </div>
-                  </div>
-                  <div class="form-floating">
-                      <input id="date-input" class="form-control" type="date" value="${position.date ? dates.toYmd(position.date) : ''}" />
-                      <label for="date-input">Datum</label>
-                  </div>
-                  <div class="form-check form-switch mt-4">
-                      <input id="recurring-checkbox" class="form-check-input" type="checkbox" ${position?.recurring ? 'checked' : ''} />
-                      <label for="recurring-checkbox" class="form-check-label">Wiederkehrend</label>
-                  </div>
-                  <div>
-                      <input id="recurring-frequency" type="number" class="text-end" size="2" maxlength="2" inputmode="numeric" value="${position?.recurring ? position.recurrenceFrequency : '1'}" /><span id="recurring-frequency-sep">-</span>
-                      <input id="recurring-monthly" name="recurring-periodicity" type="radio" ${!position?.recurring || position.recurrencePeriodicity === 'monthly' ? 'checked' : ''} /><label for="recurring-monthly">Monatlich</label>
-                      <input id="recurring-yearly" name="recurring-periodicity" type="radio" ${position?.recurrencePeriodicity === 'yearly' ? 'checked' : ''} /><label for="recurring-yearly">Jährlich</label>
-                  </div>
-                  <div id="recurring-fromto">
-                      <label for="recurring-from">Start</label><label id="recurring-fromto-label-sep">/</label><label for="recurring-to">Ende</label>
-                      <input id="recurring-from" type="date" value="${position?.recurring ? dates.toYmd(position.recurrenceFrom) : ''}" />
-                      <input id="recurring-to" type="date" value="${position?.recurrenceTo ? dates.toYmd(position.recurrenceTo) : ''}" />
-                  </div>
+                  <div id="controls-container">
+                    <div class="form-floating mb-3">
+                        <select id="type-select" class="form-select" placeholder="Typ">
+                            ${typeOptions}
+                        </select>
+                        <label for="type-select">Typ</label>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-8 form-floating">
+                            <input id="amount" class="form-control text-end" placeholder="Betrag" inputmode="numeric" value="${position ? position.amount : ''}" />
+                            <label for="amount">Betrag</label>
+                        </div>
+                        <div class="col-4 form-floating">
+                            <select id="currency-input" class="form-select" required>
+                                ${currencies.map(c => `<option value="${c}" ${c === position?.currency ? 'selected' : ''}>${c}</option>`)}
+                            </select>
+                            <label for="currency-input">Währung</label>
+                        </div>
+                    </div>
+                    <div id="form-line2" class="input-group mt-2">
+                        <span class="input-group-text">Wechselkurs</span>
+                        <input class="form-control text-end" id="exchange-rate" inputmode="numeric" value="${position ? position.exchangeRate : constants.defaultExchangeRate}" />
+                        <span class="input-group-text">
+                            <span id="computed-chf-value">${defaultCurrency ? '0.00' : expensesApp.renderFloat(expenses.computeAmountChf(position))}</span>
+                            <span>&nbsp;${constants.DEFAULT_CURRENCY}</span>
+                        </span>
+                    </div>
+                    <div id="description-container" class="bg-white">
+                        <div class="form-floating mt-3">
+                        <input id="description" class="form-control rounded-top" placeholder="${getDescriptionLabelText()}" value="${position ? position.description : ''}" autocomplete="off" />
+                        <label for="description">${getDescriptionLabelText()}</label>
+                        </div>
+                        <div id="proposal-container" class="mb-3">
+                            <div id="proposal-field" class="form-select d-none px-0 py-1 overflow-auto border-top-0 rounded-bottom rounded-0" size="4" tabindex="-1">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-floating">
+                        <input id="date-input" class="form-control" type="date" value="${position.date ? dates.toYmd(position.date) : ''}" />
+                        <label for="date-input">Datum</label>
+                    </div>
+                    <div class="form-check form-switch mt-4">
+                        <input id="recurring-checkbox" class="form-check-input" type="checkbox" ${position?.recurring ? 'checked' : ''} />
+                        <label for="recurring-checkbox" class="form-check-label">Wiederkehrend</label>
+                    </div>
+                    <div>
+                        <input id="recurring-frequency" type="number" class="text-end" size="2" maxlength="2" inputmode="numeric" value="${position?.recurring ? position.recurrenceFrequency : '1'}" /><span id="recurring-frequency-sep">-</span>
+                        <input id="recurring-monthly" name="recurring-periodicity" type="radio" ${!position?.recurring || position.recurrencePeriodicity === 'monthly' ? 'checked' : ''} /><label for="recurring-monthly">Monatlich</label>
+                        <input id="recurring-yearly" name="recurring-periodicity" type="radio" ${position?.recurrencePeriodicity === 'yearly' ? 'checked' : ''} /><label for="recurring-yearly">Jährlich</label>
+                    </div>
+                    <div id="recurring-fromto">
+                        <label for="recurring-from">Start</label><label id="recurring-fromto-label-sep">/</label><label for="recurring-to">Ende</label>
+                        <input id="recurring-from" type="date" value="${position?.recurring ? dates.toYmd(position.recurrenceFrom) : ''}" />
+                        <input id="recurring-to" type="date" value="${position?.recurrenceTo ? dates.toYmd(position.recurrenceTo) : ''}" />
+                    </div>
+                </div>
               </form>
           </div>`;
 
