@@ -30,10 +30,6 @@ function getDeleteButton() {
     return document.getElementById('delete-button');
 }
 
-function getDescriptionContainer() {
-    return document.getElementById('description-container');
-}
-
 function getDescriptionInput() {
     return document.getElementById('description');
 }
