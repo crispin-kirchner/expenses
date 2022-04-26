@@ -1,6 +1,7 @@
 import * as Calendar from './Calendar.js';
 import * as DayExpenses from './DayExpenses.js';
 import * as Form from './Form.js';
+import * as FormState from './FormState.js';
 import * as ManageTags from './ManageTags.js';
 import * as MonthChart from './MonthChart.js';
 import * as Navbar from './Navbar.js';
@@ -234,14 +235,14 @@ function editExpense(evt) {
 }
 
 function startNew() {
-  state.form = 'new';
+  state.form = FormState.NEW;
   state.editedPosition.data = expenses.prepareCreate();
   state.editedPosition.loadState = 'loaded';
   render();
 }
 
 function startEditPosition(id) {
-  state.form = 'edit';
+  state.form = FormState.EDIT;
   state.editedPosition.data = { _id: id };
   state.editedPosition.loadState = 'dirty';
   render();

@@ -1,3 +1,4 @@
+import * as FormState from './FormState.js';
 import * as constants from './constants.js';
 import * as dates from './dates.js';
 import * as expenses from './expenses.js';
@@ -376,7 +377,7 @@ function getDescriptionLabelText() {
 }
 
 function render() {
-    if (state.form === 'edit') {
+    if (state.form === FormState.EDIT) {
         expenses.refreshEditedPosition();
     }
     if (!state.form || state.editedPosition.loadState !== 'loaded') {
@@ -399,11 +400,11 @@ function render() {
               <form id="expense-form" autocomplete="off" novalidate>
                   <div class="d-flex align-items-center mb-2">
                     <button id="close-button" class="btn" type="button" aria-label="Close"><i class="bi bi-arrow-left"></i></button>
-                    <h4 class="me-auto lh-1 mb-0">${state.form === 'edit' ? 'Bearbeiten' : 'Neu'}</h4>
-                    ${state.form === 'edit' ? `<button id="delete-button" class="btn btn-outline-danger" type="button" title="Löschen"><i class="bi-trash"></i> <span class="d-lg-none d-xxl-inline-block">Löschen</span></button>` : ''}
-                    <button class="btn btn-primary ms-2" type="submit" title="${state.form === 'edit' ? 'Speichern' : 'Hinzufügen'}">
+                    <h4 class="me-auto lh-1 mb-0">${state.form === FormState.EDIT ? 'Bearbeiten' : 'Neu'}</h4>
+                    ${state.form === FormState.EDIT ? `<button id="delete-button" class="btn btn-outline-danger" type="button" title="Löschen"><i class="bi-trash"></i> <span class="d-lg-none d-xxl-inline-block">Löschen</span></button>` : ''}
+                    <button class="btn btn-primary ms-2" type="submit" title="${state.form === FormState.EDIT ? 'Speichern' : 'Hinzufügen'}">
                         <i class="bi-check-circle"></i>
-                        <span class="${state.form === 'edit' ? 'd-lg-none d-xxl-inline-block' : ''}">${state.form === 'edit' ? 'Speichern' : 'Hinzufügen'}</span>
+                        <span class="${state.form === FormState.EDIT ? 'd-lg-none d-xxl-inline-block' : ''}">${state.form === FormState.EDIT ? 'Speichern' : 'Hinzufügen'}</span>
                     </button>
                   </div>
                   <div id="controls-container">

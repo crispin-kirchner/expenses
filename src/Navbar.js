@@ -1,3 +1,4 @@
+import * as FormState from './FormState.js';
 import * as constants from './constants.js';
 import * as dates from './dates.js';
 import * as expensesApp from './App.js';
@@ -63,7 +64,7 @@ function renderTodayButton() {
 }
 
 function renderNewButton() {
-    if (state.viewMode === 'manageTags' && state.new) {
+    if (state.form === FormState.NEW) {
         return '';
     }
     return `
@@ -91,13 +92,12 @@ function onAttach() {
         getPreviousMonthButton().addEventListener('click', () => expensesApp.setDate(dates.decrementMonth(state.date)));
         getNextMonthButton().addEventListener('click', () => expensesApp.setDate(dates.incrementMonth(state.date)));
         getManageTagsButton().addEventListener('click', () => expensesApp.setViewMode('manageTags'));
-        getNewButton().addEventListener('click', expensesApp.startNew);
     }
     if (state.viewMode === 'manageTags') {
         getMonthDisplayButton().addEventListener('click', () => expensesApp.setViewMode('monthDisplay'));
     }
 
-
+    getNewButton()?.addEventListener('click', expensesApp.startNew);
     getTodayButton()?.addEventListener('click', () => expensesApp.setDate(constants.today));
 }
 

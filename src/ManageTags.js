@@ -1,3 +1,4 @@
+import * as FormState from './FormState.js';
 import * as TagForm from './TagForm.js';
 import * as expensesApp from './App.js';
 import * as labels from './labels.js';
@@ -38,13 +39,13 @@ function render() {
             ${renderCategoryHierarchy()}
         </div>`;
 
-    let tagForm = state.form === 'edit' ? TagForm.render() : '';
+    let tagForm = state.form === FormState.EDIT ? TagForm.render() : '';
 
     return categoryHierarchy + tagForm;
 }
 
 function startEditLabel(labelId) {
-    state.form = 'edit';
+    state.form = FormState.EDIT;
     state.editedLabelId = labelId;
     expensesApp.render();
 }
@@ -54,7 +55,7 @@ function onAttach() {
     for (const categoryBadge of categoryBadges) {
         categoryBadge.addEventListener('click', evt => startEditLabel(evt.target.dataset.xpnsTag));
     }
-    if (state.form === 'edit') {
+    if (state.form === FormState.EDIT) {
         TagForm.onAttach();
     }
 }
