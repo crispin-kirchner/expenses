@@ -1,18 +1,33 @@
 # Einrichtung
 ## Entwicklungsumgebung
-- Chocolatey
-- Chocolatey upgrade all task
-- GitExtensions
 - node.js
 - VS Code
 - VS Code Extensions
-  - GitLens -- Git supercharged
-  - IntelliJ IDEA Keybindings
-  - Markdown All in One
   - SCSS formatter
   - sort-imports
-  - Todo Tree
 - CouchDB
+- CouchDB einrichten
+  - `http://localhost:5984/_utils` (Fauxton) &rarr; *Config*
+    - neue Datenbank: expenses-dev
+      - Permissions
+        - Members &rarr; Roles: *_admin* entfernen
+    - Config &rarr; CORS &rarr; Restrict to specific domains `http://localhost:3000`, `https://localhost:3000`, `https://localhost:9767`, …
+- Starten mit `npm start`
+- Aktuell ist Testing nur mit einer HTTPS-CouchDB möglich. Als Workaround `db.js` `databaseConnectionString` anpassen:
+  - `https` &rarr; `http`
+  - `6984` &rarr; `5984`
+- Falls Testing mit Service Worker benötigt wird, HTTPS einrichten (s.u.) und `npm run int` starten. Int verwendet dieselbe Datenbank wie dev und ist unter `http`**s**`://localhost:3000` erreichbar. Private Fenster zum Testen empfohlen
+
+### Optional
+- GitExtensions & KDiff3 für einfache 3-way merges und Cherry-Picks
+- Chocolatey
+- Chocolatey upgrade all task
+- VS Code Extensions
+  - Todo Tree
+  - Markdown All in One
+
+## HTTPS
+Wird benötigt für Produktivumgebung und Testing mit Service Worker
 - Self-signed Zertifikat erstellen
   - mkcert installieren
   - `mkcert -install`
@@ -23,25 +38,19 @@
   - Auf Telefon (Beispiel Android)
     - *Einstellungen* &rarr; *Sicherheit & Standort* &rarr; *Verschlüsselung & Anmeldedaten* &rarr; *Von SD-Karte installieren*
     - Unter *Vertrauenswürdige Anmeldedaten* &rarr; *Nutzer* prüfen ob die neue mkcert CA aufgelistet ist
-- CouchDB einrichten
+- CouchDB
   - `key.pem`, `cert.pem` nach `C:\Program Files\Apache CouchDB\etc\certs` kopieren
-  - `http://localhost:5984/_utils` &rarr; *Config*
-    - neue Datenbank: expenses-dev
-      - Permissions
-        - Members &rarr; Roles: *_admin* entfernen
-    - *Config*
-      - *Main config*: 4x *Add Option*. *Section*: `ssl`
-        - *Name*: `enable`, *Value*: `true`
-        - *Name*: `cacert_file`, *Value*: `./etc/certs/rootCA.pem`
-        - *Name*: `cert_file`, *Value*: `./etc/certs/cert.pem`
-        - *Name*: `key_file`, *Value*: `./etc/certs/key.pem`
-      - *CORS* &rarr; *Restrict to specific domains* z.B. `https://laptop-crispin:9767`
-  - Config &rarr; CORS &rarr; Restrict to specific domains `http://localhost:3000`, `https://localhost:3000`, `https://localhost:9767`, ...
+  - Fauxton &rarr;  *Config* &rarr; *Main config*
+    - 4x *Add Option*. *Section*: `ssl`
+      1. *Name*: `enable`, *Value*: `true`
+      2. *Name*: `cacert_file`, *Value*: `./etc/certs/rootCA.pem`
+      3. *Name*: `cert_file`, *Value*: `./etc/certs/cert.pem`
+      4. *Name*: `key_file`, *Value*: `./etc/certs/key.pem`
 
 ## Produktivumgebung
-- CouchDB
 - neue CouchDB erstellen: `expenses-prod`
   - Members &rarr; Roles: _admin entfernen
+- HTTPS einrichten (siehe Abschnitt HTTPS)
 - `npm run deploy`
 - Firewall konfigurieren
   - Start &rarr; Windows Defender Firewall &rarr; Erweiterte Einstellungen &rarr; *Eingehende Regeln* &rarr; *Neue Regel...*
@@ -49,7 +58,6 @@
   - Profile: *Privat*
   - Protokolltyp: *TCP*
   - Lokaler Port: *6984*
-
 - Autostart einrichten für `%LocalAppData%\Expenses\expenses.vbs` (Verknüpfung in `C:\Users\%USER%\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup` anlegen)
 
 # Entwicklung
