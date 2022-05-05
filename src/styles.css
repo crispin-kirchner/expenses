@@ -28,6 +28,11 @@
     --bs-aspect-ratio: 100%;
 }
 
+.xpns-date {
+    width: 1.4rem;
+    text-align: center;
+}
+
 .xpns-day:hover {
     background-color: rgba(0, 0, 0, 0.075) !important;
 }

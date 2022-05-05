@@ -2,5 +2,6 @@
 *.ods#
 node_modules
 build
+.history
 public/ausgaben_legacy.json
 *.pem
