@@ -10,8 +10,6 @@ function renderAmountTd(content) {
 function render() {
     expenses.refreshDayExpenses();
 
-    const renderSum = state.dayExpenses.data.sum > 0.005;
-
     let rows = `
         <div class="col-lg-4 mt-lg-content ${state.monthDisplay === 'overview' ? 'd-none d-lg-block' : ''}">
             <h5 class="d-flex">
@@ -19,7 +17,7 @@ function render() {
                     ${expensesApp.renderDayHeading(state.date)}
                 </span>
                 <span>
-                    ${renderSum ? expensesApp.renderFloat(state.dayExpenses.data.sum) : ''}
+                    ${expensesApp.isSubCent(state.dayExpenses.data.sum) ? '' : expensesApp.renderFloat(state.dayExpenses.data.sum)}
                 </span>
                 <span class="currency"></span>
             </h5>`;

@@ -42,7 +42,7 @@ function renderOverviewRows() {
                 <span class="w-100 p-1 text-start btn text-light ${row.ex && row.ex === state.editedPosition.data?._id ? 'btn-secondary active' : ''}" data-xpns-id="${row.ex || ''}" data-bs-toggle="collapse" data-bs-target="#${containerId}-${row.id}">
                     ${title}
                     <span class="float-end">
-                        <span>${row.amount > 0.005 ? expensesApp.renderFloat(row.amount) : ''}</span>
+                        <span>${expensesApp.isSubCent(row.amount) ? '' : expensesApp.renderFloat(row.amount)}</span>
                         <span class="currency">${expensesApp.isDefaultCurrency(row.currency) ? '' : row.currency}</span>
                     </span>
                 </span>

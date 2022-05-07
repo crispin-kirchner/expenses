@@ -228,6 +228,10 @@ function isDefaultCurrency(currency) {
   return currency === constants.DEFAULT_CURRENCY;
 }
 
+function isSubCent(amount) {
+  return amount < constants.SUB_CENT;
+}
+
 function editExpense(evt) {
   evt.preventDefault();
 
@@ -289,6 +293,7 @@ export {
   getCurrentDayString,
   getLabelByField,
   isDefaultCurrency,
+  isSubCent,
   removeExpense,
   render,
   renderDay,
