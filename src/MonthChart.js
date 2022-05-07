@@ -154,7 +154,7 @@ function onAttach() {
                         padding: -5,
                         z: 1,
                         showLabelBackdrop: true,
-                        callback: x => constants.bigNumberFormat.format(x)
+                        callback: x => expensesApp.renderInteger(x)
                     }
                 }
             },

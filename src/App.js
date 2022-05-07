@@ -73,6 +73,10 @@ function getNavbar() {
   return document.getElementById('navbar');
 }
 
+function renderInteger(i) {
+  return constants.bigNumberFormat.format(i);
+}
+
 function renderFloat(f) {
   return constants.numberFormat.format(f);
 }
@@ -299,6 +303,7 @@ export {
   renderDay,
   renderDayHeading,
   renderFloat,
+  renderInteger,
   setDate,
   setMonthDisplay,
   setViewMode,

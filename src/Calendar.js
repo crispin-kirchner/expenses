@@ -5,6 +5,12 @@ import * as expensesApp from './App.js';
 
 import state from './state.js';
 
+function renderCalendarAmount(amount) {
+    return `
+        <span class="d-md-none">${expensesApp.renderInteger(amount)}</span>
+        <span class="d-none d-md-inline">${expensesApp.renderFloat(amount)}</span>`;
+}
+
 function renderDayContent(date, dayExpenses) {
     let amounts = '';
     if (dayExpenses && date <= constants.today) {
@@ -20,16 +26,16 @@ function renderDayContent(date, dayExpenses) {
         amounts = `
             <div class="position-absolute bottom-0 end-0 text-end p-sm-1  py-lg-1 px-lg-2 sm-small lh-1 lh-md-base w-100">
             <span class="w-100 d-inline-flex justify-content-between">
-                <i class="bi-box-arrow-right"></i> ${noExpenses ? '&ndash;&ndash;' : expensesApp.renderFloat(dayExpenses.amount)}
+                <i class="bi-box-arrow-right"></i> ${noExpenses ? '&ndash;&ndash;' : renderCalendarAmount(dayExpenses.amount)}
             </span><br />
             <span class="${savedClasses} w-100 d-inline-flex justify-content-between">
-                <i class="${savedIcon}"></i> ${expensesApp.renderFloat(dayExpenses.saved)}</span>
+                <i class="${savedIcon}"></i> ${renderCalendarAmount(dayExpenses.saved)}</span>
             </div>`;
     }
     return `
         <div>
             <div class="position-absolute d-flex top-0 start-0 small lh-small">
-                <div class="bg-dark text-light rounded-tlbr-1 px-05 me-1 text-center" style="width: 1.4rem">
+                <div class="bg-dark text-light rounded-tlbr-1 me-1 text-center" style="width: 1.4rem">
                     ${expensesApp.renderDay(date)}
                 </div>
                 <div>${constants.dayCalendarFormat.format(date)}</div>
