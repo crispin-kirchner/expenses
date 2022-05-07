@@ -227,7 +227,6 @@ function removeExpandedPath(path) {
   });
 }
 
-
 function isDefaultCurrency(currency) {
   return currency === constants.DEFAULT_CURRENCY;
 }

@@ -24,7 +24,7 @@ function renderDayContent(date, dayExpenses) {
         let noExpenses = expensesApp.isSubCent(dayExpenses.amount);
         let savedIcon = noExpenses ? 'bi-piggy-bank-fill' : 'bi-piggy-bank';
         amounts = `
-            <div class="position-absolute bottom-0 end-0 text-end p-sm-1  py-lg-1 px-lg-2 sm-small lh-1 lh-md-base w-100">
+            <div class="position-absolute bottom-0 end-0 text-end p-05 sm-small lh-1 lh-md-base w-100">
             <span class="w-100 d-inline-flex justify-content-between">
                 <i class="bi-box-arrow-right"></i> ${noExpenses ? '&ndash;&ndash;' : renderCalendarAmount(dayExpenses.amount)}
             </span><br />
