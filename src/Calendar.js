@@ -26,11 +26,11 @@ function renderDayContent(date, dayExpenses) {
     }
     return `
         <div>
-            <div class="position-absolute top-0 start-0 small lh-small">
-                <span class="bg-dark text-light rounded px-05">
+            <div class="position-absolute d-flex top-0 start-0 small lh-small">
+                <div class="bg-dark text-light rounded px-05 me-1 text-center" style="width: 1.4rem">
                     ${expensesApp.renderDay(date)}
-                </span>
-                &nbsp;${constants.dayCalendarFormat.format(date)}
+                </div>
+                <div>${constants.dayCalendarFormat.format(date)}</div>
             </div>
             ${amounts}
         </div>`;
