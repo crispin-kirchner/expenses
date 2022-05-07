@@ -1,7 +1,5 @@
 @import "../node_modules/bootstrap/scss/functions";
 @import "../node_modules/bootstrap/scss/variables";
-@import "../node_modules/bootstrap/scss/mixins";
-@import "../node_modules/bootstrap/scss/utilities";
 
 $spacers: map-merge(
     $spacers,
@@ -10,15 +8,12 @@ $spacers: map-merge(
     )
 );
 
+@import "../node_modules/bootstrap/scss/mixins";
+@import "../node_modules/bootstrap/scss/utilities";
+
 $utilities: map-merge(
     $utilities,
     (
-        "padding": (
-            responsive: true,
-            property: padding,
-            class: p,
-            values: $spacers
-        ),
         "rounded-tlbr": (
             property: border-top-left-radius border-bottom-right-radius,
             class: rounded-tlbr,
