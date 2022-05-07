@@ -27,7 +27,7 @@ function renderDayContent(date, dayExpenses) {
     return `
         <div>
             <div class="position-absolute d-flex top-0 start-0 small lh-small">
-                <div class="bg-dark text-light rounded px-05 me-1 text-center" style="width: 1.4rem">
+                <div class="bg-dark text-light rounded-tlbr-1 px-05 me-1 text-center" style="width: 1.4rem">
                     ${expensesApp.renderDay(date)}
                 </div>
                 <div>${constants.dayCalendarFormat.format(date)}</div>

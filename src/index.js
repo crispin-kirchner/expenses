@@ -1,5 +1,4 @@
-import 'bootstrap/dist/css/bootstrap.min.css';
-import './styles.css';
+import './styles.scss';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import 'bootstrap';
 
