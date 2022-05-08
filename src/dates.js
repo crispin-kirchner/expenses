@@ -10,11 +10,19 @@ function isInMonth(date, month) {
     return date < firstDayOfNextMonth && date >= firstDayOfCurrentMonth;
 }
 
+function getLastRecurrence(validFrom, validTo) {
+    let month = validTo.getMonth();
+    if (validFrom.getDate() > validTo.getDate() && !isSameDay(validTo, getLastDayOfMonth(validTo))) {
+        --month;
+    }
+    return new Date(validTo.getFullYear(), month, validFrom.getDate());
+}
+
 function isValidInMonth(validFrom, validTo, month) {
-    const thisRecurrence = new Date(month.getFullYear(), month.getMonth(), validFrom.getDate());
+    const thisRecurrence = projectToMonth(validFrom, month);
     let lastRecurrence;
     if (validTo) {
-        lastRecurrence = new Date(validTo.getFullYear(), validTo.getMonth(), validFrom.getDate());
+        lastRecurrence = getLastRecurrence(validFrom, validTo);
     }
     return validFrom < getFirstDayOfNextMonth(month) && (!validTo || thisRecurrence <= lastRecurrence);
 }
@@ -34,12 +42,19 @@ function toYmd(date) {
 }
 
 function incrementMonth(date) {
+    let year = date.getFullYear();
+    let month = date.getMonth() + 1;
     if (date.getMonth() === 11) {
-        return new Date(date.getFullYear() + 1, 0, date.getDate());
+        ++year;
+        month = 0;
     }
-    let result = new Date(date.getFullYear(), date.getMonth() + 1, date.getDate());
-    if (result.getMonth() > date.getMonth() + 1) {
-        return getLastDayOfMonth(new Date(date.getFullYear(), date.getMonth() + 1, 1));
+    return projectToMonth(date, new Date(year, month));
+}
+
+function projectToMonth(date, month) {
+    let result = new Date(month.getFullYear(), month.getMonth(), date.getDate());
+    if (result.getMonth() > month.getMonth()) {
+        return getLastDayOfMonth(month);
     }
     return result;
 }
@@ -53,14 +68,13 @@ function getLastDayOfMonth(date) {
 }
 
 function decrementMonth(date) {
+    let year = date.getFullYear();
+    let month = date.getMonth() - 1;
     if (date.getMonth() === 0) {
-        return new Date(date.getFullYear() - 1, 11, date.getDate());
+        --year;
+        month = 11;
     }
-    const lastDayOfMonth = getLastDayOfMonth(date);
-    if (isSameDay(lastDayOfMonth, date)) {
-        return new Date(date.getFullYear(), date.getMonth(), 0);
-    }
-    return new Date(date.getFullYear(), date.getMonth() - 1, date.getDate());
+    return projectToMonth(date, new Date(year, month));
 }
 
 export {
@@ -68,10 +82,12 @@ export {
     getFirstDayOfMonth,
     getFirstDayOfNextMonth,
     getLastDayOfMonth,
+    getLastRecurrence,
     incrementMonth,
     isInMonth,
     isSameDay,
     isSameMonth,
     isValidInMonth,
+    projectToMonth,
     toYmd
 }
