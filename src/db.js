@@ -1,3 +1,4 @@
+import * as UnsyncedDocuments from './UnsyncedDocuments.js';
 import * as expensesApp from './App.js';
 
 import PouchDB from 'pouchdb-browser';
@@ -10,6 +11,12 @@ pouchDb.sync(databaseConnectionString, {
     live: true,
     retry: true
 }).on('change', function (info) {
+    if (info.change.ok && info.direction === 'push') {
+        for (const doc of info.change.docs) {
+            UnsyncedDocuments.markSynced(doc._id);
+        }
+        expensesApp.render();
+    }
     if (info.direction === 'pull' && info.change.pending === 0) {
         markEverythingDirty();
         expensesApp.render();
@@ -43,6 +50,7 @@ function addMany(documents) {
 }
 
 function put(document) {
+    UnsyncedDocuments.markUnsynced(document._id);
     return pouchDb.put(document);
 }
 
