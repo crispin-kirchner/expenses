@@ -1,5 +1,7 @@
 function getFirstDayOfNextMonth(date) {
-    return incrementMonth(date).setDate(1);
+    const result = incrementMonth(date);
+    result.setDate(1);
+    return result;
 }
 
 function isInMonth(date, month) {
@@ -35,7 +37,11 @@ function incrementMonth(date) {
     if (date.getMonth() === 11) {
         return new Date(date.getFullYear() + 1, 0, date.getDate());
     }
-    return new Date(date.getFullYear(), date.getMonth() + 1, date.getDate());
+    let result = new Date(date.getFullYear(), date.getMonth() + 1, date.getDate());
+    if (result.getMonth() > date.getMonth() + 1) {
+        return getLastDayOfMonth(new Date(date.getFullYear(), date.getMonth() + 1, 1));
+    }
+    return result;
 }
 
 function getFirstDayOfMonth(date) {
@@ -57,4 +63,15 @@ function decrementMonth(date) {
     return new Date(date.getFullYear(), date.getMonth() - 1, date.getDate());
 }
 
-export { isInMonth, isValidInMonth, toYmd, incrementMonth, decrementMonth, isSameMonth, isSameDay, getLastDayOfMonth, getFirstDayOfMonth };
+export {
+    decrementMonth,
+    getFirstDayOfMonth,
+    getFirstDayOfNextMonth,
+    getLastDayOfMonth,
+    incrementMonth,
+    isInMonth,
+    isSameDay,
+    isSameMonth,
+    isValidInMonth,
+    toYmd
+}
