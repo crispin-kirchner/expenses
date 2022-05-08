@@ -33,10 +33,6 @@ function getNewButton() {
     return document.getElementById('new-button');
 }
 
-function getSyncButton() {
-    return document.getElementById(SYNC_BUTTON);
-}
-
 function getTodayButton() {
     return document.getElementById(TODAY_BUTTON);
 }
