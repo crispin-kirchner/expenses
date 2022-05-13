@@ -1,4 +1,3 @@
-import * as FormState from './FormState.js';
 import * as UnsyncedDocuments from './UnsyncedDocuments.js';
 import * as constants from './constants.js';
 import * as dates from './dates.js';
@@ -82,11 +81,11 @@ function renderSyncButton(margin) {
 }
 
 function renderNewButton() {
-    if (state.form === FormState.NEW) {
+    if (!expensesApp.isNewButtonVisible()) {
         return '';
     }
     return `
-        <button id="new-button" class="btn btn-light" type="button" title="Neu">
+        <button id="new-button" class="btn btn-light d-none d-sm-inline-block" type="button" title="Neu">
             <i class="bi-plus-square"></i><span class="d-none d-sm-inline-block">&nbsp;Neu</span>
         </button>`;
 }

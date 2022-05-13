@@ -1,5 +1,6 @@
 import * as Calendar from './Calendar.js';
 import * as DayExpenses from './DayExpenses.js';
+import * as Fab from './Fab.js';
 import * as Form from './Form.js';
 import * as FormState from './FormState.js';
 import * as ManageTags from './ManageTags.js';
@@ -180,6 +181,7 @@ function render() {
   } else if (state.viewMode === 'manageTags') {
     appArea = ManageTags.render();
   }
+  appArea += Fab.render();
   getAppArea().innerHTML = appArea;
   if (state.viewMode === 'manageTags') {
     ManageTags.onAttach();
@@ -190,6 +192,7 @@ function render() {
   if (expenseForm) {
     Form.onAttach();
   }
+  Fab.onAttach();
 
   const collapsibles = document.querySelectorAll('.collapse');
   if (collapsibles) {
@@ -290,12 +293,17 @@ async function onAttach() {
   render();
 }
 
+function isNewButtonVisible() {
+  return state.form !== FormState.NEW;
+}
+
 export {
   cancelLineEdit,
   decorateTags,
   getCurrentDayString,
   getLabelByField,
   isDefaultCurrency,
+  isNewButtonVisible,
   isSubCent,
   removeExpense,
   render,
