@@ -1,12 +1,15 @@
 import * as UnsyncedDocuments from './UnsyncedDocuments.js';
 import * as expensesApp from './App.js';
 
-import PouchDB from 'pouchdb-browser';
+import PouchDb from 'pouchdb-browser';
+import PouchDbFind from 'pouchdb-find';
 import { markEverythingDirty } from './state.js';
+
+PouchDb.plugin(PouchDbFind);
 
 const databaseName = getDatabaseName();
 const databaseConnectionString = `https://${window.location.hostname}:6984/${databaseName}`;
-const pouchDb = new PouchDB(databaseName);
+const pouchDb = new PouchDb(databaseName);
 pouchDb.sync(databaseConnectionString, {
     live: true,
     retry: true
@@ -22,6 +25,17 @@ pouchDb.sync(databaseConnectionString, {
         expensesApp.render();
     }
 });
+
+const descriptionIndexPromise = pouchDb.createIndex({
+    index: {
+        fields: ['entity', 'recurring', 'description']
+    }
+});
+
+async function queryDescription(query) {
+    await descriptionIndexPromise;
+    return pouchDb.find(query);
+}
 
 function getDatabaseName() {
     switch (window.location.port) {
@@ -71,4 +85,4 @@ async function getDocument(entity, id) {
     return doc.entity === entity ? doc : null;
 }
 
-export { isEmpty, addMany, getAllDocuments, getDocument, put, remove };
+export { isEmpty, addMany, getAllDocuments, getDocument, put, remove, queryDescription };

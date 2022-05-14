@@ -1,9 +1,10 @@
 import * as App from './App.js';
+import * as ViewMode from './ViewMode.js';
 
 const state = {
     expandedPaths: {},
-    viewMode: 'monthDisplay',
-    monthDisplay: localStorage.getItem('monthDisplay') || 'overview',
+    viewMode: ViewMode.MONTH_DISPLAY,
+    monthDisplay: localStorage.getItem(ViewMode.MONTH_DISPLAY) || 'overview',
     chartTags: [],
     date: new Date(Date.now()),
     proposalSelection: false,
@@ -23,6 +24,8 @@ const state = {
         loadState: 'dirty',
         data: []
     },
+    searchString: '',
+    searchData: [],
     labels: {
         loadState: 'dirty',
         data: {

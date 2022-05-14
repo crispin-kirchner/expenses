@@ -320,6 +320,29 @@ function getLabel(pos) {
     }
 }
 
+async function getSearchData(searchString) {
+    if (!searchString) {
+        return;
+    }
+
+    const tokens = searchString.split(/\s/);
+
+    const result = await db.queryDescription({
+        selector: {
+            entity: 'position',
+            recurring: false,
+            description: { $regex: new RegExp(`.*${tokens[0]}.*`, 'i') }
+        }
+    });
+
+    return result.docs.reduce((acc, doc) => {
+        const year = doc.date.substring(0, 4);
+        const yearArray = (acc[year] = acc[year] || []);
+        yearArray.push(doc);
+        return acc;
+    }, {});
+}
+
 function computeRemainderRow(rowsGrouped) {
     const remainder = rowsGrouped
         .reduce((sum, row) => row.id === 'income'
@@ -371,5 +394,6 @@ export {
     computeAmountChf,
     storePosition,
     deletePosition,
+    getSearchData,
     visitOverviewData
 };
