@@ -339,7 +339,6 @@ async function getSearchData(searchString) {
         }
     });
 
-    // TODO group by month
     return result.docs.reduce((acc, doc) => {
         const year = doc.date.substring(0, 4);
         const yearObj = (acc[year] = acc[year] || { total: 0, months: {} });
