@@ -4,7 +4,9 @@ const preferredLocale = 'de-CH';
 const dayHeadingFormat = new Intl.DateTimeFormat([preferredLocale], { weekday: 'long', day: '2-digit', month: '2-digit' });
 const dayCalendarFormat = new Intl.DateTimeFormat([preferredLocale], { weekday: 'short' });
 const dayFormat = new Intl.DateTimeFormat([preferredLocale], { day: 'numeric' });
+const daySearchResultFormat = new Intl.DateTimeFormat([preferredLocale], { day: '2-digit' })
 const monthFormat = new Intl.DateTimeFormat([preferredLocale], { month: 'long', year: 'numeric' });
+const monthOnlyFormat = new Intl.DateTimeFormat([preferredLocale], { month: 'long' });
 const numberFormat = new Intl.NumberFormat([preferredLocale], { useGrouping: true, minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const bigNumberFormat = new Intl.NumberFormat([preferredLocale], { useGrouping: true, maximumFractionDigits: 0 });
 const decimalRegex = /^([0-9]+\.?[0-9]*|\.[0-9]+)$/;
@@ -27,7 +29,9 @@ export {
     dayHeadingFormat,
     dayCalendarFormat,
     dayFormat,
+    daySearchResultFormat,
     monthFormat,
+    monthOnlyFormat,
     numberFormat,
     bigNumberFormat,
     decimalRegex,

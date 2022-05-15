@@ -168,17 +168,12 @@ function renderMainArea() {
         </div>`;
 }
 
-function render() {
-  labels.refresh();
-  getNavbar().innerHTML = Navbar.render();
-  Navbar.onAttach();
-
+function renderAppArea() {
   let appArea;
-  let expenseForm;
   if (state.viewMode === ViewMode.MONTH_DISPLAY) {
     const mainArea = renderMainArea();
     const dayTable = DayExpenses.render();
-    expenseForm = Form.render();
+    const expenseForm = Form.render();
     appArea = mainArea + dayTable + expenseForm;
   } else if (state.viewMode === ViewMode.MANAGE_TAGS) {
     appArea = ManageTags.render();
@@ -187,13 +182,26 @@ function render() {
   }
   appArea += Fab.render();
   getAppArea().innerHTML = appArea;
+}
+
+function isFormVisible() {
+  return state.form && state.editedPosition.loadState === 'loaded';
+}
+
+function render() {
+  labels.refresh();
+  getNavbar().innerHTML = Navbar.render();
+  Navbar.onAttach();
+
+  renderAppArea();
+
   if (state.viewMode === ViewMode.MANAGE_TAGS) {
     ManageTags.onAttach();
   }
   if (state.viewMode === ViewMode.MONTH_DISPLAY) {
     mainAreaItems[state.monthDisplay].object.onAttach();
   }
-  if (expenseForm) {
+  if (isFormVisible()) {
     Form.onAttach();
   }
   Fab.onAttach();
@@ -307,10 +315,12 @@ export {
   getCurrentDayString,
   getLabelByField,
   isDefaultCurrency,
+  isFormVisible,
   isNewButtonVisible,
   isSubCent,
   removeExpense,
   render,
+  renderAppArea,
   renderDay,
   renderDayHeading,
   renderFloat,

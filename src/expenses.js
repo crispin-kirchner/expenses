@@ -321,12 +321,16 @@ function getLabel(pos) {
 }
 
 async function getSearchData(searchString) {
-    if (!searchString) {
+    // FIXME search String trimmen
+    // FIXME mehrere Tokens?
+    if (!searchString || searchString.length < 3) {
+        // FIXME muss ich hier irgendwas spezielles returnen weil es eine async Funktion ist?
         return;
     }
 
     const tokens = searchString.split(/\s/);
 
+    // FIXME super slow?
     const result = await db.queryDescription({
         selector: {
             entity: 'position',
@@ -335,10 +339,19 @@ async function getSearchData(searchString) {
         }
     });
 
+    // TODO group by month
     return result.docs.reduce((acc, doc) => {
         const year = doc.date.substring(0, 4);
-        const yearArray = (acc[year] = acc[year] || []);
-        yearArray.push(doc);
+        const yearObj = (acc[year] = acc[year] || { total: 0, months: {} });
+
+        const month = doc.date.substring(5, 7);
+        const monthObj = (yearObj.months[month] = yearObj.months[month] || { total: 0, docs: [] });
+
+        const amountChf = computeAmountChf(doc);
+        yearObj.total += amountChf;
+        monthObj.total += amountChf;
+        monthObj.docs.push(doc);
+
         return acc;
     }, {});
 }

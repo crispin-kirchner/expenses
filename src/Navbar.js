@@ -116,6 +116,7 @@ function renderSearchInput() {
 function render() {
     const inManageTags = state.viewMode === ViewMode.MANAGE_TAGS;
     const inSearch = state.viewMode === ViewMode.SEARCH;
+    // TODO schliessen-Button falls in Suche um wieder zurück zu kommen
     return `
         <div class="container">
             ${!inSearch ? renderBrandContent() : ''}
@@ -146,7 +147,7 @@ function onAttach() {
         state.searchString = evt.currentTarget.value;
         const searchResult = await expenses.getSearchData(evt.currentTarget.value);
         state.searchData = searchResult;
-        expensesApp.render();
+        expensesApp.renderAppArea();
     });
 }
 
