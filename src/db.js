@@ -1,5 +1,5 @@
+import * as App from './App.js';
 import * as UnsyncedDocuments from './UnsyncedDocuments.js';
-import * as expensesApp from './App.js';
 
 import PouchDb from 'pouchdb-browser';
 import PouchDbFind from 'pouchdb-find';
@@ -18,11 +18,11 @@ pouchDb.sync(databaseConnectionString, {
         for (const doc of info.change.docs) {
             UnsyncedDocuments.markSynced(doc._id);
         }
-        expensesApp.render();
+        App.render();
     }
     if (info.direction === 'pull' && info.change.pending === 0) {
         markEverythingDirty();
-        expensesApp.render();
+        App.render();
     }
 });
 

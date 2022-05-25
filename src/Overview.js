@@ -1,18 +1,18 @@
+import * as App from './App.js';
 import * as OverviewTreemap from './OverviewTreemap.js';
-import * as expenses from './expenses.js';
-import * as expensesApp from './App.js';
+import * as positions from './positions.js';
 
 import state from './state';
 
 function render() {
-    expenses.refreshOverviewData();
+    positions.refreshOverviewData();
     return OverviewTreemap.render() + renderOverviewRows();
 }
 
 function renderOverviewRows() {
     let result = '';
     let previousLevel = 0;
-    expenses.visitOverviewData((row, path) => {
+    positions.visitOverviewData((row, path) => {
         const level = path.length;
         const velocity = level - previousLevel;
         if (velocity < 0) {
@@ -32,18 +32,18 @@ function renderOverviewRows() {
 
         let title = row.title;
         if (row.ex) {
-            title = expensesApp.decorateTags(row.title);
+            title = App.decorateTags(row.title);
         }
         if (row.id && row.category && row.id === row.category) {
-            title = expensesApp.decorateTags('#' + row.title);
+            title = App.decorateTags('#' + row.title);
         }
         result += `
             <li>
                 <span class="w-100 p-1 text-start btn text-light ${row.ex && row.ex === state.editedPosition.data?._id ? 'btn-secondary active' : ''}" data-xpns-id="${row.ex || ''}" data-bs-toggle="collapse" data-bs-target="#${containerId}-${row.id}">
                     ${title}
                     <span class="float-end">
-                        <span>${expensesApp.isSubCent(row.amount) ? '' : expensesApp.renderFloat(row.amount)}</span>
-                        <span class="currency">${expensesApp.isDefaultCurrency(row.currency) ? '' : row.currency}</span>
+                        <span>${App.isSubCent(row.amount) ? '' : App.renderFloat(row.amount)}</span>
+                        <span class="currency">${App.isDefaultCurrency(row.currency) ? '' : row.currency}</span>
                     </span>
                 </span>
             </li>`;

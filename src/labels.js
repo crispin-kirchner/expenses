@@ -1,7 +1,7 @@
 import * as colors from './colors.js';
 import * as constants from './constants.js';
 import * as db from './db.js';
-import * as expenses from './expenses.js';
+import * as positions from './positions.js';
 
 import state, { refreshData } from './state.js'
 
@@ -72,8 +72,8 @@ async function getHierarchy() {
 }
 
 async function getAllNames() {
-    const allPositions = await expenses.getAllPositions()
-    const set = new Set(allPositions.flatMap(e => expenses.getLabels(e)));
+    const allPositions = await positions.getAllPositions()
+    const set = new Set(allPositions.flatMap(e => positions.getLabels(e)));
     return [...set];
 }
 

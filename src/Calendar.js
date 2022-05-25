@@ -1,14 +1,14 @@
+import * as App from './App.js';
 import * as constants from './constants.js';
 import * as dates from './dates.js';
-import * as expenses from './expenses.js';
-import * as expensesApp from './App.js';
+import * as positions from './positions.js';
 
 import state from './state.js';
 
 function renderCalendarAmount(amount) {
     return `
-        <span class="d-md-none">${expensesApp.renderInteger(amount)}</span>
-        <span class="d-none d-md-inline">${expensesApp.renderFloat(amount)}</span>`;
+        <span class="d-md-none">${App.renderInteger(amount)}</span>
+        <span class="d-none d-md-inline">${App.renderFloat(amount)}</span>`;
 }
 
 function renderDayContent(date, dayExpenses) {
@@ -21,7 +21,7 @@ function renderDayContent(date, dayExpenses) {
         else if (dayExpenses.saved > 0) {
             savedClasses = 'text-success';
         }
-        let noExpenses = expensesApp.isSubCent(dayExpenses.amount);
+        let noExpenses = App.isSubCent(dayExpenses.amount);
         let savedIcon = noExpenses ? 'bi-piggy-bank-fill' : 'bi-piggy-bank';
         amounts = `
             <div class="position-absolute bottom-0 end-0 text-end p-05 sm-small lh-1 lh-md-base w-100">
@@ -36,7 +36,7 @@ function renderDayContent(date, dayExpenses) {
         <div>
             <div class="position-absolute d-flex top-0 start-0 small lh-small">
                 <div class="bg-dark text-light rounded-tlbr-1 me-1 text-center" style="width: 1.4rem">
-                    ${expensesApp.renderDay(date)}
+                    ${App.renderDay(date)}
                 </div>
                 <div>${constants.dayCalendarFormat.format(date)}</div>
             </div>
@@ -74,7 +74,7 @@ function shiftMondayStartOfWeek(day) {
 }
 
 function render() {
-    expenses.refreshDaysOfMonth();
+    positions.refreshDaysOfMonth();
     const days = state.daysOfMonth.data;
 
     const rowPattern = '<div class="row">';
@@ -102,7 +102,7 @@ function render() {
 }
 
 function handleDayClick(evt) {
-    expensesApp.setDate(new Date(evt.currentTarget.dataset.xpnsYmd));
+    App.setDate(new Date(evt.currentTarget.dataset.xpnsYmd));
 }
 
 function onAttach() {

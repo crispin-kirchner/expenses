@@ -3,7 +3,7 @@ import * as UnsyncedDocuments from './UnsyncedDocuments.js';
 import * as ViewMode from './ViewMode.js';
 import * as constants from './constants.js';
 import * as dates from './dates.js';
-import * as expenses from './expenses.js';
+import * as positions from './positions.js';
 
 import state from './state.js';
 
@@ -143,7 +143,7 @@ function onAttach() {
     getSearchButton().addEventListener('click', () => App.setViewMode(ViewMode.SEARCH));
     getSearchInput()?.addEventListener('input', async evt => {
         state.searchString = evt.currentTarget.value;
-        const searchResult = await expenses.getSearchData(evt.currentTarget.value);
+        const searchResult = await positions.getSearchData(evt.currentTarget.value);
         state.searchData = searchResult;
         App.renderAppArea();
     });

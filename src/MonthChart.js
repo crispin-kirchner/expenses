@@ -1,7 +1,7 @@
+import * as App from './App.js';
 import * as constants from './constants.js';
 import * as dates from './dates.js';
-import * as expenses from './expenses.js';
-import * as expensesApp from './App.js';
+import * as positions from './positions.js';
 
 import {
     BarController,
@@ -48,7 +48,7 @@ function render() {
 }
 
 function onAttach() {
-    expenses.refreshDaysOfMonth();
+    positions.refreshDaysOfMonth();
     const days = state.daysOfMonth.data;
 
     const currentDay = dates.getFirstDayOfMonth(state.date);
@@ -140,7 +140,7 @@ function onAttach() {
                         drawOnChartArea: false
                     },
                     ticks: {
-                        callback: function (v) { return this.getLabelForValue(v) === '' ? '' : expensesApp.renderDay(new Date(this.getLabelForValue(v))); }
+                        callback: function (v) { return this.getLabelForValue(v) === '' ? '' : App.renderDay(new Date(this.getLabelForValue(v))); }
                     }
                 },
                 y: {
@@ -154,7 +154,7 @@ function onAttach() {
                         padding: -5,
                         z: 1,
                         showLabelBackdrop: true,
-                        callback: x => expensesApp.renderInteger(x)
+                        callback: x => App.renderInteger(x)
                     }
                 }
             },
@@ -162,7 +162,7 @@ function onAttach() {
                 if (activeElements.length) {
                     const ymd = labels[activeElements[0].index];
                     if (ymd.length === 10) {
-                        expensesApp.setDate(new Date(ymd));
+                        App.setDate(new Date(ymd));
                         return;
                     }
                 }
@@ -172,7 +172,7 @@ function onAttach() {
                 }
                 const newDate = new Date(state.date);
                 newDate.setDate(day);
-                expensesApp.setDate(newDate);
+                App.setDate(newDate);
             },
             onHover(e, _, chart) {
                 let day = chart.scales.x.getValueForPixel(e.x);
@@ -188,8 +188,8 @@ function onAttach() {
                 tooltip: {
                     displayColors: false,
                     callbacks: {
-                        label: ctx => `${ctx.dataset.label}: ${constants.DEFAULT_CURRENCY} ${expensesApp.renderFloat(ctx.dataset.data[ctx.dataIndex])}`,
-                        title: ctx => ctx.map(c => expensesApp.renderDayHeading(new Date(c.label)))
+                        label: ctx => `${ctx.dataset.label}: ${constants.DEFAULT_CURRENCY} ${App.renderFloat(ctx.dataset.data[ctx.dataIndex])}`,
+                        title: ctx => ctx.map(c => App.renderDayHeading(new Date(c.label)))
                     }
                 }
             }

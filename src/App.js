@@ -11,8 +11,8 @@ import * as SearchResults from './SearchResults.js';
 import * as ViewMode from './ViewMode.js';
 import * as constants from './constants.js';
 import * as dates from './dates.js';
-import * as expenses from './expenses.js';
 import * as labels from './labels.js';
+import * as positions from './positions.js';
 
 import ExpensesError from './ExpensesError.js';
 import state from './state.js';
@@ -260,7 +260,7 @@ function editExpense(evt) {
 
 function startNew() {
   state.form = FormState.NEW;
-  state.editedPosition.data = expenses.prepareCreate();
+  state.editedPosition.data = positions.prepareCreate();
   state.editedPosition.loadState = 'loaded';
   render();
 }
@@ -280,7 +280,7 @@ function cancelLineEdit() {
 }
 
 async function removeExpense() {
-  await expenses.deletePosition(state.editedPosition.data);
+  await positions.deletePosition(state.editedPosition.data);
 
   state.form = null;
   state.editedPosition.loadState = 'loaded';

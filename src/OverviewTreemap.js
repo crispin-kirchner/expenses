@@ -1,7 +1,7 @@
+import * as App from './App.js';
 import * as colors from './colors.js';
-import * as expenses from './expenses.js';
-import * as expensesApp from './App.js';
 import * as labels from './labels.js';
+import * as positions from './positions.js';
 
 import { TreemapController, TreemapElement } from 'chartjs-chart-treemap';
 
@@ -32,7 +32,7 @@ function addPath(treemapRow, path, row) {
 function transformToTreemapData() {
     const result = [];
     let maxLevel = 0;
-    expenses.visitOverviewData((row, path) => {
+    positions.visitOverviewData((row, path) => {
         if (path.length === 0 && (row.id === 'income' || row.id === 'recurring')) {
             return 'discard';
         }
@@ -121,7 +121,7 @@ function onAttach() {
                 },
                 labels: {
                     display: true,
-                    formatter: (ctx) => ctx.raw.g ? [ctx.raw.g, expensesApp.renderInteger(ctx.raw.v)] : expensesApp.renderInteger(ctx.raw.v),
+                    formatter: (ctx) => ctx.raw.g ? [ctx.raw.g, App.renderInteger(ctx.raw.v)] : App.renderInteger(ctx.raw.v),
                     color: (ctx) => getColor('foreground', 1, ctx)
                 }
             }]

@@ -1,8 +1,8 @@
+import * as App from './App.js';
 import * as FormState from './FormState.js';
 import * as constants from './constants.js';
 import * as dates from './dates.js';
-import * as expenses from './expenses.js';
-import * as expensesApp from './App.js';
+import * as positions from './positions.js';
 
 import ExpensesError from './ExpensesError.js';
 import state from './state.js';
@@ -36,7 +36,7 @@ function getDescriptionInput() {
 }
 
 function getDescriptionLabel() {
-    return expensesApp.getLabelByField('description');
+    return App.getLabelByField('description');
 }
 
 function getExchangeRateInput() {
@@ -100,7 +100,7 @@ function refreshFormView() {
         .forEach(f => setVisible(f, getRecurringCheckbox().checked));
 
     setVisible(getDateInput(), !getRecurringCheckbox().checked);
-    setVisible(document.getElementById('form-line2'), !expensesApp.isDefaultCurrency(getCurrencySelect().value));
+    setVisible(document.getElementById('form-line2'), !App.isDefaultCurrency(getCurrencySelect().value));
 
     getDescriptionLabel().textContent = getDescriptionLabelText();
     getDescriptionInput().placeholder = getDescriptionLabelText();
@@ -117,7 +117,7 @@ function toggleClass(element, clazz, on) {
 
 function setVisible(field, visible) {
     const elements = [field];
-    const label = expensesApp.getLabelByField(field.id);
+    const label = App.getLabelByField(field.id);
     if (label) {
         elements.push(label);
     }
@@ -130,8 +130,8 @@ function handleTypeChanged() {
 
 async function handleCurrencyChanged() {
     let exchangeRate = constants.defaultExchangeRate;
-    if (!expensesApp.isDefaultCurrency(getCurrencySelect().value)) {
-        const referenceDate = new Date(getDateInput().value !== '' ? getDateInput().value : expensesApp.getCurrentDayString());
+    if (!App.isDefaultCurrency(getCurrencySelect().value)) {
+        const referenceDate = new Date(getDateInput().value !== '' ? getDateInput().value : App.getCurrentDayString());
         exchangeRate = (await getLastExchangeRate(getCurrencySelect().value, referenceDate)) || exchangeRate;
         getExchangeRateInput().value = exchangeRate;
     }
@@ -154,7 +154,7 @@ function handleRecurringCheckboxChanged() {
 }
 
 async function getDictionary() {
-    const allPositions = await expenses.getAllPositions();
+    const allPositions = await positions.getAllPositions();
     return allPositions
         .map(e => e.description)
         .reduce((dict, desc) => {
@@ -197,7 +197,7 @@ async function handleDescriptionInput() {
     getProposalField().innerHTML = proposals
         .map((p, i) => `
             <div class="cursor-pointer ${i === 0 ? '' : 'border-top'} px-2 py-1" data-xpns-value="${p[0]}">
-                ${expensesApp.decorateTags(p[0])}
+                ${App.decorateTags(p[0])}
             </div>`)
         .join('\n');
 
@@ -270,7 +270,7 @@ function validateField(field, regex, prettyPrinter) {
 
 function handleAmountOrExchangeRateInput() {
     const chfValue = parseFloat(getAmountInput().value) * parseFloat(getExchangeRateInput().value);
-    getComputedChfValue().textContent = Number.isNaN(chfValue) ? '' : expensesApp.renderFloat(chfValue);
+    getComputedChfValue().textContent = Number.isNaN(chfValue) ? '' : App.renderFloat(chfValue);
 }
 
 function validateForm() {
@@ -298,14 +298,14 @@ function validateForm() {
 
     if (emptyFields.length > 0) {
         let fieldNames = emptyFields
-            .map(f => expensesApp.getLabelByField(f.id).textContent)
+            .map(f => App.getLabelByField(f.id).textContent)
             .join(' und ');
         throw new ExpensesError(`Bitte ${fieldNames} ausfüllen`, emptyFields);
     }
 }
 
 async function getLastExchangeRate(currency, date) {
-    const allPositions = await expenses.getAllPositions()
+    const allPositions = await positions.getAllPositions()
     const expensesOfDay = allPositions
         .filter(e => e.currency && e.date && dates.isSameDay(e.date, date));
     let relevantExpenses = expensesOfDay;
@@ -343,19 +343,19 @@ async function submit(event) {
     if (getRecurringTo().value) {
         position.recurrenceTo = new Date(getRecurringTo().value);
     }
-    expenses.setRecurring(position, getRecurringCheckbox().checked);
+    positions.setRecurring(position, getRecurringCheckbox().checked);
 
     state.form = null;
     state.editedPosition.loadState = 'loaded';
     state.editedPosition.data = null;
     if (!position.recurring && !dates.isSameDay(state.date, position.date)) {
-        expensesApp.setDate(position.date);
+        App.setDate(position.date);
     }
     else {
-        expensesApp.render();
+        App.render();
     }
-    await expenses.storePosition(position);
-    expensesApp.render();
+    await positions.storePosition(position);
+    App.render();
 }
 
 const PositionType = {
@@ -378,15 +378,15 @@ function getDescriptionLabelText() {
 
 function render() {
     if (state.form === FormState.EDIT) {
-        expenses.refreshEditedPosition();
+        positions.refreshEditedPosition();
     }
-    if (!expensesApp.isFormVisible()) {
+    if (!App.isFormVisible()) {
         return '';
     }
 
     const position = state.editedPosition.data;
     const currencies = ['CHF', '€'];
-    const defaultCurrency = position ? expensesApp.isDefaultCurrency(position.currency) : true;
+    const defaultCurrency = position ? App.isDefaultCurrency(position.currency) : true;
 
     const typeOptions = Object.entries(PositionType)
         .map(t => `
@@ -430,7 +430,7 @@ function render() {
                         <span class="input-group-text">Wechselkurs</span>
                         <input class="form-control text-end" id="exchange-rate" inputmode="numeric" value="${position ? position.exchangeRate : constants.defaultExchangeRate}" />
                         <span class="input-group-text">
-                            <span id="computed-chf-value">${defaultCurrency ? '0.00' : expensesApp.renderFloat(expenses.computeAmountChf(position))}</span>
+                            <span id="computed-chf-value">${defaultCurrency ? '0.00' : App.renderFloat(positions.computeAmountChf(position))}</span>
                             <span>&nbsp;${constants.DEFAULT_CURRENCY}</span>
                         </span>
                     </div>
@@ -471,14 +471,14 @@ function render() {
 
 function deletePosition() {
     if (window.confirm(`Bist du sicher, dass du diese ${PositionType[getTypeSelect().value].text} löschen möchtest?`)) {
-        expensesApp.removeExpense(state.editedPosition.data._id);
+        App.removeExpense(state.editedPosition.data._id);
     }
 }
 
 function onAttach() {
     refreshFormView();
 
-    getCloseButton().addEventListener('click', expensesApp.cancelLineEdit);
+    getCloseButton().addEventListener('click', App.cancelLineEdit);
     getDeleteButton()?.addEventListener('click', deletePosition);
 
     getAmountInput().addEventListener('input', handleAmountOrExchangeRateInput);
