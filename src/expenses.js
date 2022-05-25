@@ -326,13 +326,11 @@ async function getSearchData(searchString) {
         return;
     }
 
-    const tokens = searchString.split(/\s/);
-
     const result = await db.queryDescription({
         selector: {
             entity: 'position',
             recurring: false,
-            description: { $regex: new RegExp(`.*${tokens[0]}.*`, 'i') }
+            description: { $regex: new RegExp(`.*${searchString}.*`, 'i') }
         }
     });
 

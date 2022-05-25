@@ -94,11 +94,11 @@ $utilities: map-merge(
     --bs-aspect-ratio: 100%;
 }
 
-.xpns-day:hover {
+.xpns-hover:hover {
     background-color: rgba(0, 0, 0, 0.075) !important;
 }
 
-.xpns-day.active {
+.xpns-hover.active {
     background-color: rgba(0, 0, 0, 0.1) !important;
 }
 

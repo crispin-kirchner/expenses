@@ -21,14 +21,16 @@ function render() {
                     <h5 class="d-flex">
                         <span class="me-auto">${constants.monthOnlyFormat.format(new Date(`${year}-${month}`))}</span>
                         <span>${App.renderFloat(monthObj.total)}</span>
-                    </h5>`;
+                    </h5>
+                    <div class="mb-1">`;
                 for (const position of monthObj.docs.sort(App.reverseCompareString(d => d.date))) {
                     html += `
-                        <div class="d-flex">
+                        <div class="d-flex cursor-pointer xpns-hover border-top py-1" data-xpns-id="${position._id || ''}">
                             <span class="me-auto">${constants.daySearchResultFormat.format(new Date(position.date))} ${App.decorateTags(position.description)}</span>
                             <span>${App.renderFloat(position.amount)}</span>
                         </div>`;
                 }
+                html += '</div>';
             }
         }
     }

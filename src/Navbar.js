@@ -7,6 +7,7 @@ import * as expensesApp from './App.js';
 
 import state from './state.js';
 
+// FIXME Lupe klicken und lostippen
 const MANAGE_TAGS_BUTTON = 'manage-tags-button';
 const MONTH_DISPLAY_BUTTON = 'month-display-button';
 const NEXT_MONTH_BUTTON = 'next-month-button';

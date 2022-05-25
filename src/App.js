@@ -173,15 +173,22 @@ function renderAppArea() {
   if (state.viewMode === ViewMode.MONTH_DISPLAY) {
     const mainArea = renderMainArea();
     const dayTable = DayExpenses.render();
-    const expenseForm = Form.render();
-    appArea = mainArea + dayTable + expenseForm;
+    appArea = mainArea + dayTable
   } else if (state.viewMode === ViewMode.MANAGE_TAGS) {
     appArea = ManageTags.render();
   } else if (state.viewMode === ViewMode.SEARCH) {
     appArea = SearchResults.render();
   }
+  if(state.viewMode !== ViewMode.MANAGE_TAGS) {
+    appArea += Form.render();
+  }
   appArea += Fab.render();
   getAppArea().innerHTML = appArea;
+
+  const expenseElems = document.querySelectorAll('[data-xpns-id]:not([data-xpns-id=""])');
+  for (const elem of expenseElems) {
+    elem.addEventListener('click', editExpense);
+  }
 }
 
 function isFormVisible() {
@@ -212,11 +219,6 @@ function render() {
       n.addEventListener('show.bs.collapse', e => { saveExpandedPath(e.target.id); });
       n.addEventListener('hide.bs.collapse', e => { removeExpandedPath(e.target.id); });
     });
-  }
-
-  const expenseElems = document.querySelectorAll('[data-xpns-id]:not([data-xpns-id=""])');
-  for (const li of expenseElems) {
-    li.addEventListener('click', editExpense);
   }
 }
 
