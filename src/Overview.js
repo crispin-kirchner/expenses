@@ -9,48 +9,50 @@ function render() {
     return OverviewTreemap.render() + renderOverviewRows();
 }
 
+function renderRowTitle(row, containerId) {
+    let title = row.title;
+    if(row.id && row.category && row.id === row.category) {
+        title = `#${title}`;
+    }
+    return `
+        <span 
+            class="w-100 p-1 text-start btn text-light ${row.ex && row.ex === state.editedPosition.data?._id ? 'btn-secondary active' : ''}" 
+            data-xpns-id="${row.ex || ''}" 
+            data-bs-toggle="collapse" 
+            data-bs-target="#${containerId}">
+                ${App.decorateTags(title)}
+                <span class="float-end">
+                    <span>${App.isSubCent(row.amount) ? '' : App.renderFloat(row.amount)}</span>
+                    <span class="currency">${App.isDefaultCurrency(row.currency) ? '' : row.currency}</span>
+                </span>
+        </span>`;
+}
+
+function renderInnerRow(row, path) {
+    let result = '';
+    const containerId = ['child-items', ...path].join('-');
+    result += `<li>${renderRowTitle(row, containerId)}`;
+    if(row.childRows.length > 0) {
+        result += `<ul class="collapse ${isExpanded(containerId) ? 'show' : ''}" id="${containerId}">`;
+        for(const childRow of row.childRows) {
+            result += renderInnerRow(childRow, [...path, childRow.id]);
+        }
+        result += '</ul>';
+    }
+    result += '</li>';
+    return result;
+}
+
 function renderOverviewRows() {
     let result = '';
-    let previousLevel = 0;
-    positions.visitOverviewData((row, path) => {
-        const level = path.length;
-        const velocity = level - previousLevel;
-        if (velocity < 0) {
-            const repetitions = velocity < 0 ? -velocity : 1;
-            result += '</ul>'.repeat(repetitions);
-        }
-        if (level === 0) {
-            if (velocity < 0) {
-                result += '</ul></div>';
-            }
-            result += '<div class="bg-dark text-light rounded p-2 mt-2">';
-        }
-        const containerId = ['child-items', ...path.map(r => r.id)].join('-');
-        if (level === 0 || velocity > 0) {
-            result += `<ul class="m-0 ${level > 0 ? `collapse ${isExpanded(containerId) ? 'show' : ''}` : ''}" ${level > 0 ? `id="${containerId}"` : ''}>`;
-        }
-
-        let title = row.title;
-        if (row.ex) {
-            title = App.decorateTags(row.title);
-        }
-        if (row.id && row.category && row.id === row.category) {
-            title = App.decorateTags('#' + row.title);
-        }
+    for(const rootRow of state.overviewData.data) {
         result += `
-            <li>
-                <span class="w-100 p-1 text-start btn text-light ${row.ex && row.ex === state.editedPosition.data?._id ? 'btn-secondary active' : ''}" data-xpns-id="${row.ex || ''}" data-bs-toggle="collapse" data-bs-target="#${containerId}-${row.id}">
-                    ${title}
-                    <span class="float-end">
-                        <span>${App.isSubCent(row.amount) ? '' : App.renderFloat(row.amount)}</span>
-                        <span class="currency">${App.isDefaultCurrency(row.currency) ? '' : row.currency}</span>
-                    </span>
-                </span>
-            </li>`;
-        previousLevel = level;
-        return 'continue';
-    });
-    result += '</ul></div>';
+            <div class="bg-dark text-light rounded p-2 mt-2">
+                <ul class="m-0">
+                    ${renderInnerRow(rootRow, [rootRow.id])}
+                </ul>
+            </div>`;
+    }
     return result;
 }
 
