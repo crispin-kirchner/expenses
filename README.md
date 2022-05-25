@@ -7,16 +7,16 @@
   - sort-imports
 - CouchDB
 - CouchDB einrichten
-  - `http://localhost:5984/_utils` (Fauxton) &rarr; *Config*
+  - http://localhost:5984/_utils (Fauxton) &rarr; *Config*
     - neue Datenbank: expenses-dev
       - Permissions
         - Members &rarr; Roles: *_admin* entfernen
-    - Config &rarr; CORS &rarr; Restrict to specific domains `http://localhost:3000`, `https://localhost:3000`, `https://localhost:9767`, …
+    - Config &rarr; CORS &rarr; Restrict to specific domains http://localhost:3000, https://localhost:3000, https://localhost:9767, …
 - Starten mit `npm start`
 - Aktuell ist Testing nur mit einer HTTPS-CouchDB möglich. Als Workaround `db.js` `databaseConnectionString` anpassen:
   - `https` &rarr; `http`
   - `6984` &rarr; `5984`
-- Falls Testing mit Service Worker benötigt wird, HTTPS einrichten (s.u.) und `npm run int` starten. Int verwendet dieselbe Datenbank wie dev und ist unter `http`**s**`://localhost:3000` erreichbar. Private Fenster zum Testen empfohlen
+- Falls Testing mit Service Worker benötigt wird, HTTPS einrichten (s.u.) und `npm run int` starten. Int verwendet dieselbe Datenbank wie dev und ist unter [http**s**://localhost:3000](http://localhost:3000) erreichbar. Private Fenster zum Testen empfohlen
 
 ### Optional
 - GitExtensions & KDiff3 für einfache 3-way merges und Cherry-Picks
