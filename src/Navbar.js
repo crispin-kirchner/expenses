@@ -140,7 +140,7 @@ function onAttach() {
     getMonthDisplayButton()?.addEventListener('click', () => App.setViewMode(ViewMode.MONTH_DISPLAY));
     getNewButton()?.addEventListener('click', App.startNew);
     getTodayButton()?.addEventListener('click', () => App.setDate(constants.today));
-    getSearchButton().addEventListener('click', () => App.setViewMode(ViewMode.SEARCH));
+    getSearchButton()?.addEventListener('click', () => App.setViewMode(ViewMode.SEARCH));
     getSearchInput()?.addEventListener('input', async evt => {
         state.searchString = evt.currentTarget.value;
         const searchResult = await positions.getSearchData(evt.currentTarget.value);
