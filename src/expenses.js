@@ -321,16 +321,13 @@ function getLabel(pos) {
 }
 
 async function getSearchData(searchString) {
-    // FIXME search String trimmen
-    // FIXME mehrere Tokens?
+    searchString = searchString.trim();
     if (!searchString || searchString.length < 3) {
-        // FIXME muss ich hier irgendwas spezielles returnen weil es eine async Funktion ist?
         return;
     }
 
     const tokens = searchString.split(/\s/);
 
-    // FIXME super slow?
     const result = await db.queryDescription({
         selector: {
             entity: 'position',

@@ -159,7 +159,7 @@ function renderMainArea() {
 
   return `
         <div class="col-lg-8 mt-content">
-            <ul class="nav nav-tabs mb-2">
+            <ul class="nav nav-tabs">
                 ${lis.join('\n')}
             </ul>
             <div class="mb-4">
@@ -306,7 +306,14 @@ async function onAttach() {
 }
 
 function isNewButtonVisible() {
-  return state.form !== FormState.NEW;
+  return state.viewMode === ViewMode.MONTH_DISPLAY && state.form !== FormState.NEW;
+}
+
+function reverseCompareString(fn) {
+  if(fn) {
+    return (a, b) => fn(b).localeCompare(fn(a));
+  }
+  return (a, b) => b.localeCompare(a);
 }
 
 export {
@@ -325,6 +332,7 @@ export {
   renderDayHeading,
   renderFloat,
   renderInteger,
+  reverseCompareString,
   setDate,
   setMonthDisplay,
   setViewMode,

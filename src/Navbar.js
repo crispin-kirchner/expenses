@@ -66,10 +66,12 @@ function renderBrandContent() {
                 ${constants.monthFormat.format(state.date)}
             </div>`
     }
-    if (state.viewMode === ViewMode.MANAGE_TAGS) {
-        return `
-            ${renderLinkButton(MONTH_DISPLAY_BUTTON, 'bi-arrow-left')}
-            Markierungen verwalten`;
+    if (state.viewMode !== ViewMode.MONTH_DISPLAY) {
+        let result = `${renderLinkButton(MONTH_DISPLAY_BUTTON, 'bi-arrow-left')}`;
+        if(state.viewMode === ViewMode.MANAGE_TAGS) {
+            result += 'Markierungen verwalten';
+        }
+        return result;
     }
 }
 
@@ -96,9 +98,6 @@ function renderSyncButton(margin) {
 }
 
 function renderNewButton() {
-    if (!expensesApp.isNewButtonVisible()) {
-        return '';
-    }
     return `
         <button id="${NEW_BUTTON}" class="btn btn-light d-none d-sm-inline-block" type="button" title="Neu">
             <i class="bi-plus-square"></i><span class="d-none d-sm-inline-block">&nbsp;Neu</span>
@@ -106,7 +105,10 @@ function renderNewButton() {
 }
 
 function renderSearchButton() {
-    return renderLinkButton(SEARCH_BUTTON, 'bi-search');
+    return `
+        <button type="button" id="${SEARCH_BUTTON}" class="btn text-light" ${state.viewMode === ViewMode.SEARCH ? 'disabled' : ''}>
+            <i class="bi-search"></i>
+        </button>`;
 }
 
 function renderSearchInput() {
@@ -116,16 +118,15 @@ function renderSearchInput() {
 function render() {
     const inManageTags = state.viewMode === ViewMode.MANAGE_TAGS;
     const inSearch = state.viewMode === ViewMode.SEARCH;
-    // TODO schliessen-Button falls in Suche um wieder zurück zu kommen
     return `
-        <div class="container">
-            ${!inSearch ? renderBrandContent() : ''}
-            <form class="d-flex ${inSearch ? 'w-100' : ''}" autocomplete="off">
+        <div class="container ${inSearch ? 'd-flex' : ''}">
+            ${renderBrandContent()}
+            <form class="d-flex ${inSearch ? 'flex-grow-1' : ''}" autocomplete="off">
                 ${inSearch ? renderSearchInput() : ''}
-                ${!inManageTags ? renderSearchButton() : ''}
-                ${!inManageTags ? renderTodayButton() : ''}
+                ${state.viewMode === ViewMode.MONTH_DISPLAY ? renderTodayButton() : ''}
                 ${renderSyncButton(!inManageTags ? 'me-3' : '')}
-                ${!inManageTags ? renderNewButton() : ''}
+                ${!inManageTags ? renderSearchButton() : ''}
+                ${expensesApp.isNewButtonVisible() ? renderNewButton() : ''}
             </form>
         </div>`;
 }
@@ -136,10 +137,7 @@ function onAttach() {
         getNextMonthButton().addEventListener('click', () => expensesApp.setDate(dates.incrementMonth(state.date)));
         getManageTagsButton().addEventListener('click', () => expensesApp.setViewMode(ViewMode.MANAGE_TAGS));
     }
-    if (state.viewMode === ViewMode.MANAGE_TAGS) {
-        getMonthDisplayButton().addEventListener('click', () => expensesApp.setViewMode(ViewMode.MONTH_DISPLAY));
-    }
-
+    getMonthDisplayButton()?.addEventListener('click', () => expensesApp.setViewMode(ViewMode.MONTH_DISPLAY));
     getNewButton()?.addEventListener('click', expensesApp.startNew);
     getTodayButton()?.addEventListener('click', () => expensesApp.setDate(constants.today));
     getSearchButton().addEventListener('click', () => expensesApp.setViewMode(ViewMode.SEARCH));

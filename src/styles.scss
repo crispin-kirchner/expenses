@@ -1,3 +1,6 @@
+$mt-content: 64px;
+$mt-content-md: 80px;
+
 @import "../node_modules/bootstrap/scss/functions";
 @import "../node_modules/bootstrap/scss/variables";
 
@@ -80,7 +83,7 @@ $utilities: map-merge(
 }
 
 .mt-content {
-    margin-top: 80px;
+    margin-top: $mt-content;
 }
 
 .z-top {
@@ -106,7 +109,7 @@ $utilities: map-merge(
 /* lg */
 @include media-breakpoint-up(lg) {
     .mt-lg-content {
-        margin-top: 80px;
+        margin-top: $mt-content-md;
     }
 }
 
@@ -146,6 +149,10 @@ $utilities: map-merge(
 
     .lh-md-base {
         line-height: 1.5 !important;
+    }
+
+    .mt-content {
+        margin-top: $mt-content-md;
     }
 }
 
