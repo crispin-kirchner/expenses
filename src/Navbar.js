@@ -7,7 +7,6 @@ import * as expenses from './expenses.js';
 
 import state from './state.js';
 
-// FIXME Lupe klicken und lostippen
 const MANAGE_TAGS_BUTTON = 'manage-tags-button';
 const MONTH_DISPLAY_BUTTON = 'month-display-button';
 const NEXT_MONTH_BUTTON = 'next-month-button';
@@ -60,12 +59,10 @@ function renderLinkButton(id, icon, title) {
 function renderBrandContent() {
     if (state.viewMode === ViewMode.MONTH_DISPLAY) {
         return `
-            <div class="navbar-brand">
-                ${renderLinkButton(MANAGE_TAGS_BUTTON, 'bi-tags-fill', 'Tags bearbeiten')}
-                ${renderLinkButton(PREVIOUS_MONTH_BUTTON, 'bi-chevron-left')}
-                ${renderLinkButton(NEXT_MONTH_BUTTON, 'bi-chevron-right')}
-                ${constants.monthFormat.format(state.date)}
-            </div>`
+            ${renderLinkButton(MANAGE_TAGS_BUTTON, 'bi-tags-fill', 'Tags bearbeiten')}
+            ${renderLinkButton(PREVIOUS_MONTH_BUTTON, 'bi-chevron-left')}
+            ${renderLinkButton(NEXT_MONTH_BUTTON, 'bi-chevron-right')}
+            ${constants.monthFormat.format(state.date)}`;
     }
     if (state.viewMode !== ViewMode.MONTH_DISPLAY) {
         let result = `${renderLinkButton(MONTH_DISPLAY_BUTTON, 'bi-arrow-left')}`;
@@ -121,7 +118,9 @@ function render() {
     const inSearch = state.viewMode === ViewMode.SEARCH;
     return `
         <div class="container ${inSearch ? 'd-flex' : ''}">
-            ${renderBrandContent()}
+            <div class="navbar-brand">
+                ${renderBrandContent()}
+            </div>
             <form class="d-flex ${inSearch ? 'flex-grow-1' : ''}" autocomplete="off">
                 ${inSearch ? renderSearchInput() : ''}
                 ${state.viewMode === ViewMode.MONTH_DISPLAY ? renderTodayButton() : ''}
