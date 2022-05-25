@@ -1,9 +1,9 @@
+import * as App from './App.js';
 import * as UnsyncedDocuments from './UnsyncedDocuments.js';
 import * as ViewMode from './ViewMode.js';
 import * as constants from './constants.js';
 import * as dates from './dates.js';
 import * as expenses from './expenses.js';
-import * as expensesApp from './App.js';
 
 import state from './state.js';
 
@@ -127,27 +127,28 @@ function render() {
                 ${state.viewMode === ViewMode.MONTH_DISPLAY ? renderTodayButton() : ''}
                 ${renderSyncButton(!inManageTags ? 'me-3' : '')}
                 ${!inManageTags ? renderSearchButton() : ''}
-                ${expensesApp.isNewButtonVisible() ? renderNewButton() : ''}
+                ${App.isNewButtonVisible() ? renderNewButton() : ''}
             </form>
         </div>`;
 }
 
 function onAttach() {
     if (state.viewMode === ViewMode.MONTH_DISPLAY) {
-        getPreviousMonthButton().addEventListener('click', () => expensesApp.setDate(dates.decrementMonth(state.date)));
-        getNextMonthButton().addEventListener('click', () => expensesApp.setDate(dates.incrementMonth(state.date)));
-        getManageTagsButton().addEventListener('click', () => expensesApp.setViewMode(ViewMode.MANAGE_TAGS));
+        getPreviousMonthButton().addEventListener('click', () => App.setDate(dates.decrementMonth(state.date)));
+        getNextMonthButton().addEventListener('click', () => App.setDate(dates.incrementMonth(state.date)));
+        getManageTagsButton().addEventListener('click', () => App.setViewMode(ViewMode.MANAGE_TAGS));
     }
-    getMonthDisplayButton()?.addEventListener('click', () => expensesApp.setViewMode(ViewMode.MONTH_DISPLAY));
-    getNewButton()?.addEventListener('click', expensesApp.startNew);
-    getTodayButton()?.addEventListener('click', () => expensesApp.setDate(constants.today));
-    getSearchButton().addEventListener('click', () => expensesApp.setViewMode(ViewMode.SEARCH));
+    getMonthDisplayButton()?.addEventListener('click', () => App.setViewMode(ViewMode.MONTH_DISPLAY));
+    getNewButton()?.addEventListener('click', App.startNew);
+    getTodayButton()?.addEventListener('click', () => App.setDate(constants.today));
+    getSearchButton().addEventListener('click', () => App.setViewMode(ViewMode.SEARCH));
     getSearchInput()?.addEventListener('input', async evt => {
         state.searchString = evt.currentTarget.value;
         const searchResult = await expenses.getSearchData(evt.currentTarget.value);
         state.searchData = searchResult;
-        expensesApp.renderAppArea();
+        App.renderAppArea();
     });
+    getSearchInput()?.focus();
 }
 
 export { render, onAttach };
