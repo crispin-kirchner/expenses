@@ -7,6 +7,8 @@ import * as ManageTags from './ManageTags.js';
 import * as MonthChart from './MonthChart.js';
 import * as Navbar from './Navbar.js';
 import * as Overview from './Overview.js';
+import * as SearchResults from './SearchResults.js';
+import * as ViewMode from './ViewMode.js';
 import * as constants from './constants.js';
 import * as dates from './dates.js';
 import * as expenses from './expenses.js';
@@ -115,7 +117,7 @@ function setMonthDisplay(monthDisplay) {
     return;
   }
   state.monthDisplay = monthDisplay;
-  localStorage.setItem('monthDisplay', monthDisplay);
+  localStorage.setItem(ViewMode.MONTH_DISPLAY, monthDisplay);
   render();
 }
 
@@ -157,7 +159,7 @@ function renderMainArea() {
 
   return `
         <div class="col-lg-8 mt-content">
-            <ul class="nav nav-tabs mb-2">
+            <ul class="nav nav-tabs">
                 ${lis.join('\n')}
             </ul>
             <div class="mb-4">
@@ -166,30 +168,47 @@ function renderMainArea() {
         </div>`;
 }
 
+function renderAppArea() {
+  let appArea;
+  if (state.viewMode === ViewMode.MONTH_DISPLAY) {
+    const mainArea = renderMainArea();
+    const dayTable = DayExpenses.render();
+    appArea = mainArea + dayTable
+  } else if (state.viewMode === ViewMode.MANAGE_TAGS) {
+    appArea = ManageTags.render();
+  } else if (state.viewMode === ViewMode.SEARCH) {
+    appArea = SearchResults.render();
+  }
+  if(state.viewMode !== ViewMode.MANAGE_TAGS) {
+    appArea += Form.render();
+  }
+  appArea += Fab.render();
+  getAppArea().innerHTML = appArea;
+
+  const expenseElems = document.querySelectorAll('[data-xpns-id]:not([data-xpns-id=""])');
+  for (const elem of expenseElems) {
+    elem.addEventListener('click', editExpense);
+  }
+}
+
+function isFormVisible() {
+  return state.form && state.editedPosition.loadState === 'loaded';
+}
+
 function render() {
   labels.refresh();
   getNavbar().innerHTML = Navbar.render();
   Navbar.onAttach();
 
-  let appArea;
-  let expenseForm;
-  if (state.viewMode === 'monthDisplay') {
-    const mainArea = renderMainArea();
-    const dayTable = DayExpenses.render();
-    expenseForm = Form.render();
-    appArea = mainArea + dayTable + expenseForm;
-  } else if (state.viewMode === 'manageTags') {
-    appArea = ManageTags.render();
-  }
-  appArea += Fab.render();
-  getAppArea().innerHTML = appArea;
-  if (state.viewMode === 'manageTags') {
+  renderAppArea();
+
+  if (state.viewMode === ViewMode.MANAGE_TAGS) {
     ManageTags.onAttach();
   }
-  if (state.viewMode === 'monthDisplay') {
+  if (state.viewMode === ViewMode.MONTH_DISPLAY) {
     mainAreaItems[state.monthDisplay].object.onAttach();
   }
-  if (expenseForm) {
+  if (isFormVisible()) {
     Form.onAttach();
   }
   Fab.onAttach();
@@ -200,11 +219,6 @@ function render() {
       n.addEventListener('show.bs.collapse', e => { saveExpandedPath(e.target.id); });
       n.addEventListener('hide.bs.collapse', e => { removeExpandedPath(e.target.id); });
     });
-  }
-
-  const expenseElems = document.querySelectorAll('[data-xpns-id]:not([data-xpns-id=""])');
-  for (const li of expenseElems) {
-    li.addEventListener('click', editExpense);
   }
 }
 
@@ -294,7 +308,14 @@ async function onAttach() {
 }
 
 function isNewButtonVisible() {
-  return state.form !== FormState.NEW;
+  return state.viewMode === ViewMode.MONTH_DISPLAY && state.form !== FormState.NEW;
+}
+
+function reverseCompareString(fn) {
+  if(fn) {
+    return (a, b) => fn(b).localeCompare(fn(a));
+  }
+  return (a, b) => b.localeCompare(a);
 }
 
 export {
@@ -303,14 +324,17 @@ export {
   getCurrentDayString,
   getLabelByField,
   isDefaultCurrency,
+  isFormVisible,
   isNewButtonVisible,
   isSubCent,
   removeExpense,
   render,
+  renderAppArea,
   renderDay,
   renderDayHeading,
   renderFloat,
   renderInteger,
+  reverseCompareString,
   setDate,
   setMonthDisplay,
   setViewMode,

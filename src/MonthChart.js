@@ -42,7 +42,7 @@ const isInsideGrid = function (e, chart) {
 
 function render() {
     return `
-        <div>
+        <div class="mt-1">
             <canvas id="month-chart"></canvas>
         </div>`;
 }

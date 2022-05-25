@@ -47,7 +47,7 @@ function renderDayContent(date, dayExpenses) {
 function renderDay(date, dayExpenses) {
     let dayClasses = '';
     if (date) {
-        dayClasses += 'border rounded xpns-day cursor-pointer';
+        dayClasses += 'border rounded xpns-hover cursor-pointer';
         if (dates.isSameDay(date, state.date)) {
             dayClasses += ' active';
         }
@@ -106,7 +106,7 @@ function handleDayClick(evt) {
 }
 
 function onAttach() {
-    document.querySelectorAll('.xpns-day[data-xpns-ymd]')
+    document.querySelectorAll('.xpns-hover[data-xpns-ymd]')
         .forEach(e => e.addEventListener('click', handleDayClick));
 }
 

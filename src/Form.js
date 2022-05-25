@@ -380,7 +380,7 @@ function render() {
     if (state.form === FormState.EDIT) {
         expenses.refreshEditedPosition();
     }
-    if (!state.form || state.editedPosition.loadState !== 'loaded') {
+    if (!expensesApp.isFormVisible()) {
         return '';
     }
 

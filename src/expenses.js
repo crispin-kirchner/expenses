@@ -320,6 +320,36 @@ function getLabel(pos) {
     }
 }
 
+async function getSearchData(searchString) {
+    searchString = searchString.trim();
+    if (!searchString || searchString.length < 3) {
+        return;
+    }
+
+    const result = await db.queryDescription({
+        selector: {
+            entity: 'position',
+            recurring: false,
+            description: { $regex: new RegExp(`.*${searchString}.*`, 'i') }
+        }
+    });
+
+    return result.docs.reduce((acc, doc) => {
+        const year = doc.date.substring(0, 4);
+        const yearObj = (acc[year] = acc[year] || { total: 0, months: {} });
+
+        const month = doc.date.substring(5, 7);
+        const monthObj = (yearObj.months[month] = yearObj.months[month] || { total: 0, docs: [] });
+
+        const amountChf = computeAmountChf(doc);
+        yearObj.total += amountChf;
+        monthObj.total += amountChf;
+        monthObj.docs.push(doc);
+
+        return acc;
+    }, {});
+}
+
 function computeRemainderRow(rowsGrouped) {
     const remainder = rowsGrouped
         .reduce((sum, row) => row.id === 'income'
@@ -371,5 +401,6 @@ export {
     computeAmountChf,
     storePosition,
     deletePosition,
+    getSearchData,
     visitOverviewData
 };

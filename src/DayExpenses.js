@@ -23,7 +23,7 @@ function render() {
             </h5>`;
     rows += state.dayExpenses.data.expenses
         .map(e => `
-            <div data-xpns-id="${e._id}" class="d-flex py-1 border-top cursor-pointer xpns-day">
+            <div data-xpns-id="${e._id}" class="d-flex py-1 border-top cursor-pointer xpns-hover">
                 <div class="d-flex overflow-hidden text-nowrap me-auto">
                     ${expensesApp.decorateTags(e.description, l => `<div class="overflow-hidden me-1">${l}</div>`)}
                 </div>
