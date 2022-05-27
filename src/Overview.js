@@ -10,13 +10,14 @@ function render() {
 }
 
 function renderRowTitle(row, containerId) {
+    // FIXME: Prüfen ob bei Bearbeitung immer noch schön gehighlighted wird
     let title = row.title;
     if(row.id && row.category && row.id === row.category) {
         title = `#${title}`;
     }
     return `
-        <span 
-            class="w-100 p-1 text-start btn text-light ${row.ex && row.ex === state.editedPosition.data?._id ? 'btn-secondary active' : ''}" 
+        <span
+            class="w-100 text-start text-light ${row.ex && row.ex === state.editedPosition.data?._id ? 'active' : ''}" 
             data-xpns-id="${row.ex || ''}" 
             data-bs-toggle="collapse" 
             data-bs-target="#${containerId}">
@@ -33,7 +34,7 @@ function renderInnerRow(row, path) {
     const containerId = ['child-items', ...path].join('-');
     result += `<li>${renderRowTitle(row, containerId)}`;
     if(row.childRows.length > 0) {
-        result += `<ul class="collapse ${isExpanded(containerId) ? 'show' : ''}" id="${containerId}">`;
+        result += `<ul class="chevron collapse ${isExpanded(containerId) ? 'show' : ''}" id="${containerId}">`;
         for(const childRow of row.childRows) {
             result += renderInnerRow(childRow, [...path, childRow.id]);
         }
@@ -48,7 +49,7 @@ function renderOverviewRows() {
     for(const rootRow of state.overviewData.data) {
         result += `
             <div class="bg-dark text-light rounded p-2 mt-2">
-                <ul class="m-0">
+                <ul class="chevron m-0">
                     ${renderInnerRow(rootRow, [rootRow.id])}
                 </ul>
             </div>`;

@@ -69,6 +69,35 @@ $utilities: map-merge(
 // Utilities
 @import "../node_modules/bootstrap/scss/utilities/api";
 
+// Icons
+@import "../node_modules/bootstrap-icons/font/bootstrap-icons.scss";
+
+ul.chevron {
+    padding-left: 1rem;
+
+    li {
+        list-style-type: "\f285";
+    }
+    
+    li::before {
+        content: "";
+        margin-right: 0.4rem;
+    }
+    
+    li::marker {
+        font-family: $bootstrap-icons-font !important;
+        font-style: normal;
+        font-weight: normal !important;
+        font-variant: normal;
+        text-transform: none;
+        font-size: 80%;
+        line-height: 1;
+        vertical-align: middle;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+}
+
 .error {
     border-color: red;
 }
