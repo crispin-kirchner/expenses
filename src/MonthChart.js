@@ -15,6 +15,7 @@ import {
     Tooltip
 } from 'chart.js';
 
+import { baseColors } from './colors.js';
 import state from './state.js';
 
 Chart.register(
@@ -34,8 +35,8 @@ function getMonthChart() {
 }
 
 const isInsideGrid = function (e, chart) {
-    return e.y > chart.scales.y.top
-        && e.y < chart.scales.y.bottom
+    return e.y > chart.scales.ySaved.top
+        && e.y < chart.scales.ySaved.bottom
         && e.x > chart.scales.x.left
         && e.x < chart.scales.x.right;
 }
@@ -92,8 +93,8 @@ function onAttach() {
         const xStart = chart.scales.x.getPixelForValue(day - 0.5);
         const xEnd = chart.scales.x.getPixelForValue(day + 0.5);
 
-        const yStart = chart.scales.y.getPixelForValue(chart.scales.y.min);
-        const yEnd = chart.scales.y.getPixelForValue(chart.scales.y.max);
+        const yStart = chart.scales.ySaved.getPixelForValue(chart.scales.ySaved.min);
+        const yEnd = chart.scales.ySaved.getPixelForValue(chart.scales.ySaved.max);
         ctx.fillRect(xStart, yStart, xEnd - xStart, yEnd - yStart);
     }
 
@@ -106,8 +107,9 @@ function onAttach() {
                     type: 'bar',
                     label: 'Ausgaben',
                     data: expensesData,
-                    borderColor: 'rgb(255,193,7)',
-                    backgroundColor: 'rgb(255,193,7,0.2)',
+                    borderColor: `rgb(${baseColors.yellow.rgb})`,
+                    backgroundColor: `rgb(${baseColors.yellow.rgb},0.2)`,
+                    yAxisID: 'ySpent',
                     borderWidth: 1
                 },
                 {
@@ -116,6 +118,7 @@ function onAttach() {
                     data: savedCumulativeData,
                     borderColor: '#0d6efd',
                     backgroundColor: 'transparent',
+                    yAxisID: 'ySaved',
                     pointRadius: 0,
                     pointHoverRadius: 0,
                     pointHitRadius: 10,
@@ -143,9 +146,8 @@ function onAttach() {
                         callback: function (v) { return this.getLabelForValue(v) === '' ? '' : App.renderDay(new Date(this.getLabelForValue(v))); }
                     }
                 },
-                y: {
+                ySaved: {
                     position: 'right',
-                    afterBuildTicks: scale => { scale.ticks = scale.ticks.filter(t => t.value !== 0); },
                     grid: {
                         drawTicks: false
                     },
@@ -154,6 +156,19 @@ function onAttach() {
                         padding: -5,
                         z: 1,
                         showLabelBackdrop: true,
+                        callback: x => App.renderInteger(x)
+                    }
+                },
+                ySpent: {
+                    position: 'left',
+                    grid: {
+                        drawTicks: false,
+                        drawOnChartArea: false
+                    },
+                    ticks: {
+                        mirror: true,
+                        showLabelBackdrop: true,
+                        backdropColor: `rgba(${baseColors.yellow.rgb}, 0.2)`,
                         callback: x => App.renderInteger(x)
                     }
                 }

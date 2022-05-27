@@ -1,53 +1,45 @@
-const baseColors = [
-    {
-        id: 'black',
+const baseColors = {
+    black: {
         name: 'Schwarz',
         class: 'dark',
         rgb: '33,37,41'
     },
-    {
-        id: 'blue',
+    blue: {
         name: 'Blau',
         class: 'primary',
         rgb: '13,110,253'
     },
-    {
-        id: 'gray',
+    gray: {
         name: 'Grau',
         class: 'secondary',
         rgb: '108,117,125'
     },
-    {
-        id: 'turquoise',
+    turquoise: {
         name: 'Türkis',
         class: 'info',
         rgb: '13,202,240'
     },
-    {
-        id: 'yellow',
+    yellow: {
         name: 'Gelb',
         class: 'warning',
         rgb: '255,193,7'
     },
-    {
-        id: 'red',
+    red: {
         name: 'Rot',
         class: 'danger',
         rgb: '220,53,69'
     },
-    {
-        id: 'green',
+    green: {
         name: 'Grün',
         class: 'success',
         rgb: '25,135,84'
     },
-    {
-        id: 'white',
+    white: {
         name: 'Weiss',
         class: 'light',
         rgb: '248,249,250'
     }
-];
+};
 
 const exceptions = [
     'blueGray',
@@ -59,22 +51,22 @@ const exceptions = [
 
 const all = (() => {
     const result = {};
-    for (const bgColor of baseColors) {
-        for (const textColor of baseColors) {
-            if (bgColor.id === textColor.id) {
+    for (const bgColorEntry of Object.entries(baseColors)) {
+        for (const textColorEntry of Object.entries(baseColors)) {
+            if (bgColorEntry[0] === textColorEntry[0]) {
                 continue;
             }
 
-            const id = bgColor.id + textColor.id.charAt(0).toUpperCase() + textColor.id.slice(1);
+            const id = bgColorEntry[0] + textColorEntry[0].charAt(0).toUpperCase() + textColorEntry[0].slice(1);
             if (exceptions.includes(id)) {
                 continue;
             }
 
             result[id] = {
-                name: `${bgColor.name}-${textColor.name}`,
-                classes: ['bg-' + bgColor.class, 'text-' + textColor.class, 'border', 'border-' + textColor.class],
-                foreground: textColor,
-                background: bgColor
+                name: `${bgColorEntry[1].name}-${textColorEntry[1].name}`,
+                classes: ['bg-' + bgColorEntry[1].class, 'text-' + textColorEntry[1].class, 'border', 'border-' + textColorEntry[1].class],
+                foreground: textColorEntry[1],
+                background: bgColorEntry[1]
             };
         }
     }
@@ -96,4 +88,4 @@ function get(colorName) {
     return all[colorName];
 }
 
-export { all, getClasses, get };
+export { all, getClasses, get, baseColors };

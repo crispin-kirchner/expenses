@@ -191,8 +191,8 @@ function renderAppArea() {
   }
 }
 
-function isFormVisible() {
-  return state.form && state.editedPosition.loadState === 'loaded';
+function isPositionFormVisible() {
+  return state.viewMode !== ViewMode.MANAGE_TAGS && state.form && state.editedPosition.loadState === 'loaded';
 }
 
 function render() {
@@ -208,7 +208,7 @@ function render() {
   if (state.viewMode === ViewMode.MONTH_DISPLAY) {
     mainAreaItems[state.monthDisplay].object.onAttach();
   }
-  if (isFormVisible()) {
+  if (isPositionFormVisible()) {
     Form.onAttach();
   }
   Fab.onAttach();
@@ -324,7 +324,7 @@ export {
   getCurrentDayString,
   getLabelByField,
   isDefaultCurrency,
-  isFormVisible,
+  isPositionFormVisible,
   isNewButtonVisible,
   isSubCent,
   removeExpense,

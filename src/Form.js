@@ -380,7 +380,7 @@ function render() {
     if (state.form === FormState.EDIT) {
         positions.refreshEditedPosition();
     }
-    if (!App.isFormVisible()) {
+    if (!App.isPositionFormVisible()) {
         return '';
     }
 
