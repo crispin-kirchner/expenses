@@ -1,5 +1,4 @@
 import './styles.scss';
-import 'bootstrap-icons/font/bootstrap-icons.css';
 import 'bootstrap';
 
 import * as App from './App';

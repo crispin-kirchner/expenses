@@ -69,12 +69,52 @@ $utilities: map-merge(
 // Utilities
 @import "../node_modules/bootstrap/scss/utilities/api";
 
+// Icons
+@import "../node_modules/bootstrap-icons/font/bootstrap-icons.scss";
+
+ul.chevron {
+    padding-left: 1.2rem;
+
+    li {
+        list-style-type: none;
+
+        &>span::before {
+            content: " ";
+            width: 0.5rem;
+            height: 0.5rem;
+            margin-top: -10px;
+            border-top: 2px solid $light;
+            border-right: 2px solid $light;
+            display: inline-block;
+            transform: rotate(135deg) translateY(0);
+            margin-right: 0.4rem;
+            transition: transform 0.2s;
+            transform-origin: 75% 25%;
+        }
+
+        &>span.collapsed::before {
+            transform: rotate(45deg) translateY(0px);
+        }
+
+        &.leaf-entry>span::before {
+            content: "\2022";
+            transform: rotate(0) translateY(0) translateX(4px);
+            border: none;
+        }
+    }
+}
+
+div.bg-dark>ul.chevron>li.leaf-entry>span::before {
+    /* no bullet points for root-level leafs */
+    content: " ";
+}
+
 .error {
     border-color: red;
 }
 
 .currency {
-    width: 1ex;
+    width: 2ex;
     display: inline-block;
 }
 
