@@ -76,26 +76,45 @@ ul.chevron {
     padding-left: 1rem;
 
     li {
-        list-style-type: "\f285";
+        list-style-type: none;
+
+        &>span::before {
+            content: " ";
+            width: 0.5rem;
+            height: 0.5rem;
+            margin-top: -10px;
+            border-top: 2px solid $light;
+            border-right: 2px solid $light;
+            display: inline-block;
+            transform: rotate(135deg) translateY(0);
+            margin-right: 0.4rem;
+            transition: transform 0.2s;
+            transform-origin: 75% 25%;
+        }
+
+        &>span.collapsed::before {
+            transform: rotate(45deg) translateY(0px);
+        }
+
+        &.leaf-entry>span::before {
+            content: "\00B7";
+            transform: rotate(0) translateY(0);
+            border: none;
+        }
     }
     
-    li::before {
-        content: "";
-        margin-right: 0.4rem;
-    }
-    
-    li::marker {
-        font-family: $bootstrap-icons-font !important;
-        font-style: normal;
-        font-weight: normal !important;
-        font-variant: normal;
-        text-transform: none;
-        font-size: 80%;
-        line-height: 1;
-        vertical-align: middle;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-    }
+    // li::marker {
+    //     font-family: $bootstrap-icons-font !important;
+    //     font-style: normal;
+    //     font-weight: normal !important;
+    //     font-variant: normal;
+    //     text-transform: none;
+    //     font-size: 80%;
+    //     line-height: 1;
+    //     vertical-align: middle;
+    //     -webkit-font-smoothing: antialiased;
+    //     -moz-osx-font-smoothing: grayscale;
+    // }
 }
 
 .error {

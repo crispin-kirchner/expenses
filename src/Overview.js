@@ -17,7 +17,7 @@ function renderRowTitle(row, containerId) {
     }
     return `
         <span
-            class="w-100 text-start text-light ${row.ex && row.ex === state.editedPosition.data?._id ? 'active' : ''}" 
+            class="w-100 text-start collapsed text-light ${row.ex && row.ex === state.editedPosition.data?._id ? 'active' : ''}" 
             data-xpns-id="${row.ex || ''}" 
             data-bs-toggle="collapse" 
             data-bs-target="#${containerId}">
@@ -32,7 +32,7 @@ function renderRowTitle(row, containerId) {
 function renderInnerRow(row, path) {
     let result = '';
     const containerId = ['child-items', ...path].join('-');
-    result += `<li>${renderRowTitle(row, containerId)}`;
+    result += `<li class="${row.childRows.length === 0 ? 'leaf-entry' : ''}">${renderRowTitle(row, containerId)}`;
     if(row.childRows.length > 0) {
         result += `<ul class="chevron collapse ${isExpanded(containerId) ? 'show' : ''}" id="${containerId}">`;
         for(const childRow of row.childRows) {
