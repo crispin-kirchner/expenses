@@ -3,6 +3,7 @@ import * as DayExpenses from './DayExpenses.js';
 import * as Fab from './Fab.js';
 import * as Form from './Form.js';
 import * as FormState from './FormState.js';
+import * as LoadState from './LoadState.js';
 import * as ManageTags from './ManageTags.js';
 import * as Migration from './Migration.js';
 import * as MonthChart from './MonthChart.js';
@@ -50,10 +51,10 @@ function setDate(date) {
     return;
   }
   if (!dates.isSameMonth(date, state.date)) {
-    state.daysOfMonth.loadState = 'dirty';
-    state.overviewData.loadState = 'dirty';
+    state.daysOfMonth.loadState = LoadState.DIRTY;
+    state.overviewData.loadState = LoadState.DIRTY;
   }
-  state.dayExpenses.loadState = 'dirty';
+  state.dayExpenses.loadState = LoadState.DIRTY;
   state.date = date;
   render();
 }
@@ -194,13 +195,15 @@ function renderAppArea() {
 }
 
 function isPositionFormVisible() {
-  return state.viewMode !== ViewMode.MANAGE_TAGS && state.form && state.editedPosition.loadState === 'loaded';
+  return state.viewMode !== ViewMode.MANAGE_TAGS && state.form && state.editedPosition.loadState === LoadState.LOADED;
 }
 
-function render() {
+function render(keepNavbar) {
   labels.refresh();
-  getNavbar().innerHTML = Navbar.render();
-  Navbar.onAttach();
+  if (!keepNavbar) {
+    getNavbar().innerHTML = Navbar.render();
+    Navbar.onAttach();
+  }
 
   renderAppArea();
 
@@ -259,20 +262,20 @@ function editExpense(evt) {
 function startNew() {
   state.form = FormState.NEW;
   state.editedPosition.data = positions.prepareCreate();
-  state.editedPosition.loadState = 'loaded';
+  state.editedPosition.loadState = LoadState.LOADED;
   render();
 }
 
 function startEditPosition(id) {
   state.form = FormState.EDIT;
   state.editedPosition.data = { _id: id };
-  state.editedPosition.loadState = 'dirty';
+  state.editedPosition.loadState = LoadState.DIRTY;
   render();
 }
 
 function cancelLineEdit() {
   state.form = null;
-  state.editedPosition.loadState = 'loaded';
+  state.editedPosition.loadState = LoadState.LOADED;
   state.editedPosition.data = null;
   render();
 }
@@ -281,7 +284,7 @@ async function removeExpense() {
   await positions.deletePosition(state.editedPosition.data);
 
   state.form = null;
-  state.editedPosition.loadState = 'loaded';
+  state.editedPosition.loadState = LoadState.LOADED;
   state.editedPosition.data = null;
   render();
 }
@@ -309,7 +312,7 @@ async function onAttach() {
 }
 
 function isNewButtonVisible() {
-  return state.viewMode === ViewMode.MONTH_DISPLAY && state.form !== FormState.NEW;
+  return state.viewMode === ViewMode.MONTH_DISPLAY;
 }
 
 function reverseCompareString(fn) {

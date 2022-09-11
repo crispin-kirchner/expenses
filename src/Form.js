@@ -1,5 +1,6 @@
 import * as App from './App.js';
 import * as FormState from './FormState.js';
+import * as LoadState from './LoadState.js';
 import * as constants from './constants.js';
 import * as currencies from './currencies.js';
 import * as dates from './dates.js';
@@ -347,7 +348,7 @@ async function submit(event) {
     positions.setRecurring(position, getRecurringCheckbox().checked);
 
     state.form = null;
-    state.editedPosition.loadState = 'loaded';
+    state.editedPosition.loadState = LoadState.LOADED;
     state.editedPosition.data = null;
     if (!position.recurring && !dates.isSameDay(state.date, position.date)) {
         App.setDate(position.date);

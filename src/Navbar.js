@@ -5,7 +5,7 @@ import * as constants from './constants.js';
 import * as dates from './dates.js';
 import * as positions from './positions.js';
 
-import state from './state.js';
+import state, { updateSearchString } from './state.js';
 
 const MANAGE_TAGS_BUTTON = 'manage-tags-button';
 const MONTH_DISPLAY_BUTTON = 'month-display-button';
@@ -66,7 +66,7 @@ function renderBrandContent() {
     }
     if (state.viewMode !== ViewMode.MONTH_DISPLAY) {
         let result = `${renderLinkButton(MONTH_DISPLAY_BUTTON, 'bi-arrow-left')}`;
-        if(state.viewMode === ViewMode.MANAGE_TAGS) {
+        if (state.viewMode === ViewMode.MANAGE_TAGS) {
             result += 'Markierungen verwalten';
         }
         return result;
@@ -97,7 +97,7 @@ function renderSyncButton(margin) {
 
 function renderNewButton() {
     return `
-        <button id="${NEW_BUTTON}" class="btn btn-light d-none d-sm-inline-block" type="button" title="Neu">
+        <button id="${NEW_BUTTON}" class="btn btn-light d-none d-sm-inline-block" type="button" title="Neu" ${!!state.form ? 'disabled' : ''}>
             <i class="bi-plus-square"></i><span class="d-none d-sm-inline-block">&nbsp;Neu</span>
         </button>`;
 }
@@ -137,15 +137,16 @@ function onAttach() {
         getNextMonthButton().addEventListener('click', () => App.setDate(dates.incrementMonth(state.date)));
         getManageTagsButton().addEventListener('click', () => App.setViewMode(ViewMode.MANAGE_TAGS));
     }
-    getMonthDisplayButton()?.addEventListener('click', () => App.setViewMode(ViewMode.MONTH_DISPLAY));
+    getMonthDisplayButton()?.addEventListener('click', () => {
+        updateSearchString('');
+        App.setViewMode(ViewMode.MONTH_DISPLAY);
+    });
     getNewButton()?.addEventListener('click', App.startNew);
     getTodayButton()?.addEventListener('click', () => App.setDate(constants.today));
     getSearchButton()?.addEventListener('click', () => App.setViewMode(ViewMode.SEARCH));
     getSearchInput()?.addEventListener('input', async evt => {
-        state.searchString = evt.currentTarget.value;
-        const searchResult = await positions.getSearchData(evt.currentTarget.value);
-        state.searchData = searchResult;
-        App.renderAppArea();
+        updateSearchString(evt.currentTarget.value);
+        positions.refreshSearchData();
     });
     getSearchInput()?.focus();
 }

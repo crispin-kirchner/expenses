@@ -3,7 +3,7 @@ import * as constants from './constants.js';
 import * as db from './db.js';
 import * as positions from './positions.js';
 
-import state, { refreshData } from './state.js'
+import state, { markEverythingDirty, refreshData } from './state.js'
 
 const dimensions = [constants.standardDimension, constants.unspecificDimension];
 
@@ -97,10 +97,7 @@ async function getLabelsAndHierarchy() {
 }
 
 function store(label) {
-    state.labels.loadState = 'dirty';
-    state.dayExpenses.loadState = 'dirty';
-    state.overviewData.loadState = 'dirty';
-    state.daysOfMonth.loadState = 'dirty';
+    markEverythingDirty();
     db.put(label);
 }
 

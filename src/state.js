@@ -1,4 +1,5 @@
 import * as App from './App.js';
+import * as LoadState from './LoadState.js';
 import * as ViewMode from './ViewMode.js';
 
 const state = {
@@ -10,50 +11,58 @@ const state = {
     proposalSelection: false,
     form: null,
     dayExpenses: {
-        loadState: 'dirty',
+        loadState: LoadState.DIRTY,
         data: {
             expenses: [],
             sum: 0
         }
     },
     daysOfMonth: {
-        loadState: 'dirty',
+        loadState: LoadState.DIRTY,
         data: {}
     },
     overviewData: {
-        loadState: 'dirty',
+        loadState: LoadState.DIRTY,
         data: []
     },
     searchString: '',
-    searchData: [],
+    searchData: {
+        loadState: LoadState.DIRTY,
+        data: {}
+    },
     labels: {
-        loadState: 'dirty',
+        loadState: LoadState.DIRTY,
         data: {
             flat: [],
             hierarchy: {}
         }
     },
     editedPosition: {
-        loadState: 'loaded',
+        loadState: LoadState.LOADED,
         data: null
     },
     editedLabelId: null
 };
 
-async function refreshData(dataset, loadFn) {
-    if (state[dataset].loadState === 'dirty') {
-        state[dataset].loadState = 'loading';
+async function refreshData(dataset, loadFn, keepNavbar) {
+    if (state[dataset].loadState === LoadState.DIRTY) {
+        state[dataset].loadState = LoadState.LOADING;
 
         state[dataset].data = await loadFn();
-        state[dataset].loadState = 'loaded';
-        App.render();
+        state[dataset].loadState = LoadState.LOADED;
+        App.render(keepNavbar);
     }
 }
 
 function markEverythingDirty() {
-    ['dayExpenses', 'daysOfMonth', 'overviewData', 'labels']
-        .forEach(ds => state[ds].loadState = 'dirty');
+    ['dayExpenses', 'daysOfMonth', 'overviewData', 'labels', 'searchData']
+        .forEach(ds => state[ds].loadState = LoadState.DIRTY);
+}
+
+function updateSearchString(value) {
+    state.searchString = value;
+    state.searchData.loadState = LoadState.DIRTY;
 }
 
 export default state;
-export { refreshData, markEverythingDirty };
+export { refreshData, markEverythingDirty, updateSearchString };

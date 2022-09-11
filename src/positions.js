@@ -3,7 +3,7 @@ import * as currencies from './currencies.js';
 import * as dates from './dates.js';
 import * as db from './db.js';
 
-import state, { refreshData } from './state.js';
+import state, { markEverythingDirty, refreshData } from './state.js';
 
 import { v4 } from 'uuid';
 
@@ -130,18 +130,12 @@ function positionToDoc(pos) {
 }
 
 function storePosition(pos) {
-    state.labels.loadState = 'dirty';
-    state.dayExpenses.loadState = 'dirty';
-    state.overviewData.loadState = 'dirty';
-    state.daysOfMonth.loadState = 'dirty';
+    markEverythingDirty();
     return db.put(positionToDoc(pos));
 }
 
 function deletePosition(pos) {
-    state.labels.loadState = 'dirty';
-    state.dayExpenses.loadState = 'dirty';
-    state.overviewData.loadState = 'dirty';
-    state.daysOfMonth.loadState = 'dirty';
+    markEverythingDirty();
     return db.remove(positionToDoc(pos));
 }
 
@@ -320,8 +314,12 @@ function getLabel(pos) {
     }
 }
 
-async function getSearchData(searchString) {
-    searchString = searchString.trim();
+function refreshSearchData() {
+    refreshData('searchData', getSearchData, true);
+}
+
+async function getSearchData() {
+    const searchString = state.searchString.trim();
     if (!searchString || searchString.length < 3) {
         return;
     }
@@ -401,6 +399,6 @@ export {
     computeAmountChf,
     storePosition,
     deletePosition,
-    getSearchData,
+    refreshSearchData,
     visitOverviewData
 };

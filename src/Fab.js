@@ -1,5 +1,7 @@
 import * as expensesApp from './App.js';
 
+import state from './state.js';
+
 const FAB_NEW_BUTTON = 'fab-new-button';
 
 function getNewButton() {
@@ -7,7 +9,7 @@ function getNewButton() {
 }
 
 function render() {
-    if (!expensesApp.isNewButtonVisible()) {
+    if (!expensesApp.isNewButtonVisible() || !!state.form) {
         return '';
     }
     return `
