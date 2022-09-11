@@ -1,3 +1,5 @@
+import * as db from './db.js';
+
 const UNSYNCED_DOCUMENTS_KEY = 'unsyncedDocuments';
 
 const unsyncedDocuments = initialize();
@@ -15,6 +17,9 @@ function store() {
 }
 
 function markUnsynced(id) {
+    if (db.isMigrationDb()) {
+        return;
+    }
     unsyncedDocuments.add(id);
     store();
 }

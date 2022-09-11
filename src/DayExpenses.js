@@ -1,4 +1,5 @@
 import * as App from './App.js';
+import * as currencies from './currencies.js';
 import * as positions from './positions.js';
 
 import state from './state.js';
@@ -28,7 +29,7 @@ function render() {
                     ${App.decorateTags(e.description, l => `<div class="overflow-hidden me-1">${l}</div>`)}
                 </div>
                 <div class="pe-1">${renderAmountTd(App.renderFloat(positions.computeMonthlyAmount(e)))}</div>
-                <div class="currency">${App.isDefaultCurrency(e.currency) ? '' : e.currency}</div>
+                <div class="currency">${currencies.isDefault(e.currency) ? '' : currencies.definitions[e.currency].displayName}</div>
             </div>`)
         .join('\n');
     rows += `</div>`;

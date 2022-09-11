@@ -9,28 +9,54 @@ PouchDb.plugin(PouchDbFind);
 
 const databaseName = getDatabaseName();
 const databaseConnectionString = `https://${window.location.hostname}:6984/${databaseName}`;
-const pouchDb = new PouchDb(databaseName);
-pouchDb.sync(databaseConnectionString, {
-    live: true,
-    retry: true
-}).on('change', function (info) {
-    if (info.change.ok && info.direction === 'push') {
-        for (const doc of info.change.docs) {
-            UnsyncedDocuments.markSynced(doc._id);
-        }
-        App.render();
-    }
-    if (info.direction === 'pull' && info.change.pending === 0) {
-        markEverythingDirty();
-        App.render();
-    }
-});
+let migrationDb;
+let pouchDb;
+let descriptionIndexPromise;
 
-const descriptionIndexPromise = pouchDb.createIndex({
-    index: {
-        fields: ['entity', 'recurring', 'description']
+function setupApplicationDb() {
+    const applicationDb = new PouchDb(databaseName);
+    applicationDb.sync(databaseConnectionString, {
+        live: true,
+        retry: true
+    }).on('change', function (info) {
+        if (info.change.ok && info.direction === 'push') {
+            for (const doc of info.change.docs) {
+                UnsyncedDocuments.markSynced(doc._id);
+            }
+            App.render();
+        }
+        if (info.direction === 'pull' && info.change.pending === 0) {
+            markEverythingDirty();
+            App.render();
+        }
+    });
+
+    descriptionIndexPromise = applicationDb.createIndex({
+        index: {
+            fields: ['entity', 'recurring', 'description']
+        }
+    });
+
+    pouchDb = applicationDb;
+}
+
+function setupMigrationDb() {
+    // remove cached data
+    const applicationDb = new PouchDb(databaseName);
+    applicationDb.destroy();
+
+    // direct connection, no caching
+    migrationDb = new PouchDb(databaseConnectionString);
+    pouchDb = migrationDb;
+}
+
+function teardownMigrationDb() {
+    if (!migrationDb) {
+        return;
     }
-});
+    migrationDb = null;
+    pouchDb = null;
+}
 
 async function queryDescription(query) {
     await descriptionIndexPromise;
@@ -63,6 +89,10 @@ function addMany(documents) {
     return Promise.all(promises);
 }
 
+function isMigrationDb() {
+    return !!pouchDb && migrationDb === pouchDb;
+}
+
 function put(document) {
     UnsyncedDocuments.markUnsynced(document._id);
     return pouchDb.put(document);
@@ -74,7 +104,8 @@ function remove(document) {
 }
 
 async function getAllDocuments(entity) {
-    const allDocs = await pouchDb.allDocs({ include_docs: true });
+    const options = { include_docs: true };
+    const allDocs = await pouchDb.allDocs(options);
     return allDocs.rows
         .map(r => r.doc)
         .filter(d => d.entity === entity)
@@ -85,4 +116,4 @@ async function getDocument(entity, id) {
     return doc.entity === entity ? doc : null;
 }
 
-export { isEmpty, addMany, getAllDocuments, getDocument, put, remove, queryDescription };
+export { isEmpty, isMigrationDb, addMany, getAllDocuments, getDocument, put, remove, setupApplicationDb, setupMigrationDb, teardownMigrationDb, queryDescription };

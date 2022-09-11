@@ -1,3 +1,5 @@
+import * as currencies from './currencies.js';
+
 import { Chart } from 'chart.js';
 
 const preferredLocale = 'de-CH';
@@ -12,7 +14,7 @@ const bigNumberFormat = new Intl.NumberFormat([preferredLocale], { useGrouping: 
 const decimalRegex = /^([0-9]+\.?[0-9]*|\.[0-9]+)$/;
 const integerRegex = /^([0-9]+)$/;
 const labelRegex = /#(\p{Letter}+)\b/ug;
-const DEFAULT_CURRENCY = 'CHF';
+const DEFAULT_CURRENCY = currencies.CHF;
 const defaultExchangeRate = '1.00000';
 const defaultLabelColor = 'grayWhite';
 const unspecificDimension = 'Andere';

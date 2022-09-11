@@ -1,6 +1,7 @@
 import * as App from './App.js';
 import * as FormState from './FormState.js';
 import * as constants from './constants.js';
+import * as currencies from './currencies.js';
 import * as dates from './dates.js';
 import * as positions from './positions.js';
 
@@ -100,7 +101,7 @@ function refreshFormView() {
         .forEach(f => setVisible(f, getRecurringCheckbox().checked));
 
     setVisible(getDateInput(), !getRecurringCheckbox().checked);
-    setVisible(document.getElementById('form-line2'), !App.isDefaultCurrency(getCurrencySelect().value));
+    setVisible(document.getElementById('form-line2'), !currencies.isDefault(getCurrencySelect().value));
 
     getDescriptionLabel().textContent = getDescriptionLabelText();
     getDescriptionInput().placeholder = getDescriptionLabelText();
@@ -130,7 +131,7 @@ function handleTypeChanged() {
 
 async function handleCurrencyChanged() {
     let exchangeRate = constants.defaultExchangeRate;
-    if (!App.isDefaultCurrency(getCurrencySelect().value)) {
+    if (!currencies.isDefault(getCurrencySelect().value)) {
         const referenceDate = new Date(getDateInput().value !== '' ? getDateInput().value : App.getCurrentDayString());
         exchangeRate = (await getLastExchangeRate(getCurrencySelect().value, referenceDate)) || exchangeRate;
         getExchangeRateInput().value = exchangeRate;
@@ -385,8 +386,7 @@ function render() {
     }
 
     const position = state.editedPosition.data;
-    const currencies = ['CHF', '€'];
-    const defaultCurrency = position ? App.isDefaultCurrency(position.currency) : true;
+    const isDefaultCurrency = position ? currencies.isDefault(position.currency) : true;
 
     const typeOptions = Object.entries(PositionType)
         .map(t => `
@@ -421,7 +421,7 @@ function render() {
                         </div>
                         <div class="col-4 form-floating">
                             <select id="currency-input" class="form-select" required>
-                                ${currencies.map(c => `<option value="${c}" ${c === position?.currency ? 'selected' : ''}>${c}</option>`)}
+                                ${Object.values(currencies.definitions).map(c => `<option value="${c.id}" ${c.id === position?.currency ? 'selected' : ''}>${c.isoCode}</option>`)}
                             </select>
                             <label for="currency-input">Währung</label>
                         </div>
@@ -430,8 +430,8 @@ function render() {
                         <span class="input-group-text">Wechselkurs</span>
                         <input class="form-control text-end" id="exchange-rate" inputmode="numeric" value="${position ? position.exchangeRate : constants.defaultExchangeRate}" />
                         <span class="input-group-text">
-                            <span id="computed-chf-value">${defaultCurrency ? '0.00' : App.renderFloat(positions.computeAmountChf(position))}</span>
-                            <span>&nbsp;${constants.DEFAULT_CURRENCY}</span>
+                            <span id="computed-chf-value">${isDefaultCurrency ? '0.00' : App.renderFloat(positions.computeAmountChf(position))}</span>
+                            <span>&nbsp;${currencies.getDefault().displayName}</span>
                         </span>
                     </div>
                     <div id="description-container" class="bg-white">

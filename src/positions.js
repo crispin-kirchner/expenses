@@ -1,5 +1,5 @@
-import * as App from './App.js';
 import * as constants from './constants.js';
+import * as currencies from './currencies.js';
 import * as dates from './dates.js';
 import * as db from './db.js';
 
@@ -61,7 +61,7 @@ function computeMonthlyAmountChf(pos) {
 }
 
 function computeAmountChf(pos) {
-    if (App.isDefaultCurrency(pos.currency)) {
+    if (currencies.isDefault(pos.currency)) {
         return parseFloat(pos.amount);
     }
     return parseFloat(pos.exchangeRate) * parseFloat(pos.amount);

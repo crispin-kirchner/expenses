@@ -4,6 +4,7 @@ import * as Fab from './Fab.js';
 import * as Form from './Form.js';
 import * as FormState from './FormState.js';
 import * as ManageTags from './ManageTags.js';
+import * as Migration from './Migration.js';
 import * as MonthChart from './MonthChart.js';
 import * as Navbar from './Navbar.js';
 import * as Overview from './Overview.js';
@@ -11,6 +12,7 @@ import * as SearchResults from './SearchResults.js';
 import * as ViewMode from './ViewMode.js';
 import * as constants from './constants.js';
 import * as dates from './dates.js';
+import * as db from './db.js';
 import * as labels from './labels.js';
 import * as positions from './positions.js';
 
@@ -179,7 +181,7 @@ function renderAppArea() {
   } else if (state.viewMode === ViewMode.SEARCH) {
     appArea = SearchResults.render();
   }
-  if(state.viewMode !== ViewMode.MANAGE_TAGS) {
+  if (state.viewMode !== ViewMode.MANAGE_TAGS) {
     appArea += Form.render();
   }
   appArea += Fab.render();
@@ -244,10 +246,6 @@ function removeExpandedPath(path) {
   });
 }
 
-function isDefaultCurrency(currency) {
-  return currency === constants.DEFAULT_CURRENCY;
-}
-
 function isSubCent(amount) {
   return amount < constants.SUB_CENT;
 }
@@ -304,6 +302,9 @@ async function onAttach() {
     document.title += ' *** DEV ***';
   }
 
+  await Migration.migrate();
+  db.setupApplicationDb();
+
   render();
 }
 
@@ -312,7 +313,7 @@ function isNewButtonVisible() {
 }
 
 function reverseCompareString(fn) {
-  if(fn) {
+  if (fn) {
     return (a, b) => fn(b).localeCompare(fn(a));
   }
   return (a, b) => b.localeCompare(a);
@@ -323,7 +324,6 @@ export {
   decorateTags,
   getCurrentDayString,
   getLabelByField,
-  isDefaultCurrency,
   isPositionFormVisible,
   isNewButtonVisible,
   isSubCent,

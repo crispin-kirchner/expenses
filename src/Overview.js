@@ -1,5 +1,6 @@
 import * as App from './App.js';
 import * as OverviewTreemap from './OverviewTreemap.js';
+import * as currencies from './currencies.js';
 import * as positions from './positions.js';
 
 import state from './state';
@@ -11,7 +12,7 @@ function render() {
 
 function renderRowTitle(row, containerId) {
     let title = row.title;
-    if(row.id && row.category && row.id === row.category) {
+    if (row.id && row.category && row.id === row.category) {
         title = `#${title}`;
     }
     return `
@@ -23,7 +24,7 @@ function renderRowTitle(row, containerId) {
                 ${App.decorateTags(title)}
                 <span class="float-end">
                     <span>${App.isSubCent(row.amount) ? '' : App.renderFloat(row.amount)}</span>
-                    <span class="currency">${App.isDefaultCurrency(row.currency) ? '' : row.currency}</span>
+                    <span class="currency">${currencies.isDefault(row.currency) ? '' : currencies.definitions[row.currency].displayName}</span>
                 </span>
         </span>`;
 }
@@ -32,9 +33,9 @@ function renderInnerRow(row, path) {
     let result = '';
     const containerId = ['child-items', ...path].join('-');
     result += `<li>${renderRowTitle(row, containerId)}`;
-    if(row.childRows.length > 0) {
+    if (row.childRows.length > 0) {
         result += `<ul class="collapse ${isExpanded(containerId) ? 'show' : ''}" id="${containerId}">`;
-        for(const childRow of row.childRows) {
+        for (const childRow of row.childRows) {
             result += renderInnerRow(childRow, [...path, childRow.id]);
         }
         result += '</ul>';
@@ -45,7 +46,7 @@ function renderInnerRow(row, path) {
 
 function renderOverviewRows() {
     let result = '';
-    for(const rootRow of state.overviewData.data) {
+    for (const rootRow of state.overviewData.data) {
         result += `
             <div class="bg-dark text-light rounded p-2 mt-2">
                 <ul class="m-0">

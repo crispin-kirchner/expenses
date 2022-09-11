@@ -203,7 +203,7 @@ function onAttach() {
                 tooltip: {
                     displayColors: false,
                     callbacks: {
-                        label: ctx => `${ctx.dataset.label}: ${constants.DEFAULT_CURRENCY} ${App.renderFloat(ctx.dataset.data[ctx.dataIndex])}`,
+                        label: ctx => `${ctx.dataset.label}: ${App.renderFloat(ctx.dataset.data[ctx.dataIndex])}`,
                         title: ctx => ctx.map(c => App.renderDayHeading(new Date(c.label)))
                     }
                 }
