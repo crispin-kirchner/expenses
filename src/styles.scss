@@ -78,33 +78,34 @@ ul.chevron {
     li {
         list-style-type: none;
 
-        &>span::before {
+        &>div::before {
             content: " ";
             width: 0.5rem;
             height: 0.5rem;
-            margin-top: -10px;
+            margin-top: 10px;
             border-top: 2px solid $light;
             border-right: 2px solid $light;
             display: inline-block;
             transform: rotate(135deg) translateY(0);
-            margin-right: 0.4rem;
+            margin-right: 0.7rem;
             transition: transform 0.2s;
             transform-origin: 75% 25%;
         }
 
-        &>span.collapsed::before {
+        &>div.collapsed::before {
             transform: rotate(45deg) translateY(0px);
         }
 
-        &.leaf-entry>span::before {
+        &.leaf-entry>div::before {
             content: "\2022";
+            margin-top: 0;
             transform: rotate(0) translateY(0) translateX(4px);
             border: none;
         }
     }
 }
 
-div.bg-dark>ul.chevron>li.leaf-entry>span::before {
+div.bg-dark>ul.chevron>li.leaf-entry>div::before {
     /* no bullet points for root-level leafs */
     content: " ";
 }

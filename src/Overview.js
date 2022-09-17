@@ -15,18 +15,14 @@ function renderRowTitle(row, containerId) {
     if (row.id && row.category && row.id === row.category) {
         title = `#${title}`;
     }
-    return `
-        <span
-            class="w-100 p-1 text-start btn ${isExpanded(containerId) ? '' : 'collapsed'} text-light ${row.ex && row.ex === state.editedPosition.data?._id ? 'btn-secondary active' : ''}" 
-            data-xpns-id="${row.ex || ''}" 
-            data-bs-toggle="collapse" 
-            data-bs-target="#${containerId}">
-                ${App.decorateTags(title)}
-                <span class="float-end">
-                    <span>${App.isSubCent(row.amount) ? '' : App.renderFloat(row.amount)}</span>
-                    <span class="currency">${currencies.isDefault(row.currency) ? '' : currencies.definitions[row.currency].displayName}</span>
-                </span>
-        </span>`;
+    const fakePos = {
+        _id: row.ex || '',
+        description: title,
+        currency: row.currency,
+        recurring: false,
+        amount: row.amount
+    };
+    return App.renderPositionRow(fakePos, null, `p-1 btn ${isExpanded(containerId) ? '' : 'collapsed'} text-light ${row.ex && row.ex === state.editedPosition.data?._id ? 'btn-secondary active' : ''}`, `data-bs-toggle="collapse" data-bs-target="#${containerId}"`);
 }
 
 function renderInnerRow(row, path) {

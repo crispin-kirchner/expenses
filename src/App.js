@@ -105,13 +105,14 @@ function renderHeading(level, label, amount) {
     </${level}>`;
 }
 
-function renderPositionRow(pos, labelFormatter) {
+function renderPositionRow(pos, labelFormatter, classes, attributes) {
+  classes = classes || 'py-1 border-top xpns-hover';
   let label = decorateTags(pos.description, l => `<div class="overflow-hidden me-1">${l}</div>`);
   if (labelFormatter) {
     label = labelFormatter(label);
   }
   return `
-    <div data-xpns-id="${pos._id}" class="d-flex py-1 border-top cursor-pointer xpns-hover">
+    <div data-xpns-id="${pos._id}" class="d-flex cursor-pointer ${classes || ''}" ${attributes || ''}>
         <div class="d-flex overflow-hidden text-nowrap me-auto">
             ${label}
         </div>
