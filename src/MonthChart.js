@@ -203,7 +203,7 @@ function onAttach() {
                     displayColors: false,
                     callbacks: {
                         label: ctx => `${ctx.dataset.label}: ${App.renderFloat(ctx.dataset.data[ctx.dataIndex])}`,
-                        title: ctx => ctx.map(c => App.renderDayHeading(new Date(c.label)))
+                        title: ctx => ctx.map(c => App.renderDayHeadingDate(new Date(c.label)))
                     }
                 }
             }

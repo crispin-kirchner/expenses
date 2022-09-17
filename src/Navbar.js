@@ -80,14 +80,14 @@ function renderTodayButton() {
     return renderLinkButton(TODAY_BUTTON, 'bi-calendar-date-fill');
 }
 
-function renderSyncButton(margin) {
+function renderSyncButton() {
     const unsyncedDocumentsCount = UnsyncedDocuments.count();
     if (unsyncedDocumentsCount === 0) {
         return '';
     }
 
     return `
-        <button type="button" id="${SYNC_BUTTON}" class="btn text-light position-relative ${margin ? margin : ''}">
+        <button type="button" id="${SYNC_BUTTON}" class="btn text-light position-relative">
             <i class="bi-arrow-repeat"></i>
             <span class="position-absolute top-0 end-0 badge rounded-pill bg-danger" style="--bs-bg-opacity: .8;">
                 ${unsyncedDocumentsCount}
@@ -124,7 +124,7 @@ function render() {
             <form class="d-flex ${inSearch ? 'flex-grow-1' : ''}" autocomplete="off">
                 ${inSearch ? renderSearchInput() : ''}
                 ${state.viewMode === ViewMode.MONTH_DISPLAY ? renderTodayButton() : ''}
-                ${renderSyncButton(!inManageTags ? 'me-3' : '')}
+                ${renderSyncButton()}
                 ${!inManageTags ? renderSearchButton() : ''}
                 ${App.isNewButtonVisible() ? renderNewButton() : ''}
             </form>

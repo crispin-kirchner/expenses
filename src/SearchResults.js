@@ -11,29 +11,19 @@ function render() {
         const years = Object.keys(state.searchData.data).sort(App.reverseCompareString());
         for (const year of years) {
             const yearObj = state.searchData.data[year];
-            html += `
-                <h4 class="d-flex">
-                    <span class="me-auto">${year}</span>
-                    <span>${App.renderFloat(yearObj.total)}</span>
-                </h4>`;
+            html += App.renderHeading('h4', year, yearObj.total);
+            html += '<div class="mb-2">';
             const months = Object.keys(yearObj.months).sort(App.reverseCompareString());
             for (const month of months) {
                 const monthObj = yearObj.months[month];
-                html += `
-                    <h5 class="d-flex">
-                        <span class="me-auto">${constants.monthOnlyFormat.format(new Date(`${year}-${month}`))}</span>
-                        <span>${App.renderFloat(monthObj.total)}</span>
-                    </h5>
-                    <div class="mb-1">`;
+                html += App.renderHeading('h5', constants.monthOnlyFormat.format(new Date(`${year}-${month}`)), monthObj.total);
+                html += '<div class="mb-1">';
                 for (const position of monthObj.docs.sort(App.reverseCompareString(d => d.date))) {
-                    html += `
-                        <div class="d-flex cursor-pointer xpns-hover border-top py-1 ${position._id === state.editedPosition.data?._id ? 'active' : ''}" data-xpns-id="${position._id || ''}">
-                            <span class="me-auto">${constants.daySearchResultFormat.format(new Date(position.date))} ${App.decorateTags(position.description)}</span>
-                            <span>${App.renderFloat(position.amount)}</span>
-                        </div>`;
+                    html += App.renderPositionRow(position, l => constants.daySearchResultFormat.format(new Date(position.date)) + '&nbsp;' + l);
                 }
                 html += '</div>';
             }
+            html += '</div>';
         }
     }
     return html + '</div>';

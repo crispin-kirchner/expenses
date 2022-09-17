@@ -12,6 +12,7 @@ import * as Overview from './Overview.js';
 import * as SearchResults from './SearchResults.js';
 import * as ViewMode from './ViewMode.js';
 import * as constants from './constants.js';
+import * as currencies from './currencies.js';
 import * as dates from './dates.js';
 import * as db from './db.js';
 import * as labels from './labels.js';
@@ -91,7 +92,35 @@ function renderDay(date) {
   return constants.dayFormat.format(date);
 }
 
-function renderDayHeading(date) {
+function renderHeading(level, label, amount) {
+  return `
+    <${level} class="d-flex">
+        <span class="me-auto">
+            ${label}
+        </span>
+        <span>
+            ${isSubCent(amount) ? '' : renderFloat(amount)}
+        </span>
+        <span class="currency"></span>
+    </${level}>`;
+}
+
+function renderPositionRow(pos, labelFormatter) {
+  let label = decorateTags(pos.description, l => `<div class="overflow-hidden me-1">${l}</div>`);
+  if (labelFormatter) {
+    label = labelFormatter(label);
+  }
+  return `
+    <div data-xpns-id="${pos._id}" class="d-flex py-1 border-top cursor-pointer xpns-hover">
+        <div class="d-flex overflow-hidden text-nowrap me-auto">
+            ${label}
+        </div>
+        <div class="pe-1 text-end">${renderFloat(positions.computeMonthlyAmount(pos))}</div>
+        <div class="currency">${currencies.isDefault(pos.currency) ? '' : currencies.definitions[pos.currency].displayName}</div>
+    </div>`;
+}
+
+function renderDayHeadingDate(date) {
   return constants.dayHeadingFormat.format(date);
 }
 
@@ -334,9 +363,11 @@ export {
   render,
   renderAppArea,
   renderDay,
-  renderDayHeading,
+  renderHeading,
+  renderDayHeadingDate,
   renderFloat,
   renderInteger,
+  renderPositionRow,
   reverseCompareString,
   setDate,
   setMonthDisplay,
