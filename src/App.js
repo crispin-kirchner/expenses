@@ -20,6 +20,7 @@ import * as positions from './positions.js';
 
 import ExpensesError from './ExpensesError.js';
 import state from './state.js';
+import t from './texts.js';
 
 document.onkeydown = e => {
   if (e.key === 'Enter') {
@@ -122,7 +123,7 @@ function renderPositionRow(pos, labelFormatter, classes, attributes) {
 }
 
 function renderDayHeadingDate(date) {
-  return constants.dayHeadingFormat.format(date);
+  return capitalizeFirstLetter(constants.dayHeadingFormat.format(date));
 }
 
 function decorateTags(text, wrapperFunction) {
@@ -163,17 +164,17 @@ function setViewMode(viewMode) {
 const mainAreaItems = {
   overview: {
     icon: 'columns',
-    name: 'Übersicht',
+    name: t('Overview'),
     object: Overview
   },
   calendar: {
     icon: 'calendar3',
-    name: 'Kalender',
+    name: t('Calendar'),
     object: Calendar
   },
   chart: {
     icon: 'graph-up',
-    name: 'Diagramm',
+    name: t('Chart'),
     object: MonthChart
   }
 };
@@ -331,9 +332,11 @@ window.onerror = (msg, url, lineNo, columnNo, error) => {
 async function onAttach() {
   window.setMonthDisplay = setMonthDisplay;
 
+  let title = t('Expenses');
   if (process.env.NODE_ENV === 'development') {
-    document.title += ' *** DEV ***';
+    title += ' *** DEV ***';
   }
+  document.title = title;
 
   await Migration.migrate();
   db.setupApplicationDb();
@@ -352,8 +355,13 @@ function reverseCompareString(fn) {
   return (a, b) => b.localeCompare(a);
 }
 
+function capitalizeFirstLetter(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 export {
   cancelLineEdit,
+  capitalizeFirstLetter,
   decorateTags,
   getCurrentDayString,
   getLabelByField,

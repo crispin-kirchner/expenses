@@ -7,6 +7,8 @@ import * as positions from './positions.js';
 
 import state, { updateSearchString } from './state.js';
 
+import t from './texts.js';
+
 const MANAGE_TAGS_BUTTON = 'manage-tags-button';
 const MONTH_DISPLAY_BUTTON = 'month-display-button';
 const NEXT_MONTH_BUTTON = 'next-month-button';
@@ -59,15 +61,15 @@ function renderLinkButton(id, icon, title) {
 function renderBrandContent() {
     if (state.viewMode === ViewMode.MONTH_DISPLAY) {
         return `
-            ${renderLinkButton(MANAGE_TAGS_BUTTON, 'bi-tags-fill', 'Tags bearbeiten')}
+            ${renderLinkButton(MANAGE_TAGS_BUTTON, 'bi-tags-fill', t('EditTags'))}
             ${renderLinkButton(PREVIOUS_MONTH_BUTTON, 'bi-chevron-left')}
             ${renderLinkButton(NEXT_MONTH_BUTTON, 'bi-chevron-right')}
-            ${constants.monthFormat.format(state.date)}`;
+            ${App.capitalizeFirstLetter(constants.monthFormat.format(state.date))}`;
     }
     if (state.viewMode !== ViewMode.MONTH_DISPLAY) {
         let result = `${renderLinkButton(MONTH_DISPLAY_BUTTON, 'bi-arrow-left')}`;
         if (state.viewMode === ViewMode.MANAGE_TAGS) {
-            result += 'Markierungen verwalten';
+            result += t('EditTags');
         }
         return result;
     }
@@ -77,7 +79,7 @@ function renderTodayButton() {
     if (dates.isSameDay(constants.today, state.date)) {
         return '';
     }
-    return renderLinkButton(TODAY_BUTTON, 'bi-calendar-date-fill');
+    return renderLinkButton(TODAY_BUTTON, 'bi-calendar-date-fill', t('Today'));
 }
 
 function renderSyncButton() {
@@ -97,20 +99,20 @@ function renderSyncButton() {
 
 function renderNewButton() {
     return `
-        <button id="${NEW_BUTTON}" class="btn btn-light d-none d-sm-inline-block" type="button" title="Neu" ${!!state.form ? 'disabled' : ''}>
-            <i class="bi-plus-square"></i><span class="d-none d-sm-inline-block">&nbsp;Neu</span>
+        <button id="${NEW_BUTTON}" class="btn btn-light d-none d-sm-inline-block" type="button" title="${t('New')}" ${!!state.form ? 'disabled' : ''}>
+            <i class="bi-plus-square"></i><span class="d-none d-sm-inline-block">&nbsp;${t('New')}</span>
         </button>`;
 }
 
 function renderSearchButton() {
     return `
-        <button type="button" id="${SEARCH_BUTTON}" class="btn text-light" ${state.viewMode === ViewMode.SEARCH ? 'disabled' : ''}>
+        <button type="button" id="${SEARCH_BUTTON}" class="btn text-light" title="${t('Search')}" ${state.viewMode === ViewMode.SEARCH ? 'disabled' : ''}>
             <i class="bi-search"></i>
         </button>`;
 }
 
 function renderSearchInput() {
-    return `<input type="text" id="search-input" class="form-control" placeholder="Suche" value="${state.searchString}">`;
+    return `<input type="text" id="search-input" class="form-control" placeholder="${t('Search')}" value="${state.searchString}">`;
 }
 
 function render() {

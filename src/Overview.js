@@ -1,6 +1,5 @@
 import * as App from './App.js';
 import * as OverviewTreemap from './OverviewTreemap.js';
-import * as currencies from './currencies.js';
 import * as positions from './positions.js';
 
 import state from './state';

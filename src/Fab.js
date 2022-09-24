@@ -1,6 +1,7 @@
 import * as expensesApp from './App.js';
 
 import state from './state.js';
+import t from './texts.js';
 
 const FAB_NEW_BUTTON = 'fab-new-button';
 
@@ -13,10 +14,10 @@ function render() {
         return '';
     }
     return `
-        <div class="position-fixed pb-2 px-2 bottom-0 d-sm-none">
-            <button type="button" id="${FAB_NEW_BUTTON}" class="btn btn-primary w-100">
+        <div class="position-fixed pb-2 px-2 bottom-0 d-sm-none d-flex justify-content-end">
+            <button type="button" id="${FAB_NEW_BUTTON}" class="btn btn-primary">
                 <i class="bi-plus-square"></i>
-                Ausgabe hinzufügen
+                ${t('New')}
             </button>
         </div>`;
 }

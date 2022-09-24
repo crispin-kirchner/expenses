@@ -8,6 +8,7 @@ import * as positions from './positions.js';
 
 import ExpensesError from './ExpensesError.js';
 import state from './state.js';
+import t from './texts.js';
 
 function getAmountInput() {
     return document.getElementById('amount');
@@ -301,8 +302,8 @@ function validateForm() {
     if (emptyFields.length > 0) {
         let fieldNames = emptyFields
             .map(f => App.getLabelByField(f.id).textContent)
-            .join(' und ');
-        throw new ExpensesError(`Bitte ${fieldNames} ausfüllen`, emptyFields);
+            .join(` ${t('and')} `);
+        throw new ExpensesError(t('PleaseFillX', fieldNames), emptyFields);
     }
 }
 
@@ -362,20 +363,22 @@ async function submit(event) {
 
 const PositionType = {
     expense: {
-        text: 'Ausgabe',
+        text: t('Expense'),
+        thisText: t('ThisExpense'),
         default: true,
-        benefactor: 'Empfänger:in'
+        benefactor: t('Beneficiary')
     },
     income: {
-        text: 'Einnahme',
+        text: t('Earning'),
+        thisText: t('ThisEarning'),
         default: false,
-        benefactor: 'Zahler:in'
+        benefactor: t('Payer')
     }
 };
 
 function getDescriptionLabelText() {
     const type = getTypeSelect()?.value || Object.entries(PositionType).find(e => e[1].default)[0];
-    return PositionType[type].benefactor + '/Beschreibung';
+    return `${PositionType[type].benefactor}/${t('Description')}`;
 }
 
 function render() {
@@ -399,36 +402,36 @@ function render() {
     let form = `
           <div class="col-lg-4 position-absolute end-0 bg-white pt-3 pt-lg-0 mt-lg-content h-100 z-top">
               <form id="expense-form" autocomplete="off" novalidate>
-                  <div class="d-flex align-items-center mb-2">
+                  <div class="d-flex align-items-baseline mb-2">
                     <button id="close-button" class="btn" type="button" aria-label="Close"><i class="bi bi-arrow-left"></i></button>
-                    <h4 class="me-auto lh-1 mb-0">${state.form === FormState.EDIT ? 'Bearbeiten' : 'Neu'}</h4>
-                    ${state.form === FormState.EDIT ? `<button id="delete-button" class="btn btn-outline-danger" type="button" title="Löschen"><i class="bi-trash"></i> <span class="d-lg-none d-xxl-inline-block">Löschen</span></button>` : ''}
-                    <button class="btn btn-primary ms-2" type="submit" title="${state.form === FormState.EDIT ? 'Speichern' : 'Hinzufügen'}">
+                    <h4 class="me-auto lh-1 mb-0">${state.form === FormState.EDIT ? t('Edit') : t('New')}</h4>
+                    ${state.form === FormState.EDIT ? `<button id="delete-button" class="btn btn-outline-danger" type="button" title="${t('Delete')}"><i class="bi-trash"></i> <span class="d-lg-none d-xxl-inline-block">${t('Delete')}</span></button>` : ''}
+                    <button class="btn btn-primary ms-2" type="submit" title="${t('Save')}">
                         <i class="bi-check-circle"></i>
-                        <span class="${state.form === FormState.EDIT ? 'd-lg-none d-xxl-inline-block' : ''}">${state.form === FormState.EDIT ? 'Speichern' : 'Hinzufügen'}</span>
+                        <span class="${state.form === FormState.EDIT ? 'd-lg-none d-xxl-inline-block' : ''}">${t('Save')}</span>
                     </button>
                   </div>
                   <div id="controls-container">
                     <div class="form-floating mb-3">
-                        <select id="type-select" class="form-select" placeholder="Typ">
+                        <select id="type-select" class="form-select" placeholder="${t('Type')}">
                             ${typeOptions}
                         </select>
-                        <label for="type-select">Typ</label>
+                        <label for="type-select">${t('Type')}</label>
                     </div>
                     <div class="row g-2">
                         <div class="col-8 form-floating">
-                            <input id="amount" class="form-control text-end" placeholder="Betrag" inputmode="numeric" value="${position ? position.amount : ''}" />
-                            <label for="amount">Betrag</label>
+                            <input id="amount" class="form-control text-end" placeholder="${t('Amount')}" inputmode="numeric" value="${position ? position.amount : ''}" />
+                            <label for="amount">${t('Amount')}</label>
                         </div>
                         <div class="col-4 form-floating">
                             <select id="currency-input" class="form-select" required>
                                 ${Object.values(currencies.definitions).map(c => `<option value="${c.id}" ${c.id === position?.currency ? 'selected' : ''}>${c.isoCode}</option>`)}
                             </select>
-                            <label for="currency-input">Währung</label>
+                            <label for="currency-input">${t('Currency')}</label>
                         </div>
                     </div>
                     <div id="form-line2" class="input-group mt-2">
-                        <span class="input-group-text">Wechselkurs</span>
+                        <span class="input-group-text">${t('ExchangeRate')}</span>
                         <input class="form-control text-end" id="exchange-rate" inputmode="numeric" value="${position ? position.exchangeRate : constants.defaultExchangeRate}" />
                         <span class="input-group-text">
                             <span id="computed-chf-value">${isDefaultCurrency ? '0.00' : App.renderFloat(positions.computeAmountChf(position))}</span>
@@ -447,19 +450,19 @@ function render() {
                     </div>
                     <div class="form-floating">
                         <input id="date-input" class="form-control" type="date" value="${position.date ? dates.toYmd(position.date) : ''}" />
-                        <label for="date-input">Datum</label>
+                        <label for="date-input">${t('Date')}</label>
                     </div>
                     <div class="form-check form-switch mt-4">
                         <input id="recurring-checkbox" class="form-check-input" type="checkbox" ${position?.recurring ? 'checked' : ''} />
-                        <label for="recurring-checkbox" class="form-check-label">Wiederkehrend</label>
+                        <label for="recurring-checkbox" class="form-check-label">${t('Recurring')}</label>
                     </div>
                     <div>
                         <input id="recurring-frequency" type="number" class="text-end" size="2" maxlength="2" inputmode="numeric" value="${position?.recurring ? position.recurrenceFrequency : '1'}" /><span id="recurring-frequency-sep">-</span>
-                        <input id="recurring-monthly" name="recurring-periodicity" type="radio" ${!position?.recurring || position.recurrencePeriodicity === 'monthly' ? 'checked' : ''} /><label for="recurring-monthly">Monatlich</label>
-                        <input id="recurring-yearly" name="recurring-periodicity" type="radio" ${position?.recurrencePeriodicity === 'yearly' ? 'checked' : ''} /><label for="recurring-yearly">Jährlich</label>
+                        <input id="recurring-monthly" name="recurring-periodicity" type="radio" ${!position?.recurring || position.recurrencePeriodicity === 'monthly' ? 'checked' : ''} /><label for="recurring-monthly">${t('Monthly')}</label>
+                        <input id="recurring-yearly" name="recurring-periodicity" type="radio" ${position?.recurrencePeriodicity === 'yearly' ? 'checked' : ''} /><label for="recurring-yearly">${t('Yearly')}</label>
                     </div>
                     <div id="recurring-fromto">
-                        <label for="recurring-from">Start</label><label id="recurring-fromto-label-sep">/</label><label for="recurring-to">Ende</label>
+                        <label for="recurring-from">${t('Start')}</label><label id="recurring-fromto-label-sep">/</label><label for="recurring-to">${t('End')}</label>
                         <input id="recurring-from" type="date" value="${position?.recurring ? dates.toYmd(position.recurrenceFrom) : ''}" />
                         <input id="recurring-to" type="date" value="${position?.recurrenceTo ? dates.toYmd(position.recurrenceTo) : ''}" />
                     </div>
@@ -471,7 +474,7 @@ function render() {
 }
 
 function deletePosition() {
-    if (window.confirm(`Bist du sicher, dass du diese ${PositionType[getTypeSelect().value].text} löschen möchtest?`)) {
+    if (window.confirm(t('DeleteConfirmation', PositionType[getTypeSelect().value].thisText))) {
         App.removeExpense(state.editedPosition.data._id);
     }
 }

@@ -1,41 +1,43 @@
+import t from "./texts";
+
 const baseColors = {
     black: {
-        name: 'Schwarz',
+        name: t('Black'),
         class: 'dark',
         rgb: '33,37,41'
     },
     blue: {
-        name: 'Blau',
+        name: t('Blue'),
         class: 'primary',
         rgb: '13,110,253'
     },
     gray: {
-        name: 'Grau',
+        name: t('Gray'),
         class: 'secondary',
         rgb: '108,117,125'
     },
     turquoise: {
-        name: 'Türkis',
+        name: t('Turquoise'),
         class: 'info',
         rgb: '13,202,240'
     },
     yellow: {
-        name: 'Gelb',
+        name: t('Yellow'),
         class: 'warning',
         rgb: '255,193,7'
     },
     red: {
-        name: 'Rot',
+        name: t('Red'),
         class: 'danger',
         rgb: '220,53,69'
     },
     green: {
-        name: 'Grün',
+        name: t('Green'),
         class: 'success',
         rgb: '25,135,84'
     },
     white: {
-        name: 'Weiss',
+        name: t('White'),
         class: 'light',
         rgb: '248,249,250'
     }

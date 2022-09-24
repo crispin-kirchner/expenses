@@ -1,16 +1,16 @@
 import * as currencies from './currencies.js';
+import * as texts from './texts.js';
 
 import { Chart } from 'chart.js';
 
-const preferredLocale = 'de-CH';
-const dayHeadingFormat = new Intl.DateTimeFormat([preferredLocale], { weekday: 'long', day: '2-digit', month: '2-digit' });
-const dayCalendarFormat = new Intl.DateTimeFormat([preferredLocale], { weekday: 'short' });
-const dayFormat = new Intl.DateTimeFormat([preferredLocale], { day: 'numeric' });
-const daySearchResultFormat = new Intl.DateTimeFormat([preferredLocale], { weekday: 'short', day: 'numeric' })
-const monthFormat = new Intl.DateTimeFormat([preferredLocale], { month: 'long', year: 'numeric' });
-const monthOnlyFormat = new Intl.DateTimeFormat([preferredLocale], { month: 'long' });
-const numberFormat = new Intl.NumberFormat([preferredLocale], { useGrouping: true, minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const bigNumberFormat = new Intl.NumberFormat([preferredLocale], { useGrouping: true, maximumFractionDigits: 0 });
+const dayHeadingFormat = new Intl.DateTimeFormat(texts.languages, { weekday: 'long', day: '2-digit', month: '2-digit' });
+const dayCalendarFormat = new Intl.DateTimeFormat(texts.languages, { weekday: 'short' });
+const dayFormat = new Intl.DateTimeFormat(texts.languages, { day: 'numeric' });
+const daySearchResultFormat = new Intl.DateTimeFormat(texts.languages, { weekday: 'short', day: 'numeric' })
+const monthFormat = new Intl.DateTimeFormat(texts.languages, { month: 'long', year: 'numeric' });
+const monthOnlyFormat = new Intl.DateTimeFormat(texts.languages, { month: 'long' });
+const numberFormat = new Intl.NumberFormat(texts.languages, { useGrouping: true, minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const bigNumberFormat = new Intl.NumberFormat(texts.languages, { useGrouping: true, maximumFractionDigits: 0 });
 const decimalRegex = /^([0-9]+\.?[0-9]*|\.[0-9]+)$/;
 const integerRegex = /^([0-9]+)$/;
 const labelRegex = /#(\p{Letter}+)\b/ug;
@@ -27,7 +27,6 @@ Chart.defaults.font.family = 'system-ui, -apple-system, "Segoe UI", "Helvetica N
 Chart.defaults.animation = false;
 
 export {
-    preferredLocale,
     dayHeadingFormat,
     dayCalendarFormat,
     dayFormat,

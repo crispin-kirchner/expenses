@@ -4,6 +4,7 @@ import * as expensesApp from './App.js';
 import * as labels from './labels.js';
 
 import state from './state.js';
+import t from './texts.js';
 
 async function handleSubmit(evt) {
     evt.preventDefault();
@@ -91,37 +92,35 @@ function render() {
     const colorClasses = colors.getClasses(tag.color);
 
     const colorOptions = Object.entries(colors.all)
-        .sort((e1, e2) => e1[1].name.localeCompare(e2[1].name, constants.preferredLocale))
+        .sort((e1, e2) => e1[1].name.localeCompare(e2[1].name, navigator.language))
         .map(e => `<option ${e[0] === tag.color ? 'selected' : ''} class="${e[1].classes.join(' ')} fw-bold" value="${e[0]}">${e[1].name}</option>`)
         .join('\n');
 
     return `
         <div class="col-lg-4 col-sm-6 pt-3 pt-sm-0 mt-sm-content position-absolute h-100 bg-white end-0 z-top">
-            <div class="d-flex align-items-center mb-2">
-                <h2 class="me-auto">Bearbeiten</h2>
-                <button id="close-button" type="button" class="btn-close" aria-label="Close"></button>
+            <div class="d-flex align-items-baseline mb-2">
+                <button id="close-button" type="button" class="btn-close me-2" aria-label="Close"></button>
+                <h4 class="me-auto">${t('Edit')}</h4>
+                <button type="submit" class="btn btn-primary ms-auto"><i class="bi-check-circle"></i> ${t('Save')}</button>
             </div>
             <div id="tag-container" class="mb-3">
                 ${labels.render(state.editedLabelId)}
             </div>
             <form id="tag-form" novalidate>
                 <div class="form-floating mb-3">
-                    <select id="parent-select" class="form-select" placeholder="Übergeordnet">
+                    <select id="parent-select" class="form-select" placeholder="${t('Parent')}">
                         ${renderParentOptions()}
                     </select>
-                    <label for="parent-select">Übergeordnet</label>
+                    <label for="parent-select">${t('Parent')}</label>
                 </div>
                 <div class="form-floating mb-3">
                     <select id="color-select"
-                        placeholder="Farbe"
+                        placeholder="${t('Color')}"
                         class="form-select ${colorClasses.join(' ')} fw-bold"
                         data-xpns-old-value="${tag.color}">
                         ${colorOptions}
                     </select>
-                    <label for="color-select" class="${getTextClass(colorClasses).join(' ')}">Farbe</label>
-                </div>
-                <div class="d-flex">
-                    <button type="submit" class="btn btn-primary ms-auto"><i class="bi-check-circle"></i> Speichern</button>
+                    <label for="color-select" class="${getTextClass(colorClasses).join(' ')}">${t('Color')}</label>
                 </div>
             </form>
         </div>`;

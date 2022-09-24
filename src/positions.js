@@ -5,19 +5,20 @@ import * as db from './db.js';
 
 import state, { markEverythingDirty, refreshData } from './state.js';
 
+import t from './texts.js';
 import { v4 } from 'uuid';
 
 const typeFilters = {
     income: {
-        name: 'Einnahmen',
+        name: t('Earnings'),
         filter: ex => ex.type === 'income'
     },
     recurring: {
-        name: 'Wiederkehrend',
+        name: t('Recurring'),
         filter: ex => ex.type === 'expense' && ex.recurring
     },
     expense: {
-        name: 'Ausgaben',
+        name: t('Expenses'),
         filter: ex => ex.type === 'expense' && !ex.recurring
     }
 }
@@ -355,7 +356,7 @@ function computeRemainderRow(rowsGrouped) {
             : sum - row.amount, 0);
 
     return {
-        title: 'Verbleibend',
+        title: t('Remaining'),
         amount: remainder,
         amountChf: remainder,
         currency: constants.DEFAULT_CURRENCY,
