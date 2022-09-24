@@ -5,6 +5,7 @@
 - VS Code Extensions
   - SCSS formatter
   - sort-imports
+  - jest
 - CouchDB
 - CouchDB einrichten
   - http://localhost:5984/_utils (Fauxton) &rarr; *Config*
