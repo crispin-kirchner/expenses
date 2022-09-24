@@ -1,5 +1,4 @@
 import * as colors from './colors.js';
-import * as constants from './constants.js';
 import * as expensesApp from './App.js';
 import * as labels from './labels.js';
 
