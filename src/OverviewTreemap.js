@@ -1,4 +1,5 @@
 import * as App from './App.js';
+import * as PositionType from './PositionType.js';
 import * as colors from './colors.js';
 import * as labels from './labels.js';
 import * as positions from './positions.js';
@@ -33,7 +34,7 @@ function transformToTreemapData() {
     const result = [];
     let maxLevel = 0;
     positions.visitOverviewData((row, path) => {
-        if (path.length === 0 && (row.id === 'income' || row.id === 'recurring')) {
+        if (path.length === 0 && (row.id === PositionType.INCOME || row.id === 'recurring')) {
             return 'discard';
         }
         if (row.childRows.length > 0) {

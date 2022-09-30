@@ -16,10 +16,13 @@ function render() {
             const months = Object.keys(yearObj.months).sort(App.reverseCompareString());
             for (const month of months) {
                 const monthObj = yearObj.months[month];
-                html += App.renderHeading('h5', constants.monthOnlyFormat.format(new Date(`${year}-${month}`)), monthObj.total);
+                html += App.renderHeading('h5', App.capitalizeFirstLetter(constants.monthOnlyFormat.format(new Date(`${year}-${month}`))), monthObj.total);
                 html += '<div class="mb-1">';
                 for (const position of monthObj.docs.sort(App.reverseCompareString(d => d.date))) {
-                    html += App.renderPositionRow(position, l => constants.daySearchResultFormat.format(new Date(position.date)) + '&nbsp;' + l);
+                    html += App.renderPositionRow(position, {
+                        labelFormatter: l => constants.daySearchResultFormat.format(new Date(position.date)) + '&nbsp;' + l,
+                        emphasizeIncome: true
+                    });
                 }
                 html += '</div>';
             }

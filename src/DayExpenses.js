@@ -9,7 +9,7 @@ function render() {
     let rows = `<div class="col-lg-4 mt-lg-content ${state.monthDisplay === 'overview' ? 'd-none d-lg-block' : ''}">`;
     rows += App.renderHeading('h5', App.renderDayHeadingDate(state.date), state.dayExpenses.data.sum);
     rows += state.dayExpenses.data.expenses
-        .map(pos => App.renderPositionRow(pos))
+        .map(pos => App.renderPositionRow(pos, { emphasizeIncome: true }))
         .join('\n');
     rows += `</div>`;
 

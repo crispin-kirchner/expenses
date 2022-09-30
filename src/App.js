@@ -9,6 +9,7 @@ import * as Migration from './Migration.js';
 import * as MonthChart from './MonthChart.js';
 import * as Navbar from './Navbar.js';
 import * as Overview from './Overview.js';
+import * as PositionType from './PositionType.js';
 import * as SearchResults from './SearchResults.js';
 import * as ViewMode from './ViewMode.js';
 import * as constants from './constants.js';
@@ -94,30 +95,40 @@ function renderDay(date) {
 }
 
 function renderHeading(level, label, amount) {
+  let amountStr = '';
+  if (!isSubCent(amount)) {
+    amountStr = renderFloat(Math.abs(amount));
+    if (amount < 0) {
+      amountStr = '+' + amountStr;
+    }
+  }
   return `
     <${level} class="d-flex">
         <span class="me-auto">
             ${label}
         </span>
-        <span>
-            ${isSubCent(amount) ? '' : renderFloat(amount)}
+        <span ${amount < 0 ? 'class="text-success"' : ''}>
+            ${amountStr}
         </span>
         <span class="currency"></span>
     </${level}>`;
 }
 
-function renderPositionRow(pos, labelFormatter, classes, attributes) {
-  classes = classes || 'py-1 border-top xpns-hover';
+function renderPositionRow(pos, options) {
+  options = options || {};
+  options.classes = options?.classes || 'py-1 border-top xpns-hover';
   let label = decorateTags(pos.description, l => `<div class="overflow-hidden me-1">${l}</div>`);
-  if (labelFormatter) {
-    label = labelFormatter(label);
+  if (options?.labelFormatter) {
+    label = options.labelFormatter(label);
   }
   return `
-    <div data-xpns-id="${pos._id}" class="d-flex cursor-pointer ${classes || ''}" ${attributes || ''}>
+    <div data-xpns-id="${pos._id}" class="d-flex cursor-pointer ${options?.classes || ''}" ${options?.attributes || ''}>
         <div class="d-flex overflow-hidden text-nowrap me-auto">
             ${label}
         </div>
-        <div class="pe-1 text-end">${renderFloat(positions.computeMonthlyAmount(pos))}</div>
+        <div class="pe-1 text-end ${options?.emphasizeIncome && pos.type === PositionType.INCOME ? 'text-success' : ''}">
+          ${pos.type === PositionType.INCOME ? '+' : ''}${renderFloat(positions.computeMonthlyAmount(pos))}
+        </div>
         <div class="currency">${currencies.isDefault(pos.currency) ? '' : currencies.definitions[pos.currency].displayName}</div>
     </div>`;
 }
@@ -281,7 +292,7 @@ function removeExpandedPath(path) {
 }
 
 function isSubCent(amount) {
-  return amount < constants.SUB_CENT;
+  return Math.abs(amount) < constants.SUB_CENT;
 }
 
 function editExpense(evt) {

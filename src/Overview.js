@@ -18,10 +18,14 @@ function renderRowTitle(row, containerId) {
         _id: row.ex || '',
         description: title,
         currency: row.currency,
+        type: row.type,
         recurring: false,
         amount: row.amount
     };
-    return App.renderPositionRow(fakePos, null, `p-1 btn ${isExpanded(containerId) ? '' : 'collapsed'} text-light ${row.ex && row.ex === state.editedPosition.data?._id ? 'btn-secondary active' : ''}`, `data-bs-toggle="collapse" data-bs-target="#${containerId}"`);
+    return App.renderPositionRow(fakePos, {
+        classes: `p-1 btn ${isExpanded(containerId) ? '' : 'collapsed'} text-light ${row.ex && row.ex === state.editedPosition.data?._id ? 'btn-secondary active' : ''}`,
+        attributes: `data-bs-toggle="collapse" data-bs-target="#${containerId}"`
+    });
 }
 
 function renderInnerRow(row, path) {

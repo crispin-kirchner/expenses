@@ -1,3 +1,4 @@
+import * as PositionType from './PositionType.js';
 import * as constants from './constants.js';
 import * as currencies from './currencies.js';
 import * as dates from './dates.js';
@@ -11,15 +12,18 @@ import { v4 } from 'uuid';
 const typeFilters = {
     income: {
         name: t('Earnings'),
-        filter: ex => ex.type === 'income'
+        type: PositionType.INCOME,
+        recurringFilter: _ => true
     },
     recurring: {
         name: t('Recurring'),
-        filter: ex => ex.type === 'expense' && ex.recurring
+        type: PositionType.EXPENSE,
+        recurringFilter: ex => ex.recurring
     },
     expense: {
         name: t('Expenses'),
-        filter: ex => ex.type === 'expense' && !ex.recurring
+        type: PositionType.EXPENSE,
+        recurringFilter: ex => !ex.recurring
     }
 }
 
@@ -29,16 +33,14 @@ function refreshDayExpenses() {
 
 async function getDayExpenses() {
     const all = await getAllPositions();
-    const expenses = all
-        .filter(pos => pos.type === 'expense'
-            && !pos.recurring
-            && dates.isSameDay(state.date, pos.date));
+    const positions = all
+        .filter(pos => !pos.recurring && dates.isSameDay(state.date, pos.date));
 
-    const sum = expenses
-        .reduce((sum, pos) => sum + computeMonthlyAmountChf(pos), 0.0);
+    const sum = positions
+        .reduce((sum, pos) => sum + getSign(pos) * computeMonthlyAmountChf(pos), 0.0);
 
     return {
-        expenses: expenses,
+        expenses: positions,
         sum: sum
     };
 }
@@ -55,6 +57,10 @@ function isValidOnDate(pos, date) {
         return isValidInMonth(pos, date);
     }
     return dates.isSameDay(date, pos.date);
+}
+
+function getSign(pos) {
+    return pos.type === PositionType.INCOME ? -1 : 1;
 }
 
 function computeMonthlyAmountChf(pos) {
@@ -100,7 +106,7 @@ function prepareCreate() {
 
         _id: v4(),
         createDate: new Date(Date.now()),
-        type: 'expense',
+        type: PositionType.EXPENSE,
         date: state.date,
         amount: '',
         currency: constants.DEFAULT_CURRENCY,
@@ -157,18 +163,18 @@ async function getDaysOfMonth() {
     const all = await getAllPositions();
 
     const income = all
-        .filter(e => e.type === 'income')
+        .filter(e => e.type === PositionType.INCOME)
         .filter(e => isValidInMonth(e, state.date))
         .reduce((sum, e) => sum + computeMonthlyAmountChf(e), 0);
 
     const recurringExpenses = all
-        .filter(e => e.type === 'expense')
+        .filter(e => e.type === PositionType.EXPENSE)
         .filter(e => e.recurring)
         .filter(e => isValidOnDate(e, state.date))
         .reduce((sum, e) => sum + computeMonthlyAmountChf(e), 0);
 
     const availableAmount = income - recurringExpenses;
-    const onetimeExpenses = all.filter(e => !e.recurring && e.type === 'expense');
+    const onetimeExpenses = all.filter(e => !e.recurring && e.type === PositionType.EXPENSE);
 
     const days = {};
     let hasExpenses = false;
@@ -218,6 +224,7 @@ function groupByType(rowsFeatured, subGroupingFn) {
             id: fd[0],
             amountChf: amountChf,
             amount: amountChf,
+            type: fd[1].type,
             currency: constants.DEFAULT_CURRENCY,
             childRows: childRows
         });
@@ -240,6 +247,7 @@ function groupByCategory(rowsFeatured) {
                     id: row.category,
                     amountChf: 0,
                     amount: 0,
+                    type: row.type,
                     currency: constants.DEFAULT_CURRENCY,
                     category: row.category,
                     childRows: []
@@ -299,7 +307,7 @@ function hasLabel(position, labelName) {
 
 function getType(pos) {
     const matchingFilter = Object.entries(typeFilters)
-        .find(fd => fd[1].filter(pos));
+        .find(fd => pos.type === fd[1].type && fd[1].recurringFilter(pos));
 
     return matchingFilter[0];
 }
@@ -341,8 +349,9 @@ async function getSearchData() {
         const monthObj = (yearObj.months[month] = yearObj.months[month] || { total: 0, docs: [] });
 
         const amountChf = computeAmountChf(doc);
-        yearObj.total += amountChf;
-        monthObj.total += amountChf;
+        const sign = getSign(doc);
+        yearObj.total += sign * amountChf;
+        monthObj.total += sign * amountChf;
         monthObj.docs.push(doc);
 
         return acc;
@@ -351,7 +360,7 @@ async function getSearchData() {
 
 function computeRemainderRow(rowsGrouped) {
     const remainder = rowsGrouped
-        .reduce((sum, row) => row.id === 'income'
+        .reduce((sum, row) => row.id === PositionType.INCOME
             ? sum + row.amount
             : sum - row.amount, 0);
 

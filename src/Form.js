@@ -1,6 +1,7 @@
 import * as App from './App.js';
 import * as FormState from './FormState.js';
 import * as LoadState from './LoadState.js';
+import * as PositionType from './PositionType.js';
 import * as constants from './constants.js';
 import * as currencies from './currencies.js';
 import * as dates from './dates.js';
@@ -315,7 +316,7 @@ async function getLastExchangeRate(currency, date) {
 
     if (expensesOfDay.length === 0) {
         const expensesOfCurrency = allPositions
-            .filter(e => e.type === 'expense' && e.currency === getCurrencySelect().value);
+            .filter(e => e.type === PositionType.EXPENSE && e.currency === getCurrencySelect().value);
 
         if (expensesOfCurrency.length === 0) {
             return null;
@@ -361,24 +362,9 @@ async function submit(event) {
     App.render();
 }
 
-const PositionType = {
-    expense: {
-        text: t('Expense'),
-        thisText: t('ThisExpense'),
-        default: true,
-        benefactor: t('Beneficiary')
-    },
-    income: {
-        text: t('Earning'),
-        thisText: t('ThisEarning'),
-        default: false,
-        benefactor: t('Payer')
-    }
-};
-
 function getDescriptionLabelText() {
-    const type = getTypeSelect()?.value || Object.entries(PositionType).find(e => e[1].default)[0];
-    return `${PositionType[type].benefactor}/${t('Description')}`;
+    const type = getTypeSelect()?.value || Object.entries(PositionType.defs).find(e => e[1].default)[0];
+    return `${PositionType.defs[type].benefactor}/${t('Description')}`;
 }
 
 function render() {
@@ -392,7 +378,7 @@ function render() {
     const position = state.editedPosition.data;
     const isDefaultCurrency = position ? currencies.isDefault(position.currency) : true;
 
-    const typeOptions = Object.entries(PositionType)
+    const typeOptions = Object.entries(PositionType.defs)
         .map(t => `
             <option value="${t[0]}" ${(!position && t[1].default) || position.type === t[0] ? 'selected' : ''}>
                 ${t[1].text}
@@ -474,7 +460,7 @@ function render() {
 }
 
 function deletePosition() {
-    if (window.confirm(t('DeleteConfirmation', PositionType[getTypeSelect().value].thisText))) {
+    if (window.confirm(t('DeleteConfirmation', PositionType.defs[getTypeSelect().value].thisText))) {
         App.removeExpense(state.editedPosition.data._id);
     }
 }
