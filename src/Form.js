@@ -11,6 +11,11 @@ import ExpensesError from './ExpensesError.js';
 import state from './state.js';
 import t from './texts.js';
 
+const RECURRING_TO_INPUT = 'recurring-to-input';
+const RECURRING_TO = 'recurring-to';
+const DATE_INPUT = 'date-input';
+const DATE_LABEL = 'date-label';
+
 function getAmountInput() {
     return document.getElementById('amount');
 }
@@ -28,7 +33,11 @@ function getCurrencySelect() {
 }
 
 function getDateInput() {
-    return document.getElementById('date-input');
+    return document.getElementById(DATE_INPUT);
+}
+
+function getDateLabel() {
+    return document.getElementById(DATE_LABEL);
 }
 
 function getDeleteButton() {
@@ -62,25 +71,16 @@ function getRecurringCheckbox() {
 function getRecurringFrequency() {
     return document.getElementById('recurring-frequency');
 }
-
-function getRecurringFrom() {
-    return document.getElementById('recurring-from');
-}
-
-function getRecurringFromToLabelSep() {
-    return document.getElementById('recurring-fromto-label-sep');
-}
-
-function getRecurringFrequencySep() {
-    return document.getElementById('recurring-frequency-sep');
-}
-
 function getRecurringMonthly() {
     return document.getElementById('recurring-monthly');
 }
 
+function getRecurringToInput() {
+    return document.getElementById(RECURRING_TO_INPUT);
+}
+
 function getRecurringTo() {
-    return document.getElementById('recurring-to');
+    return document.getElementById(RECURRING_TO);
 }
 
 function getRecurringYearly() {
@@ -94,18 +94,15 @@ function getTypeSelect() {
 function refreshFormView() {
     [getRecurringFrequency(),
     getRecurringMonthly(),
-    getRecurringYearly(),
-    getRecurringFrequencySep()]
-        .forEach(f => setVisible(f, getRecurringCheckbox().checked));
+    getRecurringYearly()]
+        .forEach(f => setVisible(f, getRecurringCheckbox().checked, true));
 
-    [getRecurringFrom(),
-    getRecurringFromToLabelSep(),
-    getRecurringTo()]
-        .forEach(f => setVisible(f, getRecurringCheckbox().checked));
 
-    setVisible(getDateInput(), !getRecurringCheckbox().checked);
+    setVisible(getRecurringTo(), getRecurringCheckbox().checked);
+
     setVisible(document.getElementById('form-line2'), !currencies.isDefault(getCurrencySelect().value));
 
+    getDateLabel().textContent = getRecurringCheckbox().checked ? t('Start') : t('Date');
     getDescriptionLabel().textContent = getDescriptionLabelText();
     getDescriptionInput().placeholder = getDescriptionLabelText();
 }
@@ -119,13 +116,14 @@ function toggleClass(element, clazz, on) {
     }
 }
 
-function setVisible(field, visible) {
+function setVisible(field, visible, useVisibility) {
     const elements = [field];
     const label = App.getLabelByField(field.id);
     if (label) {
         elements.push(label);
     }
-    elements.forEach(el => toggleClass(el, 'd-none', !visible));
+    const clazz = useVisibility ? 'invisible' : 'd-none';
+    elements.forEach(el => toggleClass(el, clazz, !visible));
 }
 
 function handleTypeChanged() {
@@ -140,19 +138,6 @@ async function handleCurrencyChanged() {
         getExchangeRateInput().value = exchangeRate;
     }
     getExchangeRateInput().value = exchangeRate;
-
-    refreshFormView();
-}
-
-function handleRecurringCheckboxChanged() {
-    if (getRecurringCheckbox().checked) {
-        getRecurringFrom().value = getDateInput().value;
-        getDateInput().value = null;
-    }
-    else {
-        getDateInput().value = getRecurringFrom().value;
-        getRecurringFrom().value = null;
-    }
 
     refreshFormView();
 }
@@ -283,14 +268,9 @@ function validateForm() {
     validateIntegerField(getRecurringFrequency());
 
     const emptyFields = [];
-    const mandatoryFields = [getAmountInput(), getExchangeRateInput(), getDescriptionInput()];
+    const mandatoryFields = [getAmountInput(), getExchangeRateInput(), getDescriptionInput(), getDateInput()];
     if (getRecurringCheckbox().checked) {
-        mandatoryFields.push(
-            getRecurringFrequency(),
-            getRecurringFrom());
-    }
-    else {
-        mandatoryFields.push(getDateInput());
+        mandatoryFields.push(getRecurringFrequency());
     }
     mandatoryFields.forEach(f => {
         f.classList.remove('error');
@@ -336,16 +316,16 @@ async function submit(event) {
 
     const position = state.editedPosition.data;
     position.type = getTypeSelect().value;
-    position.date = new Date(getDateInput().value);
+    position.date = getRecurringCheckbox().checked ? null : new Date(getDateInput().value);
     position.amount = getAmountInput().value;
     position.currency = getCurrencySelect().value;
     position.exchangeRate = getExchangeRateInput().value;
     position.description = getDescriptionInput().value;
     position.recurrencePeriodicity = getRecurrencePeriodicity();
     position.recurrenceFrequency = parseInt(getRecurringFrequency().value);
-    position.recurrenceFrom = new Date(getRecurringFrom().value);
-    if (getRecurringTo().value) {
-        position.recurrenceTo = new Date(getRecurringTo().value);
+    position.recurrenceFrom = getRecurringCheckbox().checked ? new Date(getDateInput().value) : null;
+    if (getRecurringToInput().value) {
+        position.recurrenceTo = new Date(getRecurringToInput().value);
     }
     positions.setRecurring(position, getRecurringCheckbox().checked);
 
@@ -384,6 +364,8 @@ function render() {
                 ${t[1].text}
             </option>`)
         .join('\n');
+
+    const dateRecurrenceFrom = position.recurring ? dates.toYmd(position.recurrenceFrom) : dates.toYmd(position.date);
 
     let form = `
           <div class="col-lg-4 position-absolute end-0 bg-white pt-3 pt-lg-0 mt-lg-content h-100 z-top">
@@ -434,23 +416,32 @@ function render() {
                             </div>
                         </div>
                     </div>
-                    <div class="form-floating">
-                        <input id="date-input" class="form-control" type="date" value="${position.date ? dates.toYmd(position.date) : ''}" />
-                        <label for="date-input">${t('Date')}</label>
+                    <div class="row g-2 mb-3">
+                        <div class="col form-floating">
+                            <input id="${DATE_INPUT}" class="form-control" type="date" value="${dateRecurrenceFrom}" />
+                            <label id="${DATE_LABEL}" for="${DATE_INPUT}">${t('Date')}</label>
+                        </div>
+                        <div class="col form-floating" id="${RECURRING_TO}">
+                            <input id="${RECURRING_TO_INPUT}" class="form-control" type="date" value="${position?.recurrenceTo ? dates.toYmd(position.recurrenceTo) : ''}" />
+                            <label for="${RECURRING_TO_INPUT}">${t('End')}</label>
+                        </div>
                     </div>
-                    <div class="form-check form-switch mt-4">
-                        <input id="recurring-checkbox" class="form-check-input" type="checkbox" ${position?.recurring ? 'checked' : ''} />
-                        <label for="recurring-checkbox" class="form-check-label">${t('Recurring')}</label>
-                    </div>
-                    <div>
-                        <input id="recurring-frequency" type="number" class="text-end" size="2" maxlength="2" inputmode="numeric" value="${position?.recurring ? position.recurrenceFrequency : '1'}" /><span id="recurring-frequency-sep">-</span>
-                        <input id="recurring-monthly" name="recurring-periodicity" type="radio" ${!position?.recurring || position.recurrencePeriodicity === 'monthly' ? 'checked' : ''} /><label for="recurring-monthly">${t('Monthly')}</label>
-                        <input id="recurring-yearly" name="recurring-periodicity" type="radio" ${position?.recurrencePeriodicity === 'yearly' ? 'checked' : ''} /><label for="recurring-yearly">${t('Yearly')}</label>
-                    </div>
-                    <div id="recurring-fromto">
-                        <label for="recurring-from">${t('Start')}</label><label id="recurring-fromto-label-sep">/</label><label for="recurring-to">${t('End')}</label>
-                        <input id="recurring-from" type="date" value="${position?.recurring ? dates.toYmd(position.recurrenceFrom) : ''}" />
-                        <input id="recurring-to" type="date" value="${position?.recurrenceTo ? dates.toYmd(position.recurrenceTo) : ''}" />
+                    <div class="row g-2 align-items-center">
+                        <div class="col col-auto">
+                        <div class="form-check form-switch">
+                            <input id="recurring-checkbox" class="form-check-input" type="checkbox" ${position?.recurring ? 'checked' : ''} />
+                            <label for="recurring-checkbox" class="form-check-label">${t('Recurring')}</label>
+                        </div>
+                        </div>
+                        <div class="input-group col">
+                            <input id="recurring-frequency" type="number" class="form-control text-end" size="2" maxlength="2" inputmode="numeric" value="${position?.recurring ? position.recurrenceFrequency : '1'}" />
+
+                            <input id="recurring-monthly" name="recurring-periodicity" class="btn-check" type="radio" ${!position?.recurring || position.recurrencePeriodicity === 'monthly' ? 'checked' : ''} />
+                            <label for="recurring-monthly" class="btn btn-outline-primary">${t('Monthly')}</label>
+
+                            <input id="recurring-yearly" name="recurring-periodicity" class="btn-check" type="radio" ${position?.recurrencePeriodicity === 'yearly' ? 'checked' : ''} />
+                            <label for="recurring-yearly" class="btn btn-outline-primary">${t('Yearly')}</label>
+                        </div>
                     </div>
                 </div>
               </form>
@@ -483,7 +474,7 @@ function onAttach() {
     getProposalField().addEventListener('mousedown', handleProposalClick);
 
     getExpenseForm().addEventListener('submit', submit);
-    getRecurringCheckbox().addEventListener('change', handleRecurringCheckboxChanged);
+    getRecurringCheckbox().addEventListener('change', refreshFormView);
     getTypeSelect().addEventListener('change', handleTypeChanged);
     getExchangeRateInput().addEventListener('input', handleAmountOrExchangeRateInput);
     getExchangeRateInput().addEventListener('change', () => validateDecimalField(getExchangeRateInput(), 5));
