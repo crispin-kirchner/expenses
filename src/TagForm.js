@@ -97,15 +97,15 @@ function render() {
 
     return `
         <div class="col-lg-4 col-sm-6 pt-3 pt-sm-0 mt-sm-content position-absolute h-100 bg-white end-0 z-top">
-            <div class="d-flex align-items-baseline mb-2">
-                <button id="close-button" type="button" class="btn-close me-2" aria-label="Close"></button>
-                <h4 class="me-auto">${t('Edit')}</h4>
-                <button type="submit" class="btn btn-primary ms-auto"><i class="bi-check-circle"></i> ${t('Save')}</button>
-            </div>
-            <div id="tag-container" class="mb-3">
-                ${labels.render(state.editedLabelId)}
-            </div>
             <form id="tag-form" novalidate>
+                <div class="d-flex align-items-baseline mb-2">
+                    <button id="close-button" type="button" class="btn-close me-2" aria-label="Close"></button>
+                    <h4 class="me-auto">${t('Edit')}</h4>
+                    <button type="submit" class="btn btn-primary ms-auto"><i class="bi-check-circle"></i> ${t('Save')}</button>
+                </div>
+                <div id="tag-container" class="mb-3">
+                    ${labels.render(state.editedLabelId)}
+                </div>
                 <div class="form-floating mb-3">
                     <select id="parent-select" class="form-select" placeholder="${t('Parent')}">
                         ${renderParentOptions()}
