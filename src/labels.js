@@ -101,4 +101,24 @@ function store(label) {
     db.put(label);
 }
 
-export { getByName, render, getIndexByName, visitHierarchy, refresh, store };
+function decorateTags(text, wrapperFunction) {
+    wrapperFunction = wrapperFunction || (x => x);
+
+    const parts = [];
+    for (let i = 0, m; (m = constants.labelRegex.exec(text)); ++i) {
+        if (i === 0 && m.index > 0) {
+            parts.push(text.substring(0, m.index).trim());
+        }
+        parts.push(render(m[1]));
+        ++i;
+    }
+    if (parts.length === 0) {
+        parts.push(text);
+    }
+
+    return parts
+        .map(wrapperFunction)
+        .join(' ');
+}
+
+export { getByName, render, getIndexByName, visitHierarchy, refresh, store, decorateTags };

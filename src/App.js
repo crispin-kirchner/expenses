@@ -117,7 +117,7 @@ function renderHeading(level, label, amount) {
 function renderPositionRow(pos, options) {
   options = options || {};
   options.classes = options?.classes || 'py-1 border-top xpns-hover';
-  let label = decorateTags(pos.description, l => `<div class="overflow-hidden me-1">${l}</div>`);
+  let label = labels.decorateTags(pos.description, l => `<div class="overflow-hidden me-1">${l}</div>`);
   if (options?.labelFormatter) {
     label = options.labelFormatter(label);
   }
@@ -135,26 +135,6 @@ function renderPositionRow(pos, options) {
 
 function renderDayHeadingDate(date) {
   return capitalizeFirstLetter(constants.dayHeadingFormat.format(date));
-}
-
-function decorateTags(text, wrapperFunction) {
-  wrapperFunction = wrapperFunction || (x => x);
-
-  const parts = [];
-  for (let i = 0, m; (m = constants.labelRegex.exec(text)); ++i) {
-    if (i === 0 && m.index > 0) {
-      parts.push(text.substring(0, m.index).trim());
-    }
-    parts.push(labels.render(m[1]));
-    ++i;
-  }
-  if (parts.length === 0) {
-    parts.push(text);
-  }
-
-  return parts
-    .map(wrapperFunction)
-    .join(' ');
 }
 
 function setMonthDisplay(monthDisplay) {
@@ -373,7 +353,6 @@ function capitalizeFirstLetter(str) {
 export {
   cancelLineEdit,
   capitalizeFirstLetter,
-  decorateTags,
   getCurrentDayString,
   getLabelByField,
   isPositionFormVisible,

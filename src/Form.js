@@ -5,6 +5,7 @@ import * as PositionType from './PositionType.js';
 import * as constants from './constants.js';
 import * as currencies from './currencies.js';
 import * as dates from './dates.js';
+import * as labels from './labels.js';
 import * as positions from './positions.js';
 
 import ExpensesError from './ExpensesError.js';
@@ -15,6 +16,7 @@ const RECURRING_TO_INPUT = 'recurring-to-input';
 const RECURRING_TO = 'recurring-to';
 const DATE_INPUT = 'date-input';
 const DATE_LABEL = 'date-label';
+const DESCRIPTION = 'description';
 
 function getAmountInput() {
     return document.getElementById('amount');
@@ -45,11 +47,11 @@ function getDeleteButton() {
 }
 
 function getDescriptionInput() {
-    return document.getElementById('description');
+    return document.getElementById(DESCRIPTION);
 }
 
 function getDescriptionLabel() {
-    return App.getLabelByField('description');
+    return App.getLabelByField(DESCRIPTION);
 }
 
 function getExchangeRateInput() {
@@ -71,6 +73,7 @@ function getRecurringCheckbox() {
 function getRecurringFrequency() {
     return document.getElementById('recurring-frequency');
 }
+
 function getRecurringMonthly() {
     return document.getElementById('recurring-monthly');
 }
@@ -130,6 +133,37 @@ function handleTypeChanged() {
     refreshFormView();
 }
 
+function handleDescriptionKeydown(evt) {
+    // FIXME Auto-complete Funktion wiederherstellen
+    // TODO mouse-click to position cursor
+    // TODO selection
+    // TODO Ctrl+Backspace/Ctrl+Del
+    // TODO auch einzelnes # muss schon als Tag dekoriert werden
+    // FIXME Arrow down für proposal
+    // TODO Unit test für cursor span
+    // TODO reset descriptionCursorPosition on opening form (e.g. editing)
+    // TODO auf Telefon entwickeln wegen Performance
+    // TODO cursor hat eine Ausdehnung --> position absolute oder so verwenden
+    if (evt.key.length === 1) {
+        state.descriptionCharArray.push(evt.key);
+        state.descriptionCursorPosition++;
+    }
+    if (evt.key === 'Backspace') {
+        state.descriptionCharArray.pop();
+        state.descriptionCursorPosition--;
+    }
+    if (evt.key === 'ArrowLeft') {
+        state.descriptionCursorPosition--;
+    }
+    if (evt.key === 'ArrowRight') {
+        state.descriptionCursorPosition++;
+    }
+    let descriptionString = state.descriptionCharArray.join('');
+    state.descriptionCursorPosition = Math.min(Math.max(state.descriptionCursorPosition, 0), state.descriptionCharArray.length);
+    descriptionString = descriptionString.substring(0, state.descriptionCursorPosition) + '<i class="xpns-cursor"></i>' + descriptionString.substring(state.descriptionCursorPosition);
+    getDescriptionInput().innerHTML = labels.decorateTags(descriptionString);
+}
+
 async function handleCurrencyChanged() {
     let exchangeRate = constants.defaultExchangeRate;
     if (!currencies.isDefault(getCurrencySelect().value)) {
@@ -186,7 +220,7 @@ async function handleDescriptionInput() {
     getProposalField().innerHTML = proposals
         .map((p, i) => `
             <div class="cursor-pointer ${i === 0 ? '' : 'border-top'} px-2 py-1" data-xpns-value="${p[0]}">
-                ${App.decorateTags(p[0])}
+                ${labels.decorateTags(p[0])}
             </div>`)
         .join('\n');
 
@@ -408,8 +442,10 @@ function render() {
                     </div>
                     <div id="description-container" class="bg-white">
                         <div class="form-floating mt-3">
-                        <input id="description" class="form-control rounded-top" placeholder="${getDescriptionLabelText()}" value="${position ? position.description : ''}" autocomplete="off" />
-                        <label for="description">${getDescriptionLabelText()}</label>
+                        <div id="${DESCRIPTION}" tabindex="0" class="form-control rounded-top" placeholder="${getDescriptionLabelText()}" value="${position ? position.description : ''}" autocomplete="off">
+                            <i class="xpns-cursor"></i>
+                        </div>
+                        <label for="${DESCRIPTION}">${getDescriptionLabelText()}</label>
                         </div>
                         <div id="proposal-container" class="mb-3">
                             <div id="proposal-field" class="form-select d-none px-0 py-1 overflow-auto border-top-0 rounded-bottom rounded-0" size="4" tabindex="-1">
@@ -466,9 +502,11 @@ function onAttach() {
     getAmountInput().addEventListener('change', () => validateDecimalField(getAmountInput(), 2));
     getCurrencySelect().addEventListener('change', handleCurrencyChanged);
 
-    getDescriptionInput().addEventListener('input', handleDescriptionInput);
+    //getDescriptionInput().addEventListener('input', handleDescriptionInput);
+    getDescriptionInput().addEventListener('keydown', handleDescriptionKeydown);
+    getDescriptionInput().addEventListener('click', (evt) => evt.target.focus());
     getDescriptionInput().addEventListener('blur', handleDescriptionBlur);
-    getDescriptionInput().addEventListener('mousedown', handleProposalClick);
+    //getDescriptionInput().addEventListener('mousedown', handleProposalClick);
     getProposalField().addEventListener('blur', handleDescriptionBlur);
     getProposalField().addEventListener('click', handleProposalClick);
     getProposalField().addEventListener('mousedown', handleProposalClick);

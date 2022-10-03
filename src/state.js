@@ -41,7 +41,9 @@ const state = {
         loadState: LoadState.LOADED,
         data: null
     },
-    editedLabelId: null
+    editedLabelId: null,
+    descriptionCharArray: [],
+    descriptionCursorPosition: 0
 };
 
 async function refreshData(dataset, loadFn, keepNavbar) {

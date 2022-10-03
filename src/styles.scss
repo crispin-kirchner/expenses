@@ -144,6 +144,17 @@ div.bg-dark>ul.chevron>li.leaf-entry>div::before {
     background-color: rgba(0, 0, 0, 0.1) !important;
 }
 
+/*FIXME re-add div:focus>*/
+.xpns-cursor {
+    width:1px;
+    height:100%;
+    vertical-align: bottom;
+    /* FIXME check what color bootstrap would use */
+    /* TODO blinking effect */
+    background-color: black;
+    display: inline-block;
+}
+
 .border-success-opacity-25 {
     border-color: rgba(25, 135, 84, 0.25) !important;
 }
