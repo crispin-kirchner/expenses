@@ -1,24 +1,24 @@
-import React from 'react';
-import logo from './logo.svg';
 import './App.css';
 
+import Blindtext from './Blindtext';
+import Navbar from './Navbar.js';
+import React from 'react';
+
+// TODO Desktop-Aufteilung auf mobile
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div id="app" className='h-100 d-flex flex-column'>
+      <Navbar></Navbar>
+      <div className="container overflow-hidden">
+        <div className="row h-100">
+          <div id="main" className='col col-8 h-100 overflow-auto'>
+            <Blindtext numParagraphs={10}></Blindtext>
+          </div>
+          <div id="side" className='col col-4 h-100 overflow-auto'>
+            <Blindtext numParagraphs={10}></Blindtext>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
