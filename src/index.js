@@ -1,13 +1,12 @@
-import './index.css';
+import './App.scss';
 import 'bootstrap';
-import 'bootstrap/dist/css/bootstrap.css';
 
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 
 import App from './App';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import reportWebVitals from './reportWebVitals';
+import reportWebVitals from './reportWebVitals'; // TODO brauchts das?
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

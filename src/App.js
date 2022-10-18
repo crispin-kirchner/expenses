@@ -1,14 +1,16 @@
-import './App.css';
+import React, { useState } from 'react';
 
 import Blindtext from './Blindtext';
 import Navbar from './Navbar.js';
-import React from 'react';
 
+// TODO gleich Router einbauen?
 // TODO Desktop-Aufteilung auf mobile
+// TODO State-Variablen in state-Modul zurückschieben?
 function App() {
+  const [date, setDate] = useState(new Date());
   return (
     <div id="app" className='h-100 d-flex flex-column'>
-      <Navbar></Navbar>
+      <Navbar date={date} setDate={setDate}></Navbar>
       <div className="container overflow-hidden">
         <div className="row h-100">
           <div id="main" className='col col-8 h-100 overflow-auto'>
