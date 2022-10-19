@@ -1,13 +1,13 @@
-import * as App from './App.js';
+import * as App from './components/App.js';
 import * as UnsyncedDocuments from './UnsyncedDocuments.js';
-import * as ViewMode from './ViewMode.js';
+import * as ViewMode from './enums/ViewMode.js';
 import * as constants from './constants.js';
-import * as dates from './dates.js';
+import * as dates from './utils/dates.js';
 import * as positions from './positions.js';
 
 import state, { updateSearchString } from './state.js';
 
-import t from './texts.js';
+import t from './utils/texts.js';
 
 const MANAGE_TAGS_BUTTON = 'manage-tags-button';
 const MONTH_DISPLAY_BUTTON = 'month-display-button';

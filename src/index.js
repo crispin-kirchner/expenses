@@ -1,12 +1,23 @@
 import './App.scss';
 import 'bootstrap';
 
+import * as db from './services/db.js';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 
-import App from './App';
+import App from './components/App';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import reportWebVitals from './reportWebVitals'; // TODO brauchts das?
+import t from './utils/texts';
+
+let title = t('Expenses');
+if (process.env.NODE_ENV === 'development') {
+  title += ' *** DEV ***';
+}
+document.title = title;
+
+// FIXME prüfen wie das in Zukunft mit der Migration laufen soll
+db.setupApplicationDb();
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
