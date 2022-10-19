@@ -1,6 +1,6 @@
 import React from 'react';
 import formats from '../utils/formats';
-import { isSubCent } from '../utils/amounts';
+import { isSubCent } from '../utils/general';
 
 export default function Heading(props) {
     let amountStr = '';

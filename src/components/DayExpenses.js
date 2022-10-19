@@ -5,6 +5,8 @@ import PositionRow from './PositionRow';
 import formats from '../utils/formats';
 import { getDayExpenses } from '../services/PositionService.js';
 
+// TODO suspense oder spinner
+// TODO "Keine Expenses" in schön
 function DayExpensesBody(props) {
     if (props.dayExpenses === null) {
         return <>Loading...</>;
@@ -15,7 +17,6 @@ function DayExpensesBody(props) {
     return props.dayExpenses.expenses.map(p => <PositionRow key={p._id} pos={p} emphasizeIncome={true} />);
 }
 
-// FIXME display sum
 export default function DayExpenses(props) {
     const [dayExpenses, setDayExpenses] = useState(null);
     useEffect(() => {

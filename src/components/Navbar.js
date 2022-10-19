@@ -3,16 +3,19 @@ import * as dates from '../utils/dates.js';
 
 import React from 'react';
 import formats from '../utils/formats.js';
+import { isNewButtonVisible } from '../utils/general.js';
 import t from '../utils/texts.js';
 
 function LinkButton(props) {
+    const className = props.className || 'btn text-light';
     return (
         <button
-            className="btn text-light"
+            className={className}
             type="button"
             title={props.title}
             onClick={props.onClick}>
             <i className={`bi ${props.icon}`}></i>
+            {props.children}
         </button>
     );
 }
@@ -46,6 +49,8 @@ function BrandContent(props) {
 }
 
 // TODO die restlichen Features
+// FIXME new button deaktivieren wenn das form sichtbar ist
+// FIXME Funktionalität für new button
 export default function Navbar(props) {
     return (
         <nav id="navbar" className="navbar navbar-dark bg-dark">
@@ -54,6 +59,14 @@ export default function Navbar(props) {
                     <BrandContent date={props.date} setDate={props.setDate}
                         viewMode={props.viewMode} setViewMode={props.setViewMode} />
                 </div>
+                <form className="d-flex" autoComplete='off'>
+                    {isNewButtonVisible(props.viewMode) ? <LinkButton
+                        className="btn btn-light d-none d-sm-inline-block"
+                        icon="bi-plus-square"
+                        title={t('New')}>
+                        <span className='d-none d-sm-inline-block'>&nbsp;{t('New')}</span>
+                    </LinkButton> : ''}
+                </form>
             </div>
         </nav>
     );

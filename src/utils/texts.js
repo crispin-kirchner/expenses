@@ -1,4 +1,3 @@
-// TODO als React Komponente implementieren?
 const texts = {
     "de": {
         "Amount": "Betrag",

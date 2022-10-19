@@ -15,6 +15,8 @@ async function getAllPositions() {
         .map(docToPosition);
 }
 
+// TODO 1. ganzen Monat anzeigen
+// TODO 2. gezielt queryen
 async function getDayExpenses(date) {
     const all = await getAllPositions();
     const dayPositions = all

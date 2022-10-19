@@ -7,10 +7,10 @@ import DayExpenses from './DayExpenses.js';
 import Navbar from './Navbar';
 
 // TODO gleich Router einbauen?
-// TODO Desktop-Aufteilung auf mobile
-// TODO State-Variablen in state-Modul zurückschieben?
+// TODO Aufteilung Spalten auf mobile 50/50 horiz/vert umsetzen
+// TODO Form overlay umsetzen
 function App() {
-  const [date, setDate] = useState(new Date('2022-09-30'));
+  const [date, setDate] = useState(new Date());
   const [viewMode, setViewMode] = useState(ViewMode.MONTH_DISPLAY);
   return (
     <div id="app" className='h-100 d-flex flex-column'>
