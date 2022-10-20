@@ -111,6 +111,10 @@ div.bg-dark>ul.chevron>li.leaf-entry>div::before {
     content: " ";
 }
 
+#drawer-right {
+    transition: left 0.5s ease;
+}
+
 .error {
     border-color: red;
 }
