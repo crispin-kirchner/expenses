@@ -4,15 +4,32 @@ import Heading from './Heading';
 import PositionRow from './PositionRow';
 import formats from '../utils/formats';
 import { getDayExpenses } from '../services/PositionService.js';
+import t from '../utils/texts';
 
-// TODO suspense oder spinner
-// TODO "Keine Expenses" in schön
 function DayExpensesBody(props) {
     if (props.dayExpenses === null) {
-        return <>Loading...</>;
+        return (
+            <div className='placeholder-glow'>
+                <div className='d-flex border-top p-1'>
+                    <span className='placeholder me-auto col-7' />
+                    <span className='placeholder col-2' />
+                    <span className='placeholder col-1 ms-1' />
+                </div>
+                <div className='d-flex border-top p-1'>
+                    <span className='placeholder me-auto col-6' />
+                    <span className='placeholder col-3' />
+                    <span className='placeholder col-1 ms-1' />
+                </div>
+            </div>
+        );
     }
     if (props.dayExpenses.expenses.length === 0) {
-        return <>No expenses</>;
+        return (
+            <h5 className='text-center text-secondary border-top pt-2'>
+                <i className="bi bi-piggy-bank-fill" />
+                &emsp;{t('NoExpenses')}
+            </h5>
+        );
     }
     return props.dayExpenses.expenses.map(p => <PositionRow key={p._id} pos={p} emphasizeIncome={true} />);
 }
