@@ -16,6 +16,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 document.title = title;
 
+// FIXME ich glaub der Serviceworker ist zur Zeit nicht aktiv
 // FIXME prüfen wie das in Zukunft mit der Migration laufen soll
 db.setupApplicationDb();
 

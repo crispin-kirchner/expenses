@@ -20,7 +20,6 @@ function LinkButton(props) {
     );
 }
 
-// TODO Texte für vorheriger und nächster Monat hinzufügen
 function BrandContent(props) {
     if (props.viewMode === ViewMode.MONTH_DISPLAY) {
         return (<>

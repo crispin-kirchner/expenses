@@ -24,6 +24,7 @@ function DayExpensesBody(props) {
         );
     }
     if (props.dayExpenses.expenses.length === 0) {
+        // TODO beim draufklicken neue Ausgabe machen
         return (
             <h5 className='text-center text-secondary border-top pt-2'>
                 <i className="bi bi-piggy-bank-fill" />
@@ -37,6 +38,7 @@ function DayExpensesBody(props) {
 export default function DayExpenses(props) {
     const [dayExpenses, setDayExpenses] = useState(null);
     useEffect(() => {
+        setDayExpenses(null);
         getDayExpenses(props.date)
             .then(data => setDayExpenses(data));
     }, [props.date]);
