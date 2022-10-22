@@ -16,10 +16,11 @@ export default function Form(props) {
                     <i className="bi-check-circle"></i>
                     &nbsp;{t('Save')}
                 </button>
-                <button id="delete-button" className="btn btn-outline-danger" type="button" title="${t('Delete')}">
-                    <i className="bi-trash"></i>
-                    &nbsp;{t('Delete')}
-                </button>
+                {props.deleteAction ?
+                    <button id="delete-button" className="btn btn-outline-danger" type="button" title="${t('Delete')}" onClick={props.deleteAction}>
+                        <i className="bi-trash"></i>
+                        &nbsp;{t('Delete')}
+                    </button> : null}
             </div>
         </form>
     );
