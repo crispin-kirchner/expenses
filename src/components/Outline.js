@@ -32,13 +32,13 @@ export default function Outline(props) {
                             {/* FIXME wieder reinnehmen props.main*/}
                             <Blindtext numParagraphs={5} />
                         </div>
-                        <div id="side" className={`col-md col-lg-4 h-50 h-md-100 px-0 ${sideClasses}`}>
+                        <div id="side" className={`col-md col-lg-4 h-50 h-md-100 px-0 ${sideClasses} position-relative`}>
                             <div className="overflow-auto pt-2 h-100">
                                 {/* FIXME wieder reinnehmen props.side*/}
                                 <Blindtext numParagraphs={3} />
                             </div>
                             <div id="drawer-right" className={`position-absolute top-0 ${drawerPosStart} overflow-auto w-100 h-100 bg-white pt-2`}>
-                                {props.rightDrawerVisible ? props.rightDrawer() : null}
+                                {props.rightDrawerVisible ? <Blindtext numParagraphs={3} /> : null}
                             </div>
                         </div>
                     </div>
