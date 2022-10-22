@@ -1,17 +1,32 @@
+import * as PositionType from '../enums/PositionType.js';
+
+import React, { useState } from "react";
+
 import Form from "./Form.js";
-import React from "react";
 import currencies from "../enums/currencies.js";
 import t from '../utils/texts.js';
+
+function TypeDropdown(props) {
+    return <div className="dropdown">
+        <button className={`btn ${props.classes} btn-lg dropdown-toggle`} type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            {PositionType.defs[props.type].text}
+        </button>
+        <ul className="dropdown-menu">
+            {Object.values(PositionType.defs).map(d => <li key={d.id}><a className="dropdown-item" href="#" onClick={() => props.setPositionType(d.id)}>{d.text}</a></li>)}
+        </ul>
+    </div>;
+}
 
 // FIXME load existing position functionality
 // FIXME move type selection to title
 // FIXME re-add delete button
 export default function PositionForm(props) {
+    const [positionType, setPositionType] = useState(props.position.type);
     return (
         <Form
             abortAction={props.abortAction}
             saveAction={props.saveAction}
-            title={<h4 className="lh-1 mb-0">Ausgabe</h4>}>
+            title={classes => <TypeDropdown type={positionType} setPositionType={setPositionType} classes={classes} />}>
             <div className="row g-2">
                 <div className="col-8 form-floating">
                     <input className="form-control text-end" placeholder={t('Amount')} inputMode="numeric" defaultValue={props.position.amount} />

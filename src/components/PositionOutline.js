@@ -27,7 +27,7 @@ function BrandContent(props) {
 export default function PositionOutline(props) {
     const [date, setDate] = useState(new Date());
     const [editedPosition, setEditedPosition] = useState(null);
-    const [monthDisplay, setMonthDisplay] = useState(MonthDisplay.OVERVIEW.id);
+    const [monthDisplay, setMonthDisplay] = useState(MonthDisplay.CALENDAR.id);
 
     const newPosition = d => setEditedPosition(createEmptyPosition(d));
 
@@ -56,12 +56,12 @@ export default function PositionOutline(props) {
                 abortAction={() => setEditedPosition(null)} />}
             rightDrawerVisible={!!editedPosition}
             footerContent={<>
-                <nav className="nav me-auto">
-                    {Object.values(MonthDisplay).map(md => <a key={md.id} className={`nav-link ${md.id === monthDisplay ? 'active' : ''}`} href="#" onClick={() => setMonthDisplay(md.id)}><i className={`bi bi-${md.icon}`} /></a>)}
-                </nav>
-                <nav className="nav justify-content-end">
-                    <button type="button" class="btn btn-primary" onClick={() => newPosition(date)}><i className="bi bi-plus-square" /> {t('New')}</button>
-                </nav>
+                <div className="me-auto">
+                    {Object.values(MonthDisplay).map(md => <button type="button" key={md.id} className={`btn ${md.id === monthDisplay ? 'active' : ''}`} onClick={() => setMonthDisplay(md.id)}><i className={`bi bi-${md.icon}`} /></button>)}
+                </div>
+                <>
+                    <button type="button" className="btn btn-primary" onClick={() => newPosition(date)}><i className="bi bi-plus-square" /> {t('New')}</button>
+                </>
             </>} />
     </>;
 }

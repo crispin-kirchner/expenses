@@ -6,6 +6,7 @@ const EXPENSE = 'expense';
 const defs = {};
 
 defs[INCOME] = {
+    id: INCOME,
     text: t('Earning'),
     thisText: t('ThisEarning'),
     default: false,
@@ -13,6 +14,7 @@ defs[INCOME] = {
 };
 
 defs[EXPENSE] = {
+    id: EXPENSE,
     text: t('Expense'),
     thisText: t('ThisExpense'),
     default: true,

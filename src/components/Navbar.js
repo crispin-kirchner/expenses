@@ -20,7 +20,7 @@ export function LinkButton(props) {
 // FIXME Funktionalität für new button
 export default function Navbar(props) {
     return (
-        <nav id="navbar" className="navbar navbar-dark bg-dark">
+        <nav id="navbar" className="navbar navbar-dark text-light bg-dark">
             <div className="container-lg">
                 {props.children}
             </div>
