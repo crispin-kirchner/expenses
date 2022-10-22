@@ -3,6 +3,7 @@ import { decrementMonth, incrementMonth } from '../utils/dates.js';
 
 import DayExpenses from "./DayExpenses.js";
 import { LinkButton } from "./Navbar";
+import MonthDisplay from "../enums/MonthDisplay.js";
 import Outline from "./Outline";
 import Overview from "./Overview";
 import PositionForm from "./PositionForm.js";
@@ -37,6 +38,7 @@ function BrandContent(props) {
 export default function PositionOutline(props) {
     const [date, setDate] = useState(new Date());
     const [editedPosition, setEditedPosition] = useState(null);
+    const [monthDisplay, setMonthDisplay] = useState(MonthDisplay.OVERVIEW.id);
 
     const newPosition = d => setEditedPosition(createEmptyPosition(d));
 
@@ -58,11 +60,17 @@ export default function PositionOutline(props) {
                 </form>
             </>}
             main={<Overview date={date} />}
+            sideOnMobile={MonthDisplay[monthDisplay].sideOnMobile}
             side={<DayExpenses date={date} newPosition={newPosition} />}
             rightDrawer={() => <PositionForm
                 position={editedPosition}
                 abortAction={() => setEditedPosition(null)} />}
-            rightDrawerVisible={!!editedPosition} />
+            rightDrawerVisible={!!editedPosition}
+            footerContent={
+                <nav className="nav">
+                    {Object.values(MonthDisplay).map(md => <a key={md.id} className={`nav-link ${md.id === monthDisplay ? 'active' : ''}`} href="#" onClick={() => setMonthDisplay(md.id)}><i className={`bi bi-${md.icon}`} /></a>)}
+                </nav>
+            } />
         {!editedPosition ? <Fab onClick={() => newPosition(date)} /> : null}
     </>;
 }

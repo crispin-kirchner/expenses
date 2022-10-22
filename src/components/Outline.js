@@ -17,6 +17,8 @@ export default function Outline(props) {
     }, []); // FIXME how to invalidate
 
     const drawerPosStart = props.rightDrawerVisible ? 'start-0' : 'start-100';
+    const mainClasses = props.sideOnMobile ? 'h-50' : 'h-100';
+    const sideClasses = props.sideOnMobile ? '' : 'd-none d-md-block';
 
     return (
         <div id="app" className='d-flex h-100 flex-column bg-secondary' style={{ '--bs-bg-opacity': .5 }}>
@@ -26,11 +28,11 @@ export default function Outline(props) {
             <TagContext.Provider value={tags}>
                 <div className="container-lg flex-grow-1 h-100 overflow-hidden">
                     <div className="row h-100">
-                        <div id="main" className='col-md col-lg-8 h-50 h-md-100 overflow-auto pt-2 bg-warning' style={{ '--bs-bg-opacity': .5 }}>
+                        <div id="main" className={`col-md col-lg-8 h-md-100 overflow-auto pt-2 bg-warning ${mainClasses}`} style={{ '--bs-bg-opacity': .5 }}>
                             {/* FIXME wieder reinnehmen props.main*/}
                             <Blindtext numParagraphs={5} />
                         </div>
-                        <div id="side" className='col-md col-lg-4 h-50 h-md-100 px-0'>
+                        <div id="side" className={`col-md col-lg-4 h-50 h-md-100 px-0 ${sideClasses}`}>
                             <div className="overflow-auto pt-2 h-100">
                                 {/* FIXME wieder reinnehmen props.side*/}
                                 <Blindtext numParagraphs={3} />
@@ -42,9 +44,9 @@ export default function Outline(props) {
                     </div>
                 </div>
             </TagContext.Provider>
-            <div className="bg-primary d-md-none" style={{ height: '40px', '--bs-bg-opacity': .5 }}>
-
-            </div>
+            {props.footerContent ? <div className="d-md-none">
+                {props.footerContent}
+            </div> : null}
         </div>
     );
 }
