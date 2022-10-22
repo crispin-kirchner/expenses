@@ -19,7 +19,7 @@ function TypeDropdown(props) {
 
 // FIXME load existing position functionality
 // FIXME move type selection to title
-// FIXME re-add delete button
+// FIXME re-add delete button if exists
 export default function PositionForm(props) {
     const [positionType, setPositionType] = useState(props.position.type);
     return (

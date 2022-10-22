@@ -3,13 +3,16 @@ import Navbar, { LinkButton } from "./Navbar";
 import React from "react";
 import t from "../utils/texts";
 
+// TODO floating buttons floating at keyboard for mobile
 export default function Form(props) {
     return (<>
         <div className="d-md-none mb-2">
             <Navbar>
                 <div className="w-100 d-flex justify-content-between me-0">
                     {props.title('btn-dark')}
-                    <LinkButton icon="bi-x-lg" onClick={props.abortAction} />
+                    <>
+                        <LinkButton icon="bi-x-lg" onClick={props.abortAction} />
+                    </>
                 </div>
             </Navbar>
         </div>
