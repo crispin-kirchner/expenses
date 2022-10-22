@@ -153,6 +153,11 @@ div.bg-dark>ul.chevron>li.leaf-entry>div::before {
     border-color: rgba(25, 135, 84, 0.25) !important;
 }
 
+#side > * {
+    padding-right: calc(var(--bs-gutter-x) * .5); // stylelint-disable-line function-disallowed-list
+    padding-left: calc(var(--bs-gutter-x) * .5); // stylelint-disable-line function-disallowed-list
+}
+
 /* lg */
 @include media-breakpoint-up(lg) {
     .mt-lg-content {
@@ -186,6 +191,10 @@ div.bg-dark>ul.chevron>li.leaf-entry>div::before {
     #expense-form.dc-active #description-container > #proposal-container {
         overflow: auto;
     }
+
+    .position-lg-down-relative {
+        position: relative;
+    }
 }
 
 /* md */
@@ -200,6 +209,10 @@ div.bg-dark>ul.chevron>li.leaf-entry>div::before {
 
     .mt-content {
         margin-top: $mt-content-md;
+    }
+
+    .h-md-100 {
+        height: 100% !important;
     }
 }
 
