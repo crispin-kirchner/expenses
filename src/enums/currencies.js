@@ -3,6 +3,7 @@ const EUR = 'e190e651-a073-449d-b674-8ececd2f096e';
 const DKK = 'b1475394-2bfb-4993-a2e5-a4a61d761a6c';
 
 const DEFAULT_CURRENCY = CHF;
+const DEFAULT_EXCHANGE_RATE = '1.00000';
 
 const currencies = {};
 
@@ -33,4 +34,4 @@ function getDefaultCurrency() {
 }
 
 export default currencies;
-export { isDefaultCurrency, getDefaultCurrency };
+export { isDefaultCurrency, getDefaultCurrency, DEFAULT_EXCHANGE_RATE };

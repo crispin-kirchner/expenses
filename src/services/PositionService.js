@@ -4,9 +4,11 @@ import * as dates from '../utils/dates.js';
 import * as db from './db.js';
 import * as positions from '../utils/positions.js';
 
+import { DEFAULT_EXCHANGE_RATE, getDefaultCurrency } from '../enums/currencies.js';
+
 import OverviewSections from '../enums/OverviewSections.js';
-import { getDefaultCurrency } from '../enums/currencies.js';
 import { getRootTag } from '../utils/tags.js';
+import { v4 } from 'uuid';
 
 function docToPosition(doc) {
     doc.date = doc.date ? new Date(doc.date) : null;
@@ -149,7 +151,28 @@ async function getOverviewData(currentDay, tags) {
     return rowsGrouped;
 }
 
+function createEmptyPosition(date) {
+    return {
+        entity: 'position',
+
+        _id: v4(),
+        createDate: new Date(Date.now()),
+        type: PositionType.EXPENSE,
+        date: date,
+        amount: '',
+        currency: getDefaultCurrency().id,
+        exchangeRate: DEFAULT_EXCHANGE_RATE,
+        description: '',
+        recurring: false,
+        recurrencePeriodicity: null,
+        recurrenceFrequency: null,
+        recurrenceFrom: null,
+        recurrenceTo: null
+    }
+}
+
 export {
     getDayExpenses,
-    getOverviewData
+    getOverviewData,
+    createEmptyPosition
 };

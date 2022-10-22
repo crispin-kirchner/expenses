@@ -22,10 +22,12 @@ function setupApplicationDb() {
         retry: true
     }).on('change', function (info) {
         if (info.change.ok && info.direction === 'push') {
+            // FIXME wieder hinzufügen
+            /*
             for (const doc of info.change.docs) {
-                // FIXME wieder hinzufügen
                 // UnsyncedDocuments.markSynced(doc._id);
             }
+            */
             // App.render();
         }
         if (info.direction === 'pull' && info.change.pending === 0) {

@@ -24,9 +24,9 @@ function DayExpensesBody(props) {
         );
     }
     if (props.dayExpenses.expenses.length === 0) {
-        // TODO beim draufklicken neue Ausgabe machen
+        // TODO linksbündig, Neu-Button dazu rechts
         return (
-            <h5 className='text-center text-secondary border-top pt-2'>
+            <h5 className='text-center text-secondary border-top pt-2 cursor-pointer' onClick={() => props.newPosition(props.date)}>
                 <i className="bi bi-piggy-bank-fill" />
                 &emsp;{t('NoExpenses')}
             </h5>
@@ -45,6 +45,6 @@ export default function DayExpenses(props) {
 
     return (<>
         <Heading level="h5" label={formats.dayHeadingDate(props.date)} amount={dayExpenses?.sum} />
-        <DayExpensesBody dayExpenses={dayExpenses} />
+        <DayExpensesBody dayExpenses={dayExpenses} newPosition={props.newPosition} />
     </>);
 };
