@@ -11,17 +11,6 @@ import { createEmptyPosition } from "../services/PositionService.js";
 import formats from '../utils/formats';
 import t from "../utils/texts.js";
 
-function Fab(props) {
-    return (
-        <div className="position-fixed pb-3 px-3 bottom-0 end-0 d-sm-none d-flex justify-content-end">
-            <button type="button" className="btn btn-primary" onClick={props.onClick}>
-                <i className="bi-plus-square"></i>
-                &nbsp;{t('New')}
-            </button>
-        </div>
-    );
-}
-
 function BrandContent(props) {
     return (<>
         <LinkButton
@@ -66,11 +55,13 @@ export default function PositionOutline(props) {
                 position={editedPosition}
                 abortAction={() => setEditedPosition(null)} />}
             rightDrawerVisible={!!editedPosition}
-            footerContent={
-                <nav className="nav">
+            footerContent={<>
+                <nav className="nav me-auto">
                     {Object.values(MonthDisplay).map(md => <a key={md.id} className={`nav-link ${md.id === monthDisplay ? 'active' : ''}`} href="#" onClick={() => setMonthDisplay(md.id)}><i className={`bi bi-${md.icon}`} /></a>)}
                 </nav>
-            } />
-        {!editedPosition ? <Fab onClick={() => newPosition(date)} /> : null}
+                <nav className="nav justify-content-end">
+                    <button type="button" class="btn btn-primary" onClick={() => newPosition(date)}><i className="bi bi-plus-square" /> {t('New')}</button>
+                </nav>
+            </>} />
     </>;
 }

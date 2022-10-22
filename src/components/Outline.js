@@ -37,14 +37,14 @@ export default function Outline(props) {
                                 {/* FIXME wieder reinnehmen props.side*/}
                                 <Blindtext numParagraphs={3} />
                             </div>
-                            {/*<div id="drawer-right" className={`position-absolute top-0 ${drawerPosStart} overflow-auto w-100 h-100 bg-white pt-2`}>
+                            <div id="drawer-right" className={`position-absolute top-0 ${drawerPosStart} overflow-auto w-100 h-100 bg-white pt-2`}>
                                 {props.rightDrawerVisible ? props.rightDrawer() : null}
-    </div>*/}
+                            </div>
                         </div>
                     </div>
                 </div>
             </TagContext.Provider>
-            {props.footerContent ? <div className="d-md-none">
+            {props.footerContent ? <div className="d-md-none d-flex p-2">
                 {props.footerContent}
             </div> : null}
         </div>
