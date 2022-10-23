@@ -8,6 +8,7 @@ import { TAG_REGEX } from '../utils/tags.js';
 import TagContext from './TagContext.js';
 import colors from '../enums/colors.js';
 import { formatFloat } from '../utils/formats.js';
+import { loadPosition } from '../services/PositionService.js';
 
 function Tag(props) {
     const tags = useContext(TagContext);
@@ -51,7 +52,7 @@ export default function PositionRow(props) {
     let label = props.pos.description;
     const amountClasses = props.emphasizeIncome && props.pos.type === PositionType.INCOME ? 'text-success' : '';
     return React.createElement('div', {
-        "data-xpns-id": props.pos._id,
+        onClick: props.onClick,
         className: `d-flex cursor-pointer ${classes || ''}`,
         ...props.attributes
     }, (<>

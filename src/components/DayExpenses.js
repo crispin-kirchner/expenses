@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import { getDayExpenses, loadPosition } from '../services/PositionService.js';
 
 import Heading from './Heading';
 import PositionRow from './PositionRow';
 import { formatDayHeadingDate } from '../utils/formats';
-import { getDayExpenses } from '../services/PositionService.js';
 import t from '../utils/texts';
 
 function DayExpensesBody(props) {
@@ -32,7 +32,7 @@ function DayExpensesBody(props) {
             </h5>
         );
     }
-    return props.dayExpenses.expenses.map(p => <PositionRow key={p._id} pos={p} emphasizeIncome={true} />);
+    return props.dayExpenses.expenses.map(p => <PositionRow key={p._id} pos={p} emphasizeIncome={true} onClick={() => props.editPosition(p._id)} />);
 }
 
 export default function DayExpenses(props) {
@@ -45,6 +45,6 @@ export default function DayExpenses(props) {
 
     return (<>
         <Heading level="h5" label={formatDayHeadingDate(props.date)} amount={dayExpenses?.sum} />
-        <DayExpensesBody dayExpenses={dayExpenses} newPosition={props.newPosition} />
+        <DayExpensesBody dayExpenses={dayExpenses} newPosition={props.newPosition} editPosition={props.editPosition} />
     </>);
 };

@@ -18,6 +18,10 @@ function docToPosition(doc) {
     return doc;
 }
 
+async function loadPosition(id) {
+    return docToPosition(await db.getDocument('position', id));
+}
+
 async function getAllPositions() {
     return (await db.getAllDocuments(EntityType.POSITION))
         .map(docToPosition);
@@ -174,5 +178,6 @@ function createEmptyPosition(date) {
 export {
     getDayExpenses,
     getOverviewData,
-    createEmptyPosition
+    createEmptyPosition,
+    loadPosition
 };

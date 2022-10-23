@@ -1,32 +1,27 @@
 import React, { useContext, useEffect, useState } from 'react';
+import { getOverviewData, loadPosition } from '../services/PositionService';
 
 import OverviewSections from '../enums/OverviewSections';
 import PositionRow from './PositionRow';
 import TagContext from './TagContext';
 import { getDefaultCurrency } from '../enums/currencies';
-import { getOverviewData } from '../services/PositionService';
-
-function SubHierarchy(props) {
-    if (!props.childRows || props.childRows.length === 0) {
-        return;
-    }
-    // FIXME prüfen ob es das expanded gedöns braucht (isExpanded(containerId) ? 'show' : '')
-    return (
-        <ul className="chevron collapse" id={props.containerId}>
-            {props.childRows.map(row => <Hierarchy key={row._id} row={row} path={[...props.path, row._id]} />)}
-        </ul>
-    );
-}
 
 function Hierarchy(props) {
+    // FIXME wenn der MOnat gewechselt wird sieht was nicht ganz koscher aus mit den chevrons
     const containerId = ['child-items', ...props.path].join('-');
+    const hasChildren = props.row.childRows && props.row.childRows.length > 0;
     return (
-        <li className={!props.row.childRows || props.row.childRows.length === 0 ? 'leaf-entry' : ''}>
+        <li className={!hasChildren ? 'leaf-entry' : ''}>
             <PositionRow
+                onClick={!hasChildren ? async () => props.editPosition(props.row._id) : null}
                 pos={props.row}
                 classes='p-1 btn text-light collapsed'
                 attributes={{ 'data-bs-toggle': 'collapse', 'data-bs-target': `#${containerId}` }} />
-            <SubHierarchy childRows={props.row.childRows} path={props.path} containerId={containerId} />
+            {hasChildren
+                ? <ul className="chevron collapse" id={containerId}>
+                    {props.row.childRows.map(row => <Hierarchy key={row._id} row={row} path={[...props.path, row._id]} editPosition={props.editPosition} />)}
+                </ul>
+                : null}
         </li>
     );
 }
@@ -43,7 +38,7 @@ function OverviewSection(props) {
     return (
         <div className="bg-dark text-light rounded p-2 mt-2">
             <ul className="chevron m-0 ps-0">
-                <Hierarchy row={row} path={[row._id]} />
+                <Hierarchy row={row} path={[row._id]} editPosition={props.editPosition} />
             </ul>
         </div>
     );
@@ -60,5 +55,5 @@ export default function Overview(props) {
 
     return Object.values(OverviewSections)
         .sort((a, b) => a.order - b.order)
-        .map(sec => <OverviewSection key={sec.id} overviewData={overviewData} section={sec.id} />);
+        .map(sec => <OverviewSection key={sec.id} overviewData={overviewData} editPosition={props.editPosition} section={sec.id} />);
 };

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { createEmptyPosition, loadPosition } from "../services/PositionService.js";
 import { decrementMonth, incrementMonth } from '../utils/dates.js';
 
 import DayExpenses from "./DayExpenses.js";
@@ -7,7 +8,6 @@ import MonthDisplay from "../enums/MonthDisplay.js";
 import Outline from "./Outline";
 import Overview from "./Overview";
 import PositionForm from "./PositionForm.js";
-import { createEmptyPosition } from "../services/PositionService.js";
 import { formatMonth } from "../utils/formats.js";
 import t from "../utils/texts.js";
 
@@ -24,12 +24,14 @@ function BrandContent(props) {
     </>);
 }
 
+// FIXME zwischen "s" und "md" sind zwei new buttons sichtbar und man könnte den navbar-container hier nicht-fluid machen weil das Form es nicht ist
 export default function PositionOutline(props) {
     const [date, setDate] = useState(new Date());
     const [editedPosition, setEditedPosition] = useState(null);
     const [monthDisplay, setMonthDisplay] = useState(MonthDisplay.CALENDAR.id);
 
     const newPosition = d => setEditedPosition(createEmptyPosition(d));
+    const editPosition = async id => setEditedPosition(await loadPosition(id));
 
     return <>
         <Outline
@@ -48,9 +50,9 @@ export default function PositionOutline(props) {
                     </LinkButton>
                 </form>
             </>}
-            main={<Overview date={date} />}
+            main={<Overview date={date} editPosition={editPosition} />}
             sideOnMobile={MonthDisplay[monthDisplay].sideOnMobile}
-            side={<DayExpenses date={date} newPosition={newPosition} />}
+            side={<DayExpenses date={date} newPosition={newPosition} editPosition={editPosition} />}
             rightDrawer={() => <PositionForm
                 position={editedPosition}
                 abortAction={() => setEditedPosition(null)} />}
