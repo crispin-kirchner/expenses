@@ -1,9 +1,11 @@
 import * as PositionType from '../enums/PositionType.js';
 
+import Form, { FormRow, NumberInput } from "./Form.js";
 import React, { useState } from "react";
+import currencies, { getDefaultCurrency } from "../enums/currencies.js";
 
-import Form from "./Form.js";
-import currencies from "../enums/currencies.js";
+import { computeAmountChf } from '../utils/positions.js';
+import { formatFloat } from '../utils/formats.js';
 import t from '../utils/texts.js';
 
 function TypeDropdown(props) {
@@ -18,27 +20,39 @@ function TypeDropdown(props) {
 }
 
 // FIXME load existing position functionality
-// FIXME move type selection to title
 // FIXME re-add delete button if exists
+// FIXME beim abspeichern muss die exchange rate überschrieben werden, falls es default currency ist
 export default function PositionForm(props) {
     const [positionType, setPositionType] = useState(props.position.type);
+    const [currencyId, setCurrencyId] = useState(props.position.currency);
+    const [exchangeRate, setExchangeRate] = useState(props.position.exchangeRate);
+    const [amount, setAmount] = useState(props.position.amount);
     return (
         <Form
             abortAction={props.abortAction}
             saveAction={props.saveAction}
             title={classes => <TypeDropdown type={positionType} setPositionType={setPositionType} classes={classes} />}>
-            <div className="row g-2">
+            <FormRow>
                 <div className="col-8 form-floating">
-                    <input className="form-control text-end" placeholder={t('Amount')} inputMode="numeric" defaultValue={props.position.amount} />
-                    <label htmlFor="amount">{t('Amount')}</label>
+                    <NumberInput id="amount" label={t('Amount')} defaultValue={amount} onChange={val => setAmount(val)} />
                 </div>
                 <div className="col-4 form-floating">
-                    <select className="form-select" defaultValue={props.position.currency} required>
+                    <select className="form-select" onChange={e => setCurrencyId(e.target.value)} defaultValue={props.position.currency} required>
                         {Object.values(currencies).map(c => <option key={c.id} value={c.id}>{c.isoCode}</option>)}
                     </select>
                     <label htmlFor="currency-input">{t('Currency')}</label>
                 </div>
-            </div>
+            </FormRow>
+            {getDefaultCurrency().id !== currencyId ? <FormRow>
+                <div className="input-group">
+                    <span className="input-group-text">{t('ExchangeRate')}</span>
+                    <NumberInput className="form-control text-end" defaultValue={exchangeRate} onChange={setExchangeRate} numFractionDigits={5} />
+                    <span className="input-group-text">
+                        <span>{computeAmountChf(amount, exchangeRate)}</span>
+                        <span>&nbsp;{getDefaultCurrency().displayName}</span>
+                    </span>
+                </div>
+            </FormRow> : null}
         </Form>
     );
 }

@@ -1,6 +1,7 @@
 import Navbar, { LinkButton } from "./Navbar";
 
 import React from "react";
+import { formatFloat } from "../utils/formats";
 import t from "../utils/texts";
 
 function Title(props) {
@@ -23,7 +24,29 @@ function Title(props) {
     </>);
 }
 
-// TODO floating buttons floating at keyboard for mobile
+export function FormRow(props) {
+    return <div className="row g-2 mb-2">{props.children}</div>;
+}
+
+// TODO echte Validierung
+export function NumberInput(props) {
+    return <>
+        <input
+            className="form-control text-end"
+            id={props.id}
+            placeholder={props.label}
+            inputMode="numeric"
+            defaultValue={props.defaultValue}
+            onInput={e => props.onChange(e.target.value)}
+            onBlur={e => {
+                const validated = formatFloat(e.target.value, props.numFractionDigits || 2);
+                e.target.value = validated;
+                props.onChange(validated);
+            }} />
+        {props.label ? <label htmlFor={props.id}>{props.label}</label> : null}
+    </>;
+}
+
 export default function Form(props) {
     return (<>
         <div className="d-md-none mb-2">
@@ -33,14 +56,11 @@ export default function Form(props) {
                 </div>
             </Navbar>
         </div>
-        <form className="container" id="expense-form" autoComplete="off" onSubmit={props.saveAction} noValidate>
+        <form className="container" autoComplete="off" onSubmit={props.saveAction} noValidate>
             <div className="align-items-center mt-2 mb-2 d-none d-md-flex">
                 <Title content={props.title} deleteAction={props.deleteAction} classes="btn-outline-dark" closeButton={<button type="button" className="btn-close me-2" onClick={props.abortAction} />} />
             </div>
             {props.children}
-            <div className="d-flex flex-row-reverse mt-2">
-
-            </div>
         </form>
     </>);
 }

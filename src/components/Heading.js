@@ -1,11 +1,11 @@
 import React from 'react';
-import formats from '../utils/formats';
+import { formatFloat } from '../utils/formats';
 import { isSubCent } from '../utils/general';
 
 export default function Heading(props) {
     let amountStr = '';
     if (props.amount && !isSubCent(props.amount)) {
-        amountStr = formats.float(Math.abs(props.amount));
+        amountStr = formatFloat(Math.abs(props.amount));
         if (props.amount < 0) {
             amountStr = '+' + amountStr;
         }

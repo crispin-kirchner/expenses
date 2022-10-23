@@ -7,7 +7,7 @@ import currencies, { isDefaultCurrency } from '../enums/currencies.js';
 import { TAG_REGEX } from '../utils/tags.js';
 import TagContext from './TagContext.js';
 import colors from '../enums/colors.js';
-import formats from '../utils/formats.js';
+import { formatFloat } from '../utils/formats.js';
 
 function Tag(props) {
     const tags = useContext(TagContext);
@@ -63,7 +63,7 @@ export default function PositionRow(props) {
             ? <span className="placeholder-wave placeholder rounded" style={{ width: `${props.pos.amountLoading}em` }} />
             : <span className={`pe-1 text-end ${amountClasses}`}>
                 {props.pos.type === PositionType.INCOME ? '+' : ''}
-                {formats.float(positions.computeMonthlyAmount(props.pos))}
+                {formatFloat(positions.computeMonthlyAmount(props.pos))}
             </span>}
         <span className={`currency ${amountClasses}`}>
             {isDefaultCurrency(props.pos.currency) ? '' : currencies[props.pos.currency].displayName}

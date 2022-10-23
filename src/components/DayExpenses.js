@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 
 import Heading from './Heading';
 import PositionRow from './PositionRow';
-import formats from '../utils/formats';
+import { formatDayHeadingDate } from '../utils/formats';
 import { getDayExpenses } from '../services/PositionService.js';
 import t from '../utils/texts';
 
@@ -44,7 +44,7 @@ export default function DayExpenses(props) {
     }, [props.date]);
 
     return (<>
-        <Heading level="h5" label={formats.dayHeadingDate(props.date)} amount={dayExpenses?.sum} />
+        <Heading level="h5" label={formatDayHeadingDate(props.date)} amount={dayExpenses?.sum} />
         <DayExpensesBody dayExpenses={dayExpenses} newPosition={props.newPosition} />
     </>);
 };
