@@ -1,10 +1,10 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { getOverviewData, loadPosition } from '../services/PositionService';
 
 import OverviewSections from '../enums/OverviewSections';
 import PositionRow from './PositionRow';
 import TagContext from './TagContext';
 import { getDefaultCurrency } from '../enums/currencies';
+import { getOverviewData } from '../services/PositionService';
 
 function Hierarchy(props) {
     // FIXME wenn der MOnat gewechselt wird sieht was nicht ganz koscher aus mit den chevrons

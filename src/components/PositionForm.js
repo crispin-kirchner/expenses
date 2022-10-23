@@ -1,12 +1,12 @@
 import * as PositionType from '../enums/PositionType.js';
 
-import Form, { FormRow, NumberInput } from "./Form.js";
+import Form, { DateInput, FormRow, NumberInput, TextInput } from "./Form.js";
 import React, { useState } from "react";
 import currencies, { getDefaultCurrency } from "../enums/currencies.js";
 
 import { computeAmountChf } from '../utils/positions.js';
-import { formatFloat } from '../utils/formats.js';
 import t from '../utils/texts.js';
+import { toYmd } from '../utils/dates.js';
 
 function TypeDropdown(props) {
     return <div className="dropdown">
@@ -22,11 +22,14 @@ function TypeDropdown(props) {
 // FIXME load existing position functionality
 // FIXME implement/test delete functionality
 // FIXME beim abspeichern muss die exchange rate überschrieben werden, falls es default currency ist
+// FIXME machen dass die Welt nicht explodiert wenn isRecurring = true gesetzt wird oder wenn eine Position ohne Enddatum gesetzt wird
 export default function PositionForm(props) {
     const [positionType, setPositionType] = useState(props.position.type);
     const [currencyId, setCurrencyId] = useState(props.position.currency);
     const [exchangeRate, setExchangeRate] = useState(props.position.exchangeRate);
     const [amount, setAmount] = useState(props.position.amount);
+    const [isRecurring, setRecurring] = useState(props.position.recurring);
+    // FIXME re-implement proposals
     return (
         <Form
             abortAction={props.abortAction}
@@ -54,6 +57,28 @@ export default function PositionForm(props) {
                     </span>
                 </div>
             </FormRow> : null}
+            <FormRow>
+                <TextInput
+                    id="description"
+                    classes="rounded-top"
+                    label={`${PositionType.defs[positionType].benefactor}/${t('Description')}`} defaultValue={props.position.description} />
+            </FormRow>
+            <FormRow>
+                <div className='col'>
+                    <DateInput id="date-input" label={isRecurring ? t('Start') : t('Date')} defaultValue={props.position.recurring ? toYmd(props.position.recurrenceFrom) : toYmd(props.position.date)} />
+                </div>
+                {isRecurring ? <div className='col'>
+                    <DateInput id="recurring-to-input" label={t('End')} defaultValue={toYmd(props.position.recurrenceTo)} />
+                </div> : null}
+            </FormRow>
+            <FormRow>
+                <div className="col col-auto">
+                    <div className="form-check form-switch">
+                        <input id="recurring-checkbox" className="form-check-input" type="checkbox" checked={isRecurring} onChange={e => setRecurring(e.target.checked)} />
+                        <label htmlFor="recurring-checkbox" class="form-check-label">{t('Recurring')}</label>
+                    </div>
+                </div>
+            </FormRow>
         </Form>
     );
 }

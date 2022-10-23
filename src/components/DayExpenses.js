@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { getDayExpenses, loadPosition } from '../services/PositionService.js';
 
 import Heading from './Heading';
 import PositionRow from './PositionRow';
 import { formatDayHeadingDate } from '../utils/formats';
+import { getDayExpenses } from '../services/PositionService.js';
 import t from '../utils/texts';
 
 function DayExpensesBody(props) {

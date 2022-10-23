@@ -8,7 +8,6 @@ import { DEFAULT_EXCHANGE_RATE, getDefaultCurrency } from '../enums/currencies.j
 
 import OverviewSections from '../enums/OverviewSections.js';
 import { getRootTag } from '../utils/tags.js';
-import { v4 } from 'uuid';
 
 function docToPosition(doc) {
     doc.date = doc.date ? new Date(doc.date) : null;
@@ -159,7 +158,7 @@ function createEmptyPosition(date) {
     return {
         entity: 'position',
 
-        _id: null,
+        _id: null, // FIXME uuid lösen wenn gespeichert wird
         createDate: new Date(Date.now()),
         type: PositionType.EXPENSE,
         date: date,
