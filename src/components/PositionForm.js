@@ -20,7 +20,7 @@ function TypeDropdown(props) {
 }
 
 // FIXME load existing position functionality
-// FIXME re-add delete button if exists
+// FIXME implement/test delete functionality
 // FIXME beim abspeichern muss die exchange rate überschrieben werden, falls es default currency ist
 export default function PositionForm(props) {
     const [positionType, setPositionType] = useState(props.position.type);
@@ -31,6 +31,7 @@ export default function PositionForm(props) {
         <Form
             abortAction={props.abortAction}
             saveAction={props.saveAction}
+            deleteAction={props.position._id ? () => console.log('Delete position', props.position._id) : null}
             title={classes => <TypeDropdown type={positionType} setPositionType={setPositionType} classes={classes} />}>
             <FormRow>
                 <div className="col-8 form-floating">

@@ -4,6 +4,13 @@ import React from "react";
 import { formatFloat } from "../utils/formats";
 import t from "../utils/texts";
 
+function FormButton(props) {
+    return <button className={`btn ${props.classes}`} type={props.type} title={props.label} onClick={props.onClick}>
+        <i className={`bi ${props.icon}`}></i>
+        <span className="d-md-none">&nbsp;{props.label}</span>
+    </button>;
+}
+
 function Title(props) {
     return (<>
         {props.closeButton}
@@ -12,15 +19,9 @@ function Title(props) {
         </div>
         {
             props.deleteAction ?
-                <button id="delete-button" className="btn btn-outline-danger" type="button" title={t('Delete')} onClick={props.deleteAction}>
-                    <i className="bi-trash"></i>
-                    &nbsp;{t('Delete')}
-                </button> : null
+                <FormButton classes="btn-outline-danger" icon="bi-trash" type="button" label={t('Delete')} onClick={props.deleteAction} /> : null
         }
-        <button className="btn btn-primary ms-2" type="submit" title={t('Save')}>
-            <i className="bi-check-circle"></i>
-            &nbsp;{t('Save')}
-        </button>
+        <FormButton classes="btn-primary ms-2" type="submit" icon="bi-check-circle" label={t('Save')} />
     </>);
 }
 

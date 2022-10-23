@@ -159,7 +159,7 @@ function createEmptyPosition(date) {
     return {
         entity: 'position',
 
-        _id: v4(),
+        _id: null,
         createDate: new Date(Date.now()),
         type: PositionType.EXPENSE,
         date: date,
