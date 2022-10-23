@@ -60,7 +60,7 @@ export default function PositionRow(props) {
             <PositionDescription text={label} wrapperFunction={(el, i) => <div key={i} className="overflow-hidden me-1">{el}</div>} />
         </span>
         {props.pos.amountLoading
-            ? <span className="placeholder-wave placeholder" style={{ width: `${props.pos.amountLoading}em` }} />
+            ? <span className="placeholder-wave placeholder rounded" style={{ width: `${props.pos.amountLoading}em` }} />
             : <span className={`pe-1 text-end ${amountClasses}`}>
                 {props.pos.type === PositionType.INCOME ? '+' : ''}
                 {formats.float(positions.computeMonthlyAmount(props.pos))}

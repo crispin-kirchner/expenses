@@ -1,4 +1,3 @@
-import * as currencies from './currencies.js';
 import * as texts from './utils/texts.js';
 
 // TODO wieder rein holen oder ganz rauswerfen

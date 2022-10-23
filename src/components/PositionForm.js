@@ -12,7 +12,7 @@ function TypeDropdown(props) {
             {PositionType.defs[props.type].text}
         </button>
         <ul className="dropdown-menu">
-            {Object.values(PositionType.defs).map(d => <li key={d.id}><a className="dropdown-item" href="#" onClick={() => props.setPositionType(d.id)}>{d.text}</a></li>)}
+            {Object.values(PositionType.defs).map(d => <li key={d.id} className="dropdown-item" onClick={() => props.setPositionType(d.id)}>{d.text}</li>)}
         </ul>
     </div>;
 }

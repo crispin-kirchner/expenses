@@ -7,6 +7,7 @@ import MonthDisplay from "../enums/MonthDisplay.js";
 import Outline from "./Outline";
 import Overview from "./Overview";
 import PositionForm from "./PositionForm.js";
+import { capitalizeFirstLetter } from "../utils/strings.js";
 import { createEmptyPosition } from "../services/PositionService.js";
 import formats from '../utils/formats';
 import t from "../utils/texts.js";
@@ -20,7 +21,7 @@ function BrandContent(props) {
         <LinkButton
             icon="bi-chevron-right"
             onClick={() => props.setDate(incrementMonth(props.date))} />
-        {formats.month(props.date)}
+        {capitalizeFirstLetter(formats.month(props.date))}
     </>);
 }
 

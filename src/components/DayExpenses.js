@@ -11,14 +11,14 @@ function DayExpensesBody(props) {
         return (
             <div className='placeholder-glow'>
                 <div className='d-flex border-top p-1'>
-                    <span className='placeholder me-auto col-7' />
-                    <span className='placeholder col-2' />
-                    <span className='placeholder col-1 ms-1' />
+                    <span className='placeholder rounded me-auto col-7' />
+                    <span className='placeholder rounded col-2' />
+                    <span className='placeholder rounded col-1 ms-1' />
                 </div>
                 <div className='d-flex border-top p-1'>
-                    <span className='placeholder me-auto col-6' />
-                    <span className='placeholder col-3' />
-                    <span className='placeholder col-1 ms-1' />
+                    <span className='placeholder rounded me-auto col-6' />
+                    <span className='placeholder rounded col-3' />
+                    <span className='placeholder rounded col-1 ms-1' />
                 </div>
             </div>
         );
