@@ -26,7 +26,7 @@ function Title(props) {
 }
 
 export function FormRow(props) {
-    return <div className="row g-2 mb-3">{props.children}</div>;
+    return <div className={`row g-2 mb-3 ${props.classes}`}>{props.children}</div>;
 }
 
 export function TextInput(props) {

@@ -4,6 +4,7 @@ import Form, { DateInput, FormRow, NumberInput, TextInput } from "./Form.js";
 import React, { useState } from "react";
 import currencies, { getDefaultCurrency } from "../enums/currencies.js";
 
+import RecurrencePeriodicity from '../enums/RecurrencePeriodicity.js';
 import { computeAmountChf } from '../utils/positions.js';
 import t from '../utils/texts.js';
 import { toYmd } from '../utils/dates.js';
@@ -29,6 +30,7 @@ export default function PositionForm(props) {
     const [exchangeRate, setExchangeRate] = useState(props.position.exchangeRate);
     const [amount, setAmount] = useState(props.position.amount);
     const [isRecurring, setRecurring] = useState(props.position.recurring);
+    const [recurrencePeriodicity, setRecurrencePeriodicity] = useState(props.position.recurrencePeriodicity || RecurrencePeriodicity.MONTHLY);
     // FIXME re-implement proposals
     return (
         <Form
@@ -71,12 +73,33 @@ export default function PositionForm(props) {
                     <DateInput id="recurring-to-input" label={t('End')} defaultValue={toYmd(props.position.recurrenceTo)} />
                 </div> : null}
             </FormRow>
-            <FormRow>
+            <FormRow classes="align-items-center">
                 <div className="col col-auto">
                     <div className="form-check form-switch">
                         <input id="recurring-checkbox" className="form-check-input" type="checkbox" checked={isRecurring} onChange={e => setRecurring(e.target.checked)} />
-                        <label htmlFor="recurring-checkbox" class="form-check-label">{t('Recurring')}</label>
+                        <label htmlFor="recurring-checkbox" className="form-check-label">{t('Recurring')}</label>
                     </div>
+                </div>
+                <div className={`input-group col ${!isRecurring ? 'invisible' : ''}`}>
+                    <input type="number" className="form-control text-end" size="2" maxlength="2" inputmode="numeric" defaultValue={props.position.recurrenceFrequency || '1'} />
+
+                    <input
+                        name="recurring-periodicity"
+                        id="recurring-monthly"
+                        className="btn-check"
+                        type="radio"
+                        checked={recurrencePeriodicity === RecurrencePeriodicity.MONTHLY}
+                        onChange={() => setRecurrencePeriodicity(RecurrencePeriodicity.MONTHLY)} />
+                    <label for="recurring-monthly" className="btn btn-outline-primary">{t('Monthly')}</label>
+
+                    <input
+                        name="recurring-periodicity"
+                        id="recurring-yearly"
+                        className="btn-check"
+                        type="radio"
+                        checked={recurrencePeriodicity === RecurrencePeriodicity.YEARLY}
+                        onChange={() => setRecurrencePeriodicity(RecurrencePeriodicity.YEARLY)} />
+                    <label for="recurring-yearly" className="btn btn-outline-primary">{t('Yearly')}</label>
                 </div>
             </FormRow>
         </Form>

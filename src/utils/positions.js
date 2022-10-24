@@ -1,9 +1,8 @@
 import * as PositionType from '../enums/PositionType.js';
 import * as dates from './dates.js';
 
+import RecurrencePeriodicity from '../enums/RecurrencePeriodicity.js';
 import { formatFloat } from './formats.js';
-
-// TODO Klasse hier draus machen?
 
 function computeMonthlyAmountChf(pos) {
     return parseFloat(pos.exchangeRate) * computeMonthlyAmount(pos)
@@ -12,10 +11,10 @@ function computeMonthlyAmountChf(pos) {
 function computeMonthlyAmount(pos) {
     if (pos.recurring) {
         let amountByFrequency = parseFloat(pos.amount) / pos.recurrenceFrequency;
-        if (pos.recurrencePeriodicity === 'monthly') {
+        if (pos.recurrencePeriodicity === RecurrencePeriodicity.MONTHLY) {
             return amountByFrequency;
         }
-        if (pos.recurrencePeriodicity === 'yearly') {
+        if (pos.recurrencePeriodicity === RecurrencePeriodicity.YEARLY) {
             return amountByFrequency / 12;
         }
     }
