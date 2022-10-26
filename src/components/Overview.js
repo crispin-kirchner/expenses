@@ -12,7 +12,7 @@ function Hierarchy(props) {
     // FIXME wenn der MOnat gewechselt wird sieht was nicht ganz koscher aus mit den chevrons
     const containerId = ['child-items', ...props.path].join('-');
     const hasChildren = props.childRows && props.childRows.length > 0;
-    // FIXME PositionRow wegrefactoren, lieber beim gemeinsamen Nenner PositionDescription bleiben
+    // FIXME positionRow nicht brauchen hier, zu viele Anpassungen nur für diese Stelle
     return (
         <li className={!hasChildren ? 'leaf-entry' : ''}>
             <PositionRow
