@@ -129,6 +129,12 @@ function computeRemainderRow(rowsGrouped) {
     };
 }
 
+async function getPositionsOfMonth(date) {
+    // FIXME use mango query/separate queries for different types
+    return (await getAllPositions())
+        .filter(ex => positions.isValidInMonth(ex, date));
+}
+
 // TODO move to overview component, implement with lodash
 async function getOverviewData(currentDay, tags) {
     if (!tags) {
@@ -175,7 +181,7 @@ function createEmptyPosition(date) {
 
 export {
     getDayExpenses,
-    getOverviewData,
+    getPositionsOfMonth,
     createEmptyPosition,
     loadPosition
 };

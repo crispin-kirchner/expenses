@@ -49,25 +49,25 @@ function PositionDescription(props) {
 
 export default function PositionRow(props) {
     const classes = props.classes || 'py-1 border-top xpns-hover';
-    let label = props.pos.description;
-    const amountClasses = props.emphasizeIncome && props.pos.type === PositionType.INCOME ? 'text-success' : '';
+    const amountClasses = props.emphasizeIncome && props.amount < 0 ? 'text-success' : '';
+    const multiplier = props.amount < 0 ? -1 : 1;
     return React.createElement('div', {
         onClick: props.onClick,
-        className: `d-flex cursor-pointer ${classes || ''}`,
+        className: `d-flex cursor-pointer ${classes}`,
         ...props.attributes
     }, (<>
         <span className="d-flex overflow-hidden text-nowrap me-auto">
             {props.children}
-            <PositionDescription text={label} wrapperFunction={(el, i) => <div key={i} className="overflow-hidden me-1">{el}</div>} />
+            <PositionDescription text={props.description} wrapperFunction={(el, i) => <div key={i} className="overflow-hidden me-1">{el}</div>} />
         </span>
-        {props.pos.amountLoading
-            ? <span className="placeholder-wave placeholder rounded" style={{ width: `${props.pos.amountLoading}em` }} />
+        {props.loading
+            ? <span className="placeholder-wave placeholder rounded" style={{ width: `${props.amount / 1000 * 1.25}em` }} />
             : <span className={`pe-1 text-end ${amountClasses}`}>
-                {props.pos.type === PositionType.INCOME ? '+' : ''}
-                {formatFloat(positions.computeMonthlyAmount(props.pos))}
+                {props.amount < 0 ? '+' : ''}
+                {formatFloat(props.amount * multiplier)}
             </span>}
         <span className={`currency ${amountClasses}`}>
-            {isDefaultCurrency(props.pos.currency) ? '' : currencies[props.pos.currency].displayName}
+            {props.currency}
         </span>
     </>));
 }

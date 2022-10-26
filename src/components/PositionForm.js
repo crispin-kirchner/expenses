@@ -79,7 +79,7 @@ export default function PositionForm(props) {
                     </div>
                 </div>
                 <div className={`input-group col ${!isRecurring ? 'invisible' : ''}`}>
-                    <input type="number" className="form-control text-end" size="2" maxlength="2" inputmode="numeric" defaultValue={props.position.recurrenceFrequency || '1'} />
+                    <input type="number" className="form-control text-end" size="2" maxLength="2" inputMode="numeric" defaultValue={props.position.recurrenceFrequency || '1'} />
 
                     <input
                         name="recurring-periodicity"
@@ -88,7 +88,7 @@ export default function PositionForm(props) {
                         type="radio"
                         checked={recurrencePeriodicity === RecurrencePeriodicity.MONTHLY}
                         onChange={() => setRecurrencePeriodicity(RecurrencePeriodicity.MONTHLY)} />
-                    <label for="recurring-monthly" className="btn btn-outline-primary">{t('Monthly')}</label>
+                    <label htmlFor="recurring-monthly" className="btn btn-outline-primary">{t('Monthly')}</label>
 
                     <input
                         name="recurring-periodicity"
@@ -97,7 +97,7 @@ export default function PositionForm(props) {
                         type="radio"
                         checked={recurrencePeriodicity === RecurrencePeriodicity.YEARLY}
                         onChange={() => setRecurrencePeriodicity(RecurrencePeriodicity.YEARLY)} />
-                    <label for="recurring-yearly" className="btn btn-outline-primary">{t('Yearly')}</label>
+                    <label htmlFor="recurring-yearly" className="btn btn-outline-primary">{t('Yearly')}</label>
                 </div>
             </FormRow>
         </Form>

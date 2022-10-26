@@ -5,21 +5,35 @@ import PositionRow from './PositionRow';
 import TagContext from './TagContext';
 import { getDefaultCurrency } from '../enums/currencies';
 import { getOverviewData } from '../services/PositionService';
+import t from '../utils/texts';
 
+// TODO Amounts von income negativ in DB schreiben
 function Hierarchy(props) {
     // FIXME wenn der MOnat gewechselt wird sieht was nicht ganz koscher aus mit den chevrons
     const containerId = ['child-items', ...props.path].join('-');
-    const hasChildren = props.row.childRows && props.row.childRows.length > 0;
+    const hasChildren = props.childRows && props.childRows.length > 0;
+    // FIXME PositionRow wegrefactoren, lieber beim gemeinsamen Nenner PositionDescription bleiben
     return (
         <li className={!hasChildren ? 'leaf-entry' : ''}>
             <PositionRow
-                onClick={!hasChildren ? async () => props.editPosition(props.row._id) : null}
-                pos={props.row}
+                description={props.description}
+                amount={props.amount}
+                loading={props.loading}
                 classes='p-1 btn text-light collapsed'
+                onClick={!hasChildren ? async () => props.editPosition(props.id) : null}
                 attributes={{ 'data-bs-toggle': 'collapse', 'data-bs-target': `#${containerId}` }} />
             {hasChildren
                 ? <ul className="chevron collapse" id={containerId}>
-                    {props.row.childRows.map(row => <Hierarchy key={row._id} row={row} path={[...props.path, row._id]} editPosition={props.editPosition} />)}
+                    {props.childRows.map(row => (
+                        <Hierarchy
+                            key={row._id}
+                            id={row._id}
+                            description={row.description}
+                            amount={row.amount}
+                            path={[...props.path, row._id]}
+                            childRows={row.childRows}
+                            editPosition={props.editPosition} />
+                    ))}
                 </ul>
                 : null}
         </li>
@@ -27,33 +41,28 @@ function Hierarchy(props) {
 }
 
 function OverviewSection(props) {
-    const row = props.overviewData !== null
-        ? props.overviewData[props.section]
-        : {
-            _id: props.section,
-            description: OverviewSections[props.section].name,
-            currency: getDefaultCurrency().id,
-            amountLoading: OverviewSections[props.section].loadingPlaceholder
-        };
     return (
         <div className="bg-dark text-light rounded p-2 mt-2">
             <ul className="chevron m-0 ps-0">
-                <Hierarchy row={row} path={[row._id]} editPosition={props.editPosition} />
+                <Hierarchy
+                    id={props.id}
+                    description={props.description}
+                    amount={props.amount}
+                    loading={props.loading}
+                    path={[props.id]}
+                    childRows={props.childRows}
+                    editPosition={props.editPosition} />
             </ul>
         </div>
     );
 }
 
 export default function Overview(props) {
-    const tags = useContext(TagContext);
-    const [overviewData, setOverviewData] = useState(null);
-    useEffect(() => {
-        setOverviewData(null);
-        getOverviewData(props.date, tags)
-            .then(setOverviewData);
-    }, [props.date, tags]);
-
-    return Object.values(OverviewSections)
-        .sort((a, b) => a.order - b.order)
-        .map(sec => <OverviewSection key={sec.id} overviewData={overviewData} editPosition={props.editPosition} section={sec.id} />);
+    return <OverviewSection
+        id={OverviewSections.EXPENSE.id}
+        description={t('Earnings')}
+        amount={-props.incomePositions.amount || 5000}
+        loading={!props.incomePositions.amount}
+        childRows={props.incomePositions.childRows}
+        editPosition={props.editPosition} />
 };

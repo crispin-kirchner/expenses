@@ -1,5 +1,7 @@
-import React, { useState } from "react";
-import { createEmptyPosition, loadPosition } from "../services/PositionService.js";
+import * as PositionType from '../enums/PositionType.js';
+
+import React, { useEffect, useState } from "react";
+import { createEmptyPosition, getPositionsOfMonth, loadPosition } from "../services/PositionService.js";
 import { decrementMonth, incrementMonth } from '../utils/dates.js';
 
 import DayExpenses from "./DayExpenses.js";
@@ -7,7 +9,10 @@ import { LinkButton } from "./Navbar";
 import MonthDisplay from "../enums/MonthDisplay.js";
 import Outline from "./Outline";
 import Overview from "./Overview";
+import OverviewSections from "../enums/OverviewSections.js";
 import PositionForm from "./PositionForm.js";
+import _ from 'lodash';
+import { computeMonthlyAmountChf } from "../utils/positions.js";
 import { formatMonth } from "../utils/formats.js";
 import t from "../utils/texts.js";
 
@@ -30,6 +35,31 @@ export default function PositionOutline(props) {
     const [editedPosition, setEditedPosition] = useState(null);
     const [monthDisplay, setMonthDisplay] = useState(MonthDisplay.CALENDAR.id);
 
+    const [incomePositions, setIncomePositions] = useState({ childRows: [] });
+    const [recurringPositions, setRecurringPositions] = useState(null);
+    const [expensePositions, setExpensePositions] = useState(null);
+
+    const setPositionsOfMonth = (positions) => {
+        const groupedPositions = _(positions)
+            // FIXME group everything
+            .groupBy(pos => pos.type === PositionType.INCOME ? OverviewSections.INCOME.id : OverviewSections.EXPENSE.id)
+            .map((positions, overviewSection) => ({
+                _id: overviewSection,
+                amount: _.sumBy(positions, pos => computeMonthlyAmountChf(pos)),
+                childRows: positions
+            }))
+            .keyBy('_id')
+            .value();
+
+        setIncomePositions(groupedPositions[OverviewSections.INCOME.id])
+    };
+
+    // TODO date in month und day auftrennen oder day gleich ganz weglassen
+    useEffect(() => {
+        getPositionsOfMonth(date)
+            .then(setPositionsOfMonth);
+    }, [date]);
+
     const newPosition = d => setEditedPosition(createEmptyPosition(d));
     const editPosition = async id => setEditedPosition(await loadPosition(id));
 
@@ -50,7 +80,7 @@ export default function PositionOutline(props) {
                     </LinkButton>
                 </form>
             </>}
-            main={<Overview date={date} editPosition={editPosition} />}
+            main={<Overview incomePositions={incomePositions} editPosition={editPosition} />}
             sideOnMobile={MonthDisplay[monthDisplay].sideOnMobile}
             side={<DayExpenses date={date} newPosition={newPosition} editPosition={editPosition} />}
             rightDrawer={() => <PositionForm
