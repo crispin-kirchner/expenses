@@ -20,10 +20,8 @@ function TypeDropdown(props) {
     </div>;
 }
 
-// FIXME load existing position functionality
 // FIXME implement/test delete functionality
-// FIXME beim abspeichern muss die exchange rate überschrieben werden, falls es default currency ist
-// FIXME machen dass die Welt nicht explodiert wenn isRecurring = true gesetzt wird oder wenn eine Position ohne Enddatum gesetzt wird
+// FIXME beim abspeichern muss die exchange rate überschrieben werden, falls es default currency ist, ebenso recurrence Felder
 export default function PositionForm(props) {
     const [positionType, setPositionType] = useState(props.position.type);
     const [currencyId, setCurrencyId] = useState(props.position.currency);

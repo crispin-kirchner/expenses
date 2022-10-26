@@ -20,6 +20,7 @@ export default function Outline(props) {
     const sideClasses = props.sideOnMobile ? '' : 'd-none d-md-block';
 
     // FIXME Inhalt des Drawers behalten, bis der aus dem Bild verschwunden ist
+    // FIXME Drawer wird nicht angezeigt, wenn side nicht angezeigt wird
     return (
         <div id="app" className='d-flex h-100 flex-column overflow-hidden position-relative'>
             <Navbar viewMode={viewMode} setViewMode={setViewMode}>

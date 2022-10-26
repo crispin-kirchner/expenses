@@ -129,8 +129,7 @@ function computeRemainderRow(rowsGrouped) {
     };
 }
 
-
-
+// TODO move to overview component, implement with lodash
 async function getOverviewData(currentDay, tags) {
     if (!tags) {
         return null;
