@@ -2,6 +2,7 @@ import * as PositionType from './PositionType.js';
 
 import t from "../utils/texts";
 
+// FIXME remove loadingPlaceholders, orders, remaining
 const OverviewSections = {
     INCOME: {
         id: 'INCOME',

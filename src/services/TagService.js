@@ -1,8 +1,10 @@
 import * as EntityType from '../enums/EntityType.js';
 
+import { buildHierarchyRecursive, getTags } from '../utils/tags.js';
+
 import TagDimension from '../enums/TagDimension.js';
+import _ from 'lodash';
 import { getAllDocuments } from './db.js';
-import { getTags } from '../utils/tags.js';
 
 async function getAllNames() {
     const allPositions = await getAllDocuments(EntityType.POSITION);
@@ -10,18 +12,9 @@ async function getAllNames() {
     return [...set];
 }
 
-function getHierarchyRecursive(tagsFlat, parent) {
-    const categories = Object.keys(tagsFlat).filter(c => c.parent === parent);
-
-    return categories.reduce((acc, c) => {
-        acc[c._id] = getHierarchyRecursive(tagsFlat, c._id);
-        return acc;
-    }, {});
-}
-
 async function getHierarchy(tagsFlat) {
     const hierarchy = [TagDimension.STANDARD, TagDimension.UNSPECIFIC].reduce((acc, d) => {
-        acc[d] = getHierarchyRecursive(tagsFlat, d);
+        acc[d] = buildHierarchyRecursive(tagsFlat, d);
         return acc;
     }, {});
 

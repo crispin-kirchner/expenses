@@ -26,6 +26,7 @@ async function getAllPositions() {
         .map(docToPosition);
 }
 
+// FIXME remove
 function getTypeFilters() {
     return Object.values(OverviewSections)
         .filter(fd => fd.type && fd.recurringFilter);
@@ -106,6 +107,7 @@ function groupByCategory(rowsFeatured) {
         .sort((e1, e2) => e2.amountChf - e1.amountChf);
 }
 
+// FIXME remove
 function getType(pos) {
     const matchingFilter = getTypeFilters()
         .find(fd => pos.type === fd.type && fd.recurringFilter(pos));

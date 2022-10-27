@@ -14,6 +14,7 @@ import PositionForm from "./PositionForm.js";
 import _ from 'lodash';
 import { computeMonthlyAmountChf } from "../utils/positions.js";
 import { formatMonth } from "../utils/formats.js";
+import { getTags } from '../utils/tags.js';
 import t from "../utils/texts.js";
 
 function BrandContent(props) {
@@ -29,6 +30,11 @@ function BrandContent(props) {
     </>);
 }
 
+// FIXME s.type check kann entfernt werden wenn remaining gelöscht wurde
+function getOverviewSection(pos) {
+    return _.find(OverviewSections, s => s.type && pos.type === s.type && s.recurringFilter(pos)).id;
+}
+
 // FIXME zwischen "s" und "md" sind zwei new buttons sichtbar und man könnte den navbar-container hier nicht-fluid machen weil das Form es nicht ist
 export default function PositionOutline(props) {
     const [date, setDate] = useState(new Date());
@@ -36,22 +42,29 @@ export default function PositionOutline(props) {
     const [monthDisplay, setMonthDisplay] = useState(MonthDisplay.CALENDAR.id);
 
     const [incomePositions, setIncomePositions] = useState({ childRows: [] });
-    const [recurringPositions, setRecurringPositions] = useState(null);
-    const [expensePositions, setExpensePositions] = useState(null);
+    const [recurringPositions, setRecurringPositions] = useState({ childRows: [] });
+    const [expensePositions, setExpensePositions] = useState({ childRows: [] });
 
     const setPositionsOfMonth = (positions) => {
         const groupedPositions = _(positions)
             // FIXME group everything
-            .groupBy(pos => pos.type === PositionType.INCOME ? OverviewSections.INCOME.id : OverviewSections.EXPENSE.id)
+            .map(pos => ({
+                ...pos,
+                monthlyAmountChf: computeMonthlyAmountChf(pos),
+                tags: getTags(pos.description)
+            }))
+            .groupBy(getOverviewSection)
             .map((positions, overviewSection) => ({
                 _id: overviewSection,
-                amount: _.sumBy(positions, pos => computeMonthlyAmountChf(pos)),
+                monthlyAmountChf: _.sumBy(positions, 'monthlyAmountChf'),
                 childRows: positions
             }))
             .keyBy('_id')
             .value();
 
-        setIncomePositions(groupedPositions[OverviewSections.INCOME.id])
+        setIncomePositions(groupedPositions[OverviewSections.INCOME.id]);
+        setRecurringPositions(groupedPositions[OverviewSections.RECURRING.id]);
+        setExpensePositions(groupedPositions[OverviewSections.EXPENSE.id]);
     };
 
     // TODO date in month und day auftrennen oder day gleich ganz weglassen
@@ -80,7 +93,11 @@ export default function PositionOutline(props) {
                     </LinkButton>
                 </form>
             </>}
-            main={<Overview incomePositions={incomePositions} editPosition={editPosition} />}
+            main={<Overview
+                incomePositions={incomePositions}
+                recurringPositions={recurringPositions}
+                expensePositions={expensePositions}
+                editPosition={editPosition} />}
             sideOnMobile={MonthDisplay[monthDisplay].sideOnMobile}
             side={<DayExpenses date={date} newPosition={newPosition} editPosition={editPosition} />}
             rightDrawer={() => <PositionForm

@@ -13,8 +13,8 @@ import { loadPosition } from '../services/PositionService.js';
 function Tag(props) {
     const tags = useContext(TagContext);
     let classes = props.classes || '';
-    if (tags) {
-        const tag = tags.flat[props.name];
+    let tag = null;
+    if (tags && (tag = tags.flat[props.name])) {
         classes += colors[tag.color].classes;
     }
     else {
@@ -61,7 +61,7 @@ export default function PositionRow(props) {
             <PositionDescription text={props.description} wrapperFunction={(el, i) => <div key={i} className="overflow-hidden me-1">{el}</div>} />
         </span>
         {props.loading
-            ? <span className="placeholder-wave placeholder rounded" style={{ width: `${props.amount / 1000 * 1.25}em` }} />
+            ? <span className="placeholder-wave placeholder rounded" style={{ width: `${Math.log10(props.amount) + 2}rem` }} />
             : <span className={`pe-1 text-end ${amountClasses}`}>
                 {props.amount < 0 ? '+' : ''}
                 {formatFloat(props.amount * multiplier)}

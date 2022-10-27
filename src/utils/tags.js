@@ -1,14 +1,15 @@
 import TagDimension from '../enums/TagDimension.js';
+import _ from 'lodash';
 
 const TAG_REGEX = /#(\p{Letter}+)\b/ug;
 
 function getTags(text) {
     let m = null;
-    const labels = [];
+    const tags = [];
     while ((m = TAG_REGEX.exec(text))) {
-        labels.push(m[1]);
+        tags.push(m[1]);
     }
-    return labels;
+    return tags;
 }
 
 function hasTag(text, tagName) {
@@ -26,4 +27,17 @@ function getRootTag(text, tagsFlat) {
     }
 }
 
-export { getRootTag, getTags, TAG_REGEX };
+function removeTagFromString(tag, description) {
+    return description.replace(new RegExp(`\\s#${tag}(?:\\b|$)`), '');
+}
+
+function buildHierarchyRecursive(tagsFlat, parent) {
+    const categories = _.filter(tagsFlat, tag => tag.parent === parent)
+
+    return categories.reduce((acc, c) => {
+        acc[c._id] = buildHierarchyRecursive(tagsFlat, c._id);
+        return acc;
+    }, {});
+}
+
+export { getRootTag, getTags, removeTagFromString, buildHierarchyRecursive, TAG_REGEX };
