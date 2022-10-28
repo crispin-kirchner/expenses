@@ -67,7 +67,7 @@ export default function PositionRow(props) {
                 {formatFloat(props.amount * multiplier)}
             </span>}
         <span className={`currency ${amountClasses}`}>
-            {props.currency}
+            {props.currency && !isDefaultCurrency(props.currency) ? currencies[props.currency].displayName : ''}
         </span>
     </>));
 }

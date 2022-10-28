@@ -47,7 +47,6 @@ export default function PositionOutline(props) {
 
     const setPositionsOfMonth = (positions) => {
         const groupedPositions = _(positions)
-            // FIXME group everything
             .map(pos => ({
                 ...pos,
                 monthlyAmountChf: computeMonthlyAmountChf(pos),

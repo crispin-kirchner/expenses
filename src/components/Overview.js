@@ -33,7 +33,7 @@ function Hierarchy(props) {
                             key={row._id}
                             id={row._id}
                             description={row.description}
-                            currency={row.currency && !isDefaultCurrency(row.currency) ? currencies[row.currency].displayName : ''}
+                            currency={row.currency}
                             amount={row.currency && !isDefaultCurrency(row.currency) ? computeMonthlyAmount(row) : row.monthlyAmountChf}
                             path={[...props.path, row._id]}
                             childRows={row.childRows}
@@ -73,24 +73,24 @@ function groupAndSort(childRows, tagHierarchy) {
 
     if (tagHierarchy) {
         result = result.groupBy(row => {
-            const tag = _.findKey(tagHierarchy[TagDimension.STANDARD], (_, tag) => row.tags.includes(tag));
-            if (tag) {
-                return '#' + tag;
+            const groupName = _.findKey(tagHierarchy[TagDimension.STANDARD], (_, tag) => row.tags.includes(tag));
+            if (groupName) {
+                return '#' + groupName;
             }
             return 'Sonstige'; // FIXME in Konstante auslagern / übersetzen
         })
-            .map((positions, tag) => {
+            .map((positions, groupName) => {
                 let childRows = positions;
-                let _id = tag;
-                if (tag[0] === '#') {
-                    _id = tag.substring(1);
+                let _id = groupName;
+                if (groupName[0] === '#') {
+                    _id = groupName.substring(1);
                     childRows = _.each(childRows, pos => pos.description = removeTagFromString(_id, pos.description));
                 }
                 childRows = _.orderBy(childRows, ['monthlyAmountChf'], ['desc']);
                 return {
                     _id,
                     monthlyAmountChf: _.sumBy(positions, 'monthlyAmountChf'),
-                    description: tag,
+                    description: groupName,
                     childRows
                 };
             })

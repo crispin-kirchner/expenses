@@ -32,7 +32,13 @@ function DayExpensesBody(props) {
             </h5>
         );
     }
-    return props.dayExpenses.expenses.map(p => <PositionRow key={p._id} pos={p} emphasizeIncome={true} onClick={() => props.editPosition(p._id)} />);
+    return props.dayExpenses.expenses.map(p => <PositionRow
+        key={p._id}
+        description={p.description}
+        amount={p.amount}
+        currency={p.currency}
+        emphasizeIncome={true}
+        onClick={() => props.editPosition(p._id)} />);
 }
 
 export default function DayExpenses(props) {
