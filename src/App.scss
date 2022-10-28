@@ -27,6 +27,14 @@ $utilities: map-merge(
                     2: $border-radius,
                     3: $border-radius-lg,
             )
+        ),
+        "height": map-merge(
+            map-get($utilities, "height"),
+            (responsive: true)
+        ),
+        "position": map-merge(
+            map-get($utilities, "position"),
+            (responsive: true)
         )
     )
 );
@@ -209,14 +217,6 @@ div.bg-dark>ul.chevron>li.leaf-entry>div::before {
 
     .mt-content {
         margin-top: $mt-content-md;
-    }
-
-    .h-md-100 {
-        height: 100% !important;
-    }
-
-    .position-md-relative {
-        position:relative;
     }
 }
 
