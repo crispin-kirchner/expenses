@@ -41,7 +41,7 @@ export default function PositionForm(props) {
                     <NumberInput id="amount" label={t('Amount')} defaultValue={amount} onChange={val => setAmount(val)} />
                 </div>
                 <div className="col-4 form-floating">
-                    <select className="form-select" onChange={e => setCurrencyId(e.target.value)} defaultValue={props.position.currency} required>
+                    <select id="currency-input" className="form-select" onChange={e => setCurrencyId(e.target.value)} defaultValue={props.position.currency} required>
                         {Object.values(currencies).map(c => <option key={c.id} value={c.id}>{c.isoCode}</option>)}
                     </select>
                     <label htmlFor="currency-input">{t('Currency')}</label>
@@ -49,8 +49,8 @@ export default function PositionForm(props) {
             </FormRow>
             {getDefaultCurrency().id !== currencyId ? <FormRow>
                 <div className="input-group">
-                    <span className="input-group-text">{t('ExchangeRate')}</span>
-                    <NumberInput className="form-control text-end" defaultValue={exchangeRate} onChange={setExchangeRate} numFractionDigits={5} />
+                    <label htmlFor="exchange-rate-input" className="input-group-text">{t('ExchangeRate')}</label>
+                    <NumberInput id="exchange-rate-input" className="form-control text-end" defaultValue={exchangeRate} onChange={setExchangeRate} numFractionDigits={5} />
                     <span className="input-group-text">
                         <span>{computeAmountChf(amount, exchangeRate)}</span>
                         <span>&nbsp;{getDefaultCurrency().displayName}</span>
@@ -65,7 +65,7 @@ export default function PositionForm(props) {
             </FormRow>
             <FormRow>
                 <div className='col'>
-                    <DateInput id="date-input" label={isRecurring ? t('Start') : t('Date')} defaultValue={props.position.recurring ? toYmd(props.position.recurrenceFrom) : toYmd(props.position.date)} />
+                    <DateInput id="date-input" data-testid="date-input-label" label={isRecurring ? t('Start') : t('Date')} defaultValue={props.position.recurring ? toYmd(props.position.recurrenceFrom) : toYmd(props.position.date)} />
                 </div>
                 {isRecurring ? <div className='col'>
                     <DateInput id="recurring-to-input" label={t('End')} defaultValue={toYmd(props.position.recurrenceTo)} />

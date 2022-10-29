@@ -1,6 +1,8 @@
 import * as PositionType from '../enums/PositionType.js';
 import * as dates from './dates.js';
 
+import { DEFAULT_EXCHANGE_RATE, getDefaultCurrency } from '../enums/currencies.js';
+
 import RecurrencePeriodicity from '../enums/RecurrencePeriodicity.js';
 import { formatFloat } from './formats.js';
 
@@ -41,10 +43,31 @@ function isValidInMonth(pos, month) {
     return dates.isInMonth(pos.date, month);
 }
 
+function createEmptyPosition(date) {
+    return {
+        entity: 'position',
+
+        _id: null, // FIXME uuid lösen wenn gespeichert wird
+        createDate: new Date(Date.now()),
+        type: PositionType.EXPENSE,
+        date: date,
+        amount: '',
+        currency: getDefaultCurrency().id,
+        exchangeRate: DEFAULT_EXCHANGE_RATE,
+        description: '',
+        recurring: false,
+        recurrencePeriodicity: null,
+        recurrenceFrequency: null,
+        recurrenceFrom: null,
+        recurrenceTo: null
+    }
+}
+
 export {
     computeAmountChf,
     computeMonthlyAmount,
     computeMonthlyAmountChf,
+    createEmptyPosition,
     getSign,
     isValidInMonth
 };

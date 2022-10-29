@@ -161,29 +161,8 @@ async function getOverviewData(currentDay, tags) {
     return rowsGrouped;
 }
 
-function createEmptyPosition(date) {
-    return {
-        entity: 'position',
-
-        _id: null, // FIXME uuid lösen wenn gespeichert wird
-        createDate: new Date(Date.now()),
-        type: PositionType.EXPENSE,
-        date: date,
-        amount: '',
-        currency: getDefaultCurrency().id,
-        exchangeRate: DEFAULT_EXCHANGE_RATE,
-        description: '',
-        recurring: false,
-        recurrencePeriodicity: null,
-        recurrenceFrequency: null,
-        recurrenceFrom: null,
-        recurrenceTo: null
-    }
-}
-
 export {
     getDayExpenses,
     getPositionsOfMonth,
-    createEmptyPosition,
     loadPosition
 };

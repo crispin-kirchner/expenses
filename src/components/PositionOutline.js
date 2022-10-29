@@ -1,8 +1,9 @@
 import * as PositionType from '../enums/PositionType.js';
 
 import React, { useEffect, useState } from "react";
-import { createEmptyPosition, getPositionsOfMonth, loadPosition } from "../services/PositionService.js";
+import { computeMonthlyAmountChf, createEmptyPosition } from "../utils/positions.js";
 import { decrementMonth, incrementMonth } from '../utils/dates.js';
+import { getPositionsOfMonth, loadPosition } from "../services/PositionService.js";
 
 import DayExpenses from "./DayExpenses.js";
 import { LinkButton } from "./Navbar";
@@ -12,7 +13,6 @@ import Overview from "./Overview";
 import OverviewSections from "../enums/OverviewSections.js";
 import PositionForm from "./PositionForm.js";
 import _ from 'lodash';
-import { computeMonthlyAmountChf } from "../utils/positions.js";
 import { formatMonth } from "../utils/formats.js";
 import { getTags } from '../utils/tags.js';
 import t from "../utils/texts.js";
