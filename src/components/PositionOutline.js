@@ -61,9 +61,9 @@ export default function PositionOutline(props) {
             .keyBy('_id')
             .value();
 
-        setIncomePositions(groupedPositions[OverviewSections.INCOME.id]);
-        setRecurringPositions(groupedPositions[OverviewSections.RECURRING.id]);
-        setExpensePositions(groupedPositions[OverviewSections.EXPENSE.id]);
+        setIncomePositions(groupedPositions[OverviewSections.INCOME.id] || { monthlyAmountChf: '0', childRows: [] });
+        setRecurringPositions(groupedPositions[OverviewSections.RECURRING.id] || { monthlyAmountChf: '0', childRows: [] });
+        setExpensePositions(groupedPositions[OverviewSections.EXPENSE.id] || { monthlyAmountChf: '0', childRows: [] });
     };
 
     // TODO date in month und day auftrennen oder day gleich ganz weglassen

@@ -34,4 +34,4 @@ function getDefaultCurrency() {
 }
 
 export default currencies;
-export { isDefaultCurrency, getDefaultCurrency, DEFAULT_EXCHANGE_RATE };
+export { isDefaultCurrency, getDefaultCurrency, DEFAULT_CURRENCY, DEFAULT_EXCHANGE_RATE, EUR, CHF };

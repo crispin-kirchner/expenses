@@ -51,7 +51,7 @@ export default function PositionForm(props) {
                 <div className="input-group">
                     <label htmlFor="exchange-rate-input" className="input-group-text">{t('ExchangeRate')}</label>
                     <NumberInput id="exchange-rate-input" className="form-control text-end" defaultValue={exchangeRate} onChange={setExchangeRate} numFractionDigits={5} />
-                    <span className="input-group-text">
+                    <span className="input-group-text" data-testid="chf-amount">
                         <span>{computeAmountChf(amount, exchangeRate)}</span>
                         <span>&nbsp;{getDefaultCurrency().displayName}</span>
                     </span>
@@ -65,7 +65,7 @@ export default function PositionForm(props) {
             </FormRow>
             <FormRow>
                 <div className='col'>
-                    <DateInput id="date-input" data-testid="date-input-label" label={isRecurring ? t('Start') : t('Date')} defaultValue={props.position.recurring ? toYmd(props.position.recurrenceFrom) : toYmd(props.position.date)} />
+                    <DateInput id="date-input" label={isRecurring ? t('Start') : t('Date')} defaultValue={props.position.recurring ? toYmd(props.position.recurrenceFrom) : toYmd(props.position.date)} />
                 </div>
                 {isRecurring ? <div className='col'>
                     <DateInput id="recurring-to-input" label={t('End')} defaultValue={toYmd(props.position.recurrenceTo)} />
@@ -75,11 +75,14 @@ export default function PositionForm(props) {
                 <div className="col col-auto">
                     <div className="form-check form-switch">
                         <input id="recurring-checkbox" className="form-check-input" type="checkbox" checked={isRecurring} onChange={e => setRecurring(e.target.checked)} />
-                        <label htmlFor="recurring-checkbox" className="form-check-label">{t('Recurring')}</label>
+                        <label htmlFor="recurring-checkbox" className="form-check-label">
+                            <i className="bi bi-arrow-repeat" />
+                            <span className="d-md-none d-xxl-inline">&nbsp;{t('Recurring')}</span>
+                        </label>
                     </div>
                 </div>
                 <div className={`input-group col ${!isRecurring ? 'invisible' : ''}`}>
-                    <input type="number" className="form-control text-end" size="2" maxLength="2" inputMode="numeric" defaultValue={props.position.recurrenceFrequency || '1'} />
+                    <input data-testid="recurrence-frequency" type="number" className="form-control text-end" size="2" maxLength="2" inputMode="numeric" defaultValue={props.position.recurrenceFrequency || '1'} />
 
                     <input
                         name="recurring-periodicity"
