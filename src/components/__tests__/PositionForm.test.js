@@ -8,6 +8,7 @@ import React from 'react';
 import RecurrencePeriodicity from '../../enums/RecurrencePeriodicity.js';
 import { createEmptyPosition } from '../../utils/positions.js';
 import t from '../../utils/texts.js';
+import { type } from '@testing-library/user-event/dist/type/index.js';
 import userEvent from '@testing-library/user-event';
 
 it('loads all fields of the position correctly', () => {
@@ -50,25 +51,33 @@ it('loads all fields of the position correctly', () => {
     expect(screen.getByLabelText(t('Monthly'))).toBeChecked();
 });
 
-it('saves default values when invisible', () => {
+it('saves default values when invisible', async () => {
     const inputPosition = createEmptyPosition();
     const saveAction = jest.fn();
 
     render(<PositionForm position={inputPosition} saveAction={saveAction} />);
 
     // TODO continue (keyboard input)
+    await userEvent.type(screen.getByLabelText(t('Amount')), '15');
+
+    await userEvent.click(screen.getAllByText(t('Save'))[0]);
+
+    const { amount } = saveAction.mock.calls[0][0];
+
+    expect(saveAction).toHaveBeenCalledTimes(1);
+    expect(amount).toBe('15.00');
 });
 
-it('saves with both save buttons', () => {
+it('saves with both save buttons', async () => {
     const position = createEmptyPosition();
     const saveAction = jest.fn();
 
     render(<PositionForm position={position} saveAction={saveAction} />);
 
     const saveButtons = screen.getAllByText(t('Save'));
-    userEvent.click(saveButtons[0]);
+    await userEvent.click(saveButtons[0]);
     expect(saveAction).toHaveBeenCalledTimes(1);
 
-    userEvent.click(saveButtons[1]);
+    await userEvent.click(saveButtons[1]);
     expect(saveAction).toHaveBeenCalledTimes(2);
 });

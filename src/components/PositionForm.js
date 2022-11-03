@@ -31,12 +31,14 @@ export default function PositionForm(props) {
     const [amount, setAmount] = useState(props.position.amount);
     const [isRecurring, setRecurring] = useState(props.position.recurring);
     const [recurrencePeriodicity, setRecurrencePeriodicity] = useState(props.position.recurrencePeriodicity || RecurrencePeriodicity.MONTHLY);
+
+    const saveActionInternal = () => props.saveAction({ amount });
     // FIXME re-implement proposals
     return (
         <Form
             id="position-form"
             abortAction={props.abortAction}
-            saveAction={props.saveAction}
+            saveAction={saveActionInternal}
             deleteAction={props.position._id ? () => console.log('Delete position', props.position._id) : null}
             title={classes => <TypeDropdown type={positionType} setPositionType={setPositionType} classes={classes} />}>
             <FormRow>
