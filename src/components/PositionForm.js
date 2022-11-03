@@ -10,14 +10,16 @@ import t from '../utils/texts.js';
 import { toYmd } from '../utils/dates.js';
 
 function TypeDropdown(props) {
-    return <div className="dropdown">
-        <button className={`btn ${props.classes} btn-lg dropdown-toggle`} type="button" data-bs-toggle="dropdown" aria-expanded="false">
-            {PositionType.defs[props.type].text}
-        </button>
-        <ul className="dropdown-menu">
-            {Object.values(PositionType.defs).map(d => <li key={d.id} className="dropdown-item" onClick={() => props.setPositionType(d.id)}>{d.text}</li>)}
-        </ul>
-    </div>;
+    return (
+        <div className="dropdown">
+            <button className={`btn ${props.classes} btn-lg dropdown-toggle`} type="button" data-testid="type-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                {PositionType.defs[props.type].text}
+            </button>
+            <ul className="dropdown-menu">
+                {Object.values(PositionType.defs).map(d => <li key={d.id} className="dropdown-item" onClick={() => props.setPositionType(d.id)}>{d.text}</li>)}
+            </ul>
+        </div>
+    );
 }
 
 // FIXME implement/test delete functionality
@@ -32,6 +34,7 @@ export default function PositionForm(props) {
     // FIXME re-implement proposals
     return (
         <Form
+            id="position-form"
             abortAction={props.abortAction}
             saveAction={props.saveAction}
             deleteAction={props.position._id ? () => console.log('Delete position', props.position._id) : null}

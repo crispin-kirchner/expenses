@@ -101,6 +101,7 @@ export default function PositionOutline(props) {
             side={<DayExpenses date={date} newPosition={newPosition} editPosition={editPosition} />}
             rightDrawer={() => <PositionForm
                 position={editedPosition}
+                saveAction={() => alert('Form saved')}
                 abortAction={() => setEditedPosition(null)} />}
             rightDrawerVisible={!!editedPosition}
             footerContent={<>
