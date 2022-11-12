@@ -27,13 +27,12 @@ function getSign(pos) {
     return pos.type === PositionType.INCOME ? -1 : 1;
 }
 
+// FIXME gucken ob die internationalen Zahlen richtig formatiert werden
 function computeAmountChf(amount, exchangeRate) {
-    const amountParsed = parseFloat(amount);
-    const exchangeRateParsed = parseFloat(exchangeRate);
-    if (isNaN(amountParsed) || isNaN(exchangeRateParsed)) {
+    if (isNaN(amount) || isNaN(exchangeRate)) {
         return formatFloat(0.0);
     }
-    return formatFloat(parseFloat(exchangeRate) * parseFloat(amount))
+    return formatFloat(exchangeRate * amount);
 }
 
 function isValidInMonth(pos, month) {

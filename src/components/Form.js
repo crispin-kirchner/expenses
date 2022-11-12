@@ -1,7 +1,7 @@
 import Navbar, { LinkButton } from "./Navbar";
 
 import React from "react";
-import { formatFloat } from "../utils/formats";
+import { prettyPrintIntlFloatString } from "../utils/formats";
 import t from "../utils/texts";
 
 function FormButton({ classes, type, label, onClick, icon, showLabel, form }) {
@@ -34,46 +34,53 @@ export function FormRow(props) {
     return <div className={`row g-2 mb-3 ${props.classes}`}>{props.children}</div>;
 }
 
-export function TextInput(props) {
-    if (props.label && !props.id) {
+export function TextInput({ id, classes, label, value, attrs, onChange, onInput, onBlur }) {
+    if (label && !id) {
         // FIXME throw something different
         throw 'Input with a label needs an id';
     }
-    const inputElement = React.createElement('input', {
-        className: `form-control ${props.classes}`,
-        id: props.id,
-        placeholder: props.label,
-        defaultValue: props.defaultValue,
-        ...props.attrs
-    });
-    if (!props.label) {
+    const attributes = {
+        className: `form-control ${classes}`,
+        id,
+        placeholder: label,
+        value,
+        onInput,
+        onBlur,
+        ...attrs
+    };
+    if (onChange) {
+        attributes.onChange = e => onChange(e.target.value);
+    }
+    const inputElement = React.createElement('input', attributes);
+    if (!label) {
         return inputElement;
     }
     return <div className="form-floating">
         {inputElement}
-        <label htmlFor={props.id}>{props.label}</label>
+        <label htmlFor={id}>{label}</label>
     </div>;
 }
 
 // TODO echte Validierung
-export function NumberInput(props) {
+export function NumberInput({ id, label, value, setState, numFractionDigits }) {
+    numFractionDigits = numFractionDigits || 2;
     return <>
         <TextInput
             classes="text-end"
-            id={props.id}
-            label={props.label}
-            defaultValue={props.defaultValue}
-            attrs={{
-                inputMode: "numeric",
-                onInput: e => props.onChange(e.target.value),
-                onBlur: e => {
-                    if (e.target.value === '') {
-                        return;
-                    }
-                    const validated = formatFloat(e.target.value, props.numFractionDigits || 2);
-                    e.target.value = validated;
-                    props.onChange(validated);
+            id={id}
+            label={label}
+            value={value}
+            onInput={e => setState(e.target.value)}
+            onBlur={e => {
+                try {
+                    // TODO visuelle Validierung hinzufügen
+                    setState(prettyPrintIntlFloatString(e.target.value, numFractionDigits));
+                } catch (error) {
+                    console.error(error);
                 }
+            }}
+            attrs={{
+                inputMode: "numeric"
             }} />
     </>;
 }

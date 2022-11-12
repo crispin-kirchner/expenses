@@ -1,6 +1,6 @@
 import * as PositionType from '../../enums/PositionType.js';
 
-import currencies, { DEFAULT_CURRENCY, EUR } from '../../enums/currencies.js';
+import currencies, { DEFAULT_CURRENCY, DEFAULT_EXCHANGE_RATE, EUR, getDefaultCurrency } from '../../enums/currencies.js';
 import { render, screen } from '@testing-library/react';
 
 import PositionForm from '../PositionForm.js';
@@ -8,7 +8,6 @@ import React from 'react';
 import RecurrencePeriodicity from '../../enums/RecurrencePeriodicity.js';
 import { createEmptyPosition } from '../../utils/positions.js';
 import t from '../../utils/texts.js';
-import { type } from '@testing-library/user-event/dist/type/index.js';
 import userEvent from '@testing-library/user-event';
 
 it('loads all fields of the position correctly', () => {
@@ -51,21 +50,43 @@ it('loads all fields of the position correctly', () => {
     expect(screen.getByLabelText(t('Monthly'))).toBeChecked();
 });
 
+it('correctly computes chf amount', async () => {
+    const inputPosition = createEmptyPosition();
+
+    render(<PositionForm position={inputPosition} saveAction={saveAction} />);
+
+    await userEvent.selectOptions(screen.getByLabelText(t('Currency')), screen.getByRole('option', { name: 'EUR' }));
+    await userEvent.type(screen.getByLabelText('ExchangeRate'), '1.23450');
+    await userEvent.type(screen.getByLabelText(t('Amount')), '15');
+
+    expect(screen.getByTestId('chf-amount')).toHaveTextContent('18.52 CHF');
+});
+
 it('saves default values when invisible', async () => {
     const inputPosition = createEmptyPosition();
     const saveAction = jest.fn();
 
     render(<PositionForm position={inputPosition} saveAction={saveAction} />);
 
-    // TODO continue (keyboard input)
+    await userEvent.click(screen.getAllByTestId('type-dropdown')[0]);
+    await userEvent.click(screen.getAllByTestId('option-income')[0]);
     await userEvent.type(screen.getByLabelText(t('Amount')), '15');
+    await userEvent.selectOptions(screen.getByLabelText(t('Currency')), screen.getByRole('option', { name: 'EUR' }));
+    await userEvent.type(screen.getByLabelText(t('ExchangeRate')), '1.23450');
+    await userEvent.selectOptions(screen.getByLabelText(t('Currency')), screen.getByRole('option', { name: getDefaultCurrency().isoCode }));
+    await userEvent.type(screen.getByLabelText(t('Payer') + '/' + t('Description')), 'Hallerladen #lebensmittel');
 
     await userEvent.click(screen.getAllByText(t('Save'))[0]);
 
-    const { amount } = saveAction.mock.calls[0][0];
+    const outputPosition = saveAction.mock.calls[0][0];
 
     expect(saveAction).toHaveBeenCalledTimes(1);
-    expect(amount).toBe('15.00');
+    expect(outputPosition.type).toEqual(PositionType.INCOME);
+    expect(outputPosition.amount).toEqual('15.00');
+    expect(outputPosition.currency).toEqual(getDefaultCurrency().id);
+    expect(outputPosition.exchangeRate).toEqual(DEFAULT_EXCHANGE_RATE);
+    expect(outputPosition.description).toEqual('Hallerladen #lebensmittel');
+
 });
 
 it('saves with both save buttons', async () => {

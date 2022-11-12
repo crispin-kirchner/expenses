@@ -3,20 +3,21 @@ import * as PositionType from '../enums/PositionType.js';
 import Form, { DateInput, FormRow, NumberInput, TextInput } from "./Form.js";
 import React, { useState } from "react";
 import currencies, { getDefaultCurrency } from "../enums/currencies.js";
+import { defaultDecimalSeparatorRegex, parseIntlFloat, prettyPrintIntlFloatString } from '../utils/formats.js';
 
 import RecurrencePeriodicity from '../enums/RecurrencePeriodicity.js';
 import { computeAmountChf } from '../utils/positions.js';
 import t from '../utils/texts.js';
 import { toYmd } from '../utils/dates.js';
 
-function TypeDropdown(props) {
+function TypeDropdown({ classes, type, setPositionType }) {
     return (
         <div className="dropdown">
-            <button className={`btn ${props.classes} btn-lg dropdown-toggle`} type="button" data-testid="type-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                {PositionType.defs[props.type].text}
+            <button className={`btn ${classes} btn-lg dropdown-toggle`} type="button" data-testid="type-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                {PositionType.defs[type].text}
             </button>
             <ul className="dropdown-menu">
-                {Object.values(PositionType.defs).map(d => <li key={d.id} className="dropdown-item" onClick={() => props.setPositionType(d.id)}>{d.text}</li>)}
+                {Object.values(PositionType.defs).map(d => <li key={d.id} data-testid={`option-${d.id}`} className="dropdown-item" onClick={() => setPositionType(d.id)}>{d.text}</li>)}
             </ul>
         </div>
     );
@@ -25,14 +26,21 @@ function TypeDropdown(props) {
 // FIXME implement/test delete functionality
 // FIXME beim abspeichern muss die exchange rate überschrieben werden, falls es default currency ist, ebenso recurrence Felder
 export default function PositionForm(props) {
-    const [positionType, setPositionType] = useState(props.position.type);
-    const [currencyId, setCurrencyId] = useState(props.position.currency);
-    const [exchangeRate, setExchangeRate] = useState(props.position.exchangeRate);
-    const [amount, setAmount] = useState(props.position.amount);
+    const [type, setType] = useState(props.position.type);
+    const [amount, setAmount] = useState(prettyPrintIntlFloatString(props.position.amount, 2, defaultDecimalSeparatorRegex));
+    const [currency, setCurrency] = useState(props.position.currency);
+    const [exchangeRate, setExchangeRate] = useState(prettyPrintIntlFloatString(props.position.exchangeRate, 5, defaultDecimalSeparatorRegex));
+    const [description, setDescription] = useState(props.position.description);
     const [isRecurring, setRecurring] = useState(props.position.recurring);
     const [recurrencePeriodicity, setRecurrencePeriodicity] = useState(props.position.recurrencePeriodicity || RecurrencePeriodicity.MONTHLY);
 
-    const saveActionInternal = () => props.saveAction({ amount });
+    const saveActionInternal = () => props.saveAction({
+        type,
+        amount,
+        currency,
+        exchangeRate,
+        description
+    });
     // FIXME re-implement proposals
     return (
         <Form
@@ -40,24 +48,33 @@ export default function PositionForm(props) {
             abortAction={props.abortAction}
             saveAction={saveActionInternal}
             deleteAction={props.position._id ? () => console.log('Delete position', props.position._id) : null}
-            title={classes => <TypeDropdown type={positionType} setPositionType={setPositionType} classes={classes} />}>
+            title={classes => <TypeDropdown type={type} setPositionType={setType} classes={classes} />}>
             <FormRow>
                 <div className="col-8 form-floating">
-                    <NumberInput id="amount" label={t('Amount')} defaultValue={amount} onChange={val => setAmount(val)} />
+                    <NumberInput
+                        id="amount"
+                        label={t('Amount')}
+                        value={amount}
+                        setState={setAmount} />
                 </div>
                 <div className="col-4 form-floating">
-                    <select id="currency-input" className="form-select" onChange={e => setCurrencyId(e.target.value)} defaultValue={props.position.currency} required>
+                    <select id="currency-input" className="form-select" onChange={e => setCurrency(e.target.value)} defaultValue={currency} required>
                         {Object.values(currencies).map(c => <option key={c.id} value={c.id}>{c.isoCode}</option>)}
                     </select>
                     <label htmlFor="currency-input">{t('Currency')}</label>
                 </div>
             </FormRow>
-            {getDefaultCurrency().id !== currencyId ? <FormRow>
+            {getDefaultCurrency().id !== currency ? <FormRow>
                 <div className="input-group">
                     <label htmlFor="exchange-rate-input" className="input-group-text">{t('ExchangeRate')}</label>
-                    <NumberInput id="exchange-rate-input" className="form-control text-end" defaultValue={exchangeRate} onChange={setExchangeRate} numFractionDigits={5} />
+                    <NumberInput
+                        id="exchange-rate-input"
+                        className="form-control text-end"
+                        value={exchangeRate}
+                        setState={setExchangeRate}
+                        numFractionDigits={5} />
                     <span className="input-group-text" data-testid="chf-amount">
-                        <span>{computeAmountChf(amount, exchangeRate)}</span>
+                        <span>{computeAmountChf(parseIntlFloat(amount), parseIntlFloat(exchangeRate))}</span>
                         <span>&nbsp;{getDefaultCurrency().displayName}</span>
                     </span>
                 </div>
@@ -66,7 +83,9 @@ export default function PositionForm(props) {
                 <TextInput
                     id="description"
                     classes="rounded-top"
-                    label={`${PositionType.defs[positionType].benefactor}/${t('Description')}`} defaultValue={props.position.description} />
+                    label={`${PositionType.defs[type].benefactor}/${t('Description')}`}
+                    defaultValue={description}
+                    onChange={e => setDescription(e.target.value)} />
             </FormRow>
             <FormRow>
                 <div className='col'>
