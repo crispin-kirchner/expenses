@@ -59,7 +59,8 @@ export function TextInput({ id, classes, label, value, attrs, onChange, onInput,
     </div>;
 }
 
-// TODO echte Validierung
+// TODO visuelle Validierung hinzufügen
+// FIXME Holländisch und 33.3 gibt "33,00"
 export function NumberInput({ id, label, value, setState, numFractionDigits }) {
     numFractionDigits = numFractionDigits || 2;
     return <>
@@ -71,7 +72,6 @@ export function NumberInput({ id, label, value, setState, numFractionDigits }) {
             onInput={e => setState(e.target.value)}
             onBlur={e => {
                 try {
-                    // TODO visuelle Validierung hinzufügen
                     setState(prettyPrintFloatString(e.target.value, numFractionDigits));
                 } catch (error) {
                     console.error(error);
@@ -92,8 +92,10 @@ export function DateInput({ id, label, value, setState }) {
         attrs={{ type: 'date' }} />
 }
 
+// TODO Validierung beim Speichern
+// TODO Hotkeys
+// TODO Redesign: Buttons in eine zweite Bar mit sticky bottom verschieben, cancel Button rechts oben, Dropdown auch auf Desktop in eine secondary Navbar
 export default function Form({ id, title, abortAction, deleteAction, saveAction, children }) {
-    // TODO Hotkeys
     return (<>
         <div className="d-md-none mb-3">
             <Navbar>
