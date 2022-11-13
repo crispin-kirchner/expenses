@@ -1,8 +1,8 @@
 import * as PositionType from '../enums/PositionType.js';
 
 import React, { useEffect, useState } from "react";
-import { computeMonthlyAmountChf, createEmptyPosition } from "../utils/positions.js";
-import { decrementMonth, incrementMonth } from '../utils/dates.js';
+import { computeMonthlyAmountChf, createEmptyPosition, getSign } from "../utils/positions.js";
+import { decrementMonth, incrementMonth, toYmd } from '../utils/dates.js';
 import { getPositionsOfMonth, loadPosition } from "../services/PositionService.js";
 
 import DayExpenses from "./DayExpenses.js";
@@ -41,17 +41,21 @@ export default function PositionOutline(props) {
     const [editedPosition, setEditedPosition] = useState(null);
     const [monthDisplay, setMonthDisplay] = useState(MonthDisplay.CALENDAR.id);
 
+    const [positionsOfMonth, setPositionsOfMonthInternal] = useState([]);
+
     const [incomePositions, setIncomePositions] = useState({ childRows: [] });
     const [recurringPositions, setRecurringPositions] = useState({ childRows: [] });
     const [expensePositions, setExpensePositions] = useState({ childRows: [] });
+    const [positionsByDay, setPositionsByDay] = useState({});
 
     const setPositionsOfMonth = (positions) => {
-        const groupedPositions = _(positions)
-            .map(pos => ({
-                ...pos,
-                monthlyAmountChf: computeMonthlyAmountChf(pos),
-                tags: getTags(pos.description)
-            }))
+        const positionsLabeled = _.map(positions, pos => ({
+            ...pos,
+            monthlyAmountChf: computeMonthlyAmountChf(pos),
+            tags: getTags(pos.description)
+        }));
+
+        const overviewSections = _(positionsLabeled)
             .groupBy(getOverviewSection)
             .map((positions, overviewSection) => ({
                 _id: overviewSection,
@@ -61,9 +65,21 @@ export default function PositionOutline(props) {
             .keyBy('_id')
             .value();
 
-        setIncomePositions(groupedPositions[OverviewSections.INCOME.id] || { monthlyAmountChf: '0', childRows: [] });
-        setRecurringPositions(groupedPositions[OverviewSections.RECURRING.id] || { monthlyAmountChf: '0', childRows: [] });
-        setExpensePositions(groupedPositions[OverviewSections.EXPENSE.id] || { monthlyAmountChf: '0', childRows: [] });
+        setPositionsByDay(_(positionsLabeled)
+            .filter(pos => !pos.recurring)
+            .groupBy(pos => toYmd(pos.date))
+            .map((positions, ymd) => ({
+                ymd: ymd,
+                sum: _.sumBy(positions, pos => getSign(pos) * pos.monthlyAmountChf),
+                positions
+            }))
+            .keyBy('ymd')
+            .value());
+
+        setPositionsOfMonthInternal(positions);
+        setIncomePositions(overviewSections[OverviewSections.INCOME.id] || { monthlyAmountChf: '0', childRows: [] });
+        setRecurringPositions(overviewSections[OverviewSections.RECURRING.id] || { monthlyAmountChf: '0', childRows: [] });
+        setExpensePositions(overviewSections[OverviewSections.EXPENSE.id] || { monthlyAmountChf: '0', childRows: [] });
     };
 
     // TODO date in month und day auftrennen oder day gleich ganz weglassen
@@ -74,6 +90,10 @@ export default function PositionOutline(props) {
 
     const newPosition = d => setEditedPosition(createEmptyPosition(d));
     const editPosition = async id => setEditedPosition(await loadPosition(id));
+    const saveAction = pos => {
+        setEditedPosition(null);
+        setPositionsOfMonth([...positionsOfMonth, pos]);
+    };
 
     return <>
         <Outline
@@ -98,10 +118,10 @@ export default function PositionOutline(props) {
                 expensePositions={expensePositions}
                 editPosition={editPosition} />}
             sideOnMobile={MonthDisplay[monthDisplay].sideOnMobile}
-            side={<DayExpenses date={date} newPosition={newPosition} editPosition={editPosition} />}
+            side={<DayExpenses dayExpenses={positionsByDay[toYmd(date)] || { ymd: toYmd(date), positions: null }} newPosition={newPosition} editPosition={editPosition} />}
             rightDrawer={() => <PositionForm
                 position={editedPosition}
-                saveAction={pos => { alert('Form saved'); console.log(pos); }}
+                saveAction={saveAction}
                 abortAction={() => setEditedPosition(null)} />}
             rightDrawerVisible={!!editedPosition}
             footerContent={<>

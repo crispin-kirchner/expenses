@@ -43,7 +43,7 @@ export default function Outline(props) {
                     </div>
                 </div>
             </TagContext.Provider>
-            {props.footerContent ? <div className="d-md-none bg-secondary d-flex p-2" style={{ '--bs-bg-opacity': 0.5 }}>
+            {props.footerContent ? <div className="d-sm-none bg-secondary d-flex p-2" style={{ '--bs-bg-opacity': 0.5 }}>
                 {props.footerContent}
             </div> : null
             }

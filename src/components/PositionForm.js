@@ -10,6 +10,7 @@ import RecurrencePeriodicity from '../enums/RecurrencePeriodicity.js';
 import { computeAmountChf } from '../utils/positions.js';
 import t from '../utils/texts.js';
 import { toYmd } from '../utils/dates.js';
+import { v4 } from 'uuid';
 
 function TypeDropdown({ classes, type, setPositionType }) {
     return (
@@ -39,6 +40,7 @@ export default function PositionForm(props) {
     const [recurrenceFrequency, setRecurrenceFrequency] = useState(props.position.recurrenceFrequency || '1');
 
     const saveActionInternal = () => props.saveAction({
+        _id: props.position._id || v4(),
         type,
         amount: localToFloatString(amount),
         currency,

@@ -11,6 +11,14 @@ function docToPosition(doc) {
     return doc;
 }
 
+function positionToDoc(pos) {
+    pos.date = pos.date ? dates.toYmd(pos.date) : null;
+    pos.createDate = pos.createDate.toJSON();
+    pos.recurrenceFrom = pos.recurrenceFrom ? dates.toYmd(pos.recurrenceFrom) : null;
+    pos.recurrenceTo = pos.recurrenceTo ? dates.toYmd(pos.recurrenceTo) : null;
+    return pos;
+}
+
 async function loadPosition(id) {
     return docToPosition(await db.getDocument('position', id));
 }
@@ -36,6 +44,10 @@ async function getDayExpenses(date) {
     };
 }
 
+async function storePosition(pos) {
+    db.put(positionToDoc(pos));
+}
+
 async function getPositionsOfMonth(date) {
     // FIXME use mango query/separate queries for different types
     return (await getAllPositions())
@@ -45,5 +57,6 @@ async function getPositionsOfMonth(date) {
 export {
     getDayExpenses,
     getPositionsOfMonth,
-    loadPosition
+    loadPosition,
+    storePosition
 };
