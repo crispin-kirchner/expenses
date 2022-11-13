@@ -85,11 +85,11 @@ export function NumberInput({ id, label, value, setState, numFractionDigits }) {
     </>;
 }
 
-export function DateInput(props) {
+export function DateInput({ id, label, value }) {
     return <TextInput
-        id={props.id}
-        label={props.label}
-        defaultValue={props.defaultValue}
+        id={id}
+        label={label}
+        value={value}
         attrs={{ type: 'date' }} />
 }
 

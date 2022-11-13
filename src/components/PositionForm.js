@@ -33,6 +33,7 @@ export default function PositionForm(props) {
     const [description, setDescription] = useState(props.position.description);
     const [isRecurring, setRecurring] = useState(props.position.recurring);
     const [recurrencePeriodicity, setRecurrencePeriodicity] = useState(props.position.recurrencePeriodicity || RecurrencePeriodicity.MONTHLY);
+    // FIXME: from/to Felder befüllen
 
     const saveActionInternal = () => props.saveAction({
         type,
@@ -84,15 +85,15 @@ export default function PositionForm(props) {
                     id="description"
                     classes="rounded-top"
                     label={`${PositionType.defs[type].benefactor}/${t('Description')}`}
-                    defaultValue={description}
+                    value={description}
                     onChange={e => setDescription(e.target.value)} />
             </FormRow>
             <FormRow>
                 <div className='col'>
-                    <DateInput id="date-input" label={isRecurring ? t('Start') : t('Date')} defaultValue={props.position.recurring ? toYmd(props.position.recurrenceFrom) : toYmd(props.position.date)} />
+                    <DateInput id="date-input" label={isRecurring ? t('Start') : t('Date')} value={props.position.recurring ? toYmd(props.position.recurrenceFrom) : toYmd(props.position.date)} />
                 </div>
                 {isRecurring ? <div className='col'>
-                    <DateInput id="recurring-to-input" label={t('End')} defaultValue={toYmd(props.position.recurrenceTo)} />
+                    <DateInput id="recurring-to-input" label={t('End')} value={toYmd(props.position.recurrenceTo)} />
                 </div> : null}
             </FormRow>
             <FormRow classes="align-items-center">

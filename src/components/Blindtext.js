@@ -1,5 +1,7 @@
 import React from 'react';
 
+// TODO remove
+
 const paragraphs = [
     'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Sollicitudin nibh sit amet commodo nulla facilisi nullam. Habitant morbi tristique senectus et netus. Interdum velit laoreet id donec ultrices tincidunt arcu non sodales. Diam donec adipiscing tristique risus nec. Nunc mi ipsum faucibus vitae aliquet nec. Ut venenatis tellus in metus vulputate. Orci eu lobortis elementum nibh. Dui nunc mattis enim ut. Duis at consectetur lorem donec massa sapien. Eget nulla facilisi etiam dignissim diam.',
     'Sem integer vitae justo eget. Tellus at urna condimentum mattis pellentesque id nibh tortor. Bibendum est ultricies integer quis auctor elit sed. Quis risus sed vulputate odio ut enim blandit. Non nisi est sit amet facilisis magna. Erat velit scelerisque in dictum non consectetur a. Semper risus in hendrerit gravida rutrum. Duis convallis convallis tellus id interdum velit. Et malesuada fames ac turpis egestas maecenas pharetra. Enim sit amet venenatis urna cursus eget. Vel orci porta non pulvinar neque laoreet. Massa placerat duis ultricies lacus. Mi tempus imperdiet nulla malesuada. Eu non diam phasellus vestibulum. Adipiscing elit pellentesque habitant morbi tristique. Dolor sit amet consectetur adipiscing elit pellentesque habitant morbi tristique. Eget aliquet nibh praesent tristique magna sit amet. Gravida neque convallis a cras semper auctor neque vitae tempus.',

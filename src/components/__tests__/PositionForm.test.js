@@ -10,7 +10,7 @@ import { createEmptyPosition } from '../../utils/positions.js';
 import t from '../../utils/texts.js';
 import userEvent from '@testing-library/user-event';
 
-it('loads all fields of the position correctly', () => {
+it('loads all fields of the recurring position correctly', () => {
     const AMOUNT = '12.25';
     const DESCRIPTION = 'Beschreibung #tageins #tagzwei';
     const CURRENCY = EUR;
