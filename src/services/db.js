@@ -3,7 +3,6 @@
 import PouchDb from 'pouchdb-browser';
 import PouchDbFind from 'pouchdb-find';
 
-// import { markEverythingDirty } from './state.js';
 // import * as UnsyncedDocuments from './UnsyncedDocuments.js';
 
 

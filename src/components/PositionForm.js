@@ -25,7 +25,6 @@ function TypeDropdown({ classes, type, setPositionType }) {
     );
 }
 
-// FIXME implement/test delete functionality
 // FIXME beim abspeichern muss die exchange rate überschrieben werden, falls es default currency ist, ebenso recurrence Felder
 export default function PositionForm({ position, saveAction, abortAction, deleteAction }) {
     const [type, setType] = useState(position.type);

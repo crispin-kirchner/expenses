@@ -10,12 +10,10 @@ import { isDefaultCurrency } from '../enums/currencies';
 import { removeTagFromString } from '../utils/tags';
 import t from '../utils/texts';
 
-// TODO Amounts von income negativ in DB schreiben
 function Hierarchy(props) {
     // FIXME wenn der MOnat gewechselt wird sieht was nicht ganz koscher aus mit den chevrons
     const containerId = ['child-items', ...props.path].join('-');
     const hasChildren = props.childRows && props.childRows.length > 0;
-    // FIXME positionRow nicht brauchen hier, zu viele Anpassungen nur für diese Stelle
     return (
         <li className={!hasChildren ? 'leaf-entry' : ''}>
             <PositionRow
@@ -62,9 +60,6 @@ function OverviewSection(props) {
     );
 }
 
-// FIXME cleanup, remove code from PositionService
-// FIXME DayExpenses flicken
-// FIXME profilern
 function groupAndSort(childRows, tagHierarchy) {
     let result = _(childRows);
 
@@ -108,7 +103,6 @@ export default function Overview(props) {
         ? props.incomePositions.monthlyAmountChf - props.recurringPositions.monthlyAmountChf - props.expensePositions.monthlyAmountChf
         : 2500;
 
-    // FIXME tags als prop?
     const tags = useContext(TagContext);
 
     return <>

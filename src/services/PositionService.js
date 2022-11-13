@@ -39,7 +39,6 @@ function deletePosition(pos) {
 }
 
 async function getPositionsOfMonth(date) {
-    // FIXME use mango query/separate queries for different types
     return (await getAllPositions())
         .filter(ex => positions.isValidInMonth(ex, date));
 }

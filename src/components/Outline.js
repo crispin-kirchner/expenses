@@ -14,13 +14,12 @@ export default function Outline(props) {
     useEffect(() => {
         getTagsAndHierarchy()
             .then(setTags);
-    }, []); // FIXME how to invalidate
+    }, []);
 
     const drawerPosStart = props.rightDrawerVisible ? 'start-0' : 'start-100';
     const mainClasses = props.sideOnMobile ? 'h-50' : 'h-100';
     const sideClasses = props.sideOnMobile ? 'h-50' : 'h-0';
 
-    // FIXME Inhalt des Drawers behalten, bis der aus dem Bild verschwunden ist
     return (
         <div id="app" className='d-flex h-100 flex-column overflow-hidden position-relative'>
             <Navbar viewMode={viewMode} setViewMode={setViewMode}>

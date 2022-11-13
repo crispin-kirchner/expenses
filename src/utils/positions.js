@@ -27,7 +27,6 @@ function getSign(pos) {
     return pos.type === PositionType.INCOME ? -1 : 1;
 }
 
-// FIXME gucken ob die internationalen Zahlen richtig formatiert werden
 function computeAmountChf(amount, exchangeRate) {
     if (isNaN(amount) || isNaN(exchangeRate)) {
         return formatFloat(0.0);
@@ -46,7 +45,7 @@ function createEmptyPosition(date) {
     return {
         entity: 'position',
 
-        _id: null, // FIXME uuid lösen wenn gespeichert wird
+        _id: null,
         createDate: new Date(Date.now()),
         type: PositionType.EXPENSE,
         date: date,

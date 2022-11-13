@@ -28,13 +28,8 @@ function BrandContent(props) {
     </>);
 }
 
-// FIXME s.type check kann entfernt werden wenn remaining gelöscht wurde
 function getOverviewSection(pos) {
     return _.find(OverviewSections, s => s.type && pos.type === s.type && s.recurringFilter(pos)).id;
-}
-
-function throwAfter(ms) {
-    return new Promise((accept, reject) => setTimeout(reject, ms));
 }
 
 // FIXME zwischen "s" und "md" könnte man den navbar-container hier nicht-fluid machen weil das Form es nicht ist

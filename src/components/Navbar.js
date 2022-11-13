@@ -16,8 +16,6 @@ export function LinkButton(props) {
 };
 
 // TODO die restlichen Features
-// FIXME new button deaktivieren wenn das form sichtbar ist
-// FIXME Funktionalität für new button
 export default function Navbar(props) {
     return (
         <nav id="navbar" className="navbar navbar-dark text-light bg-dark">
