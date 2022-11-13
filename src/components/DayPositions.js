@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
-
 import Heading from './Heading';
 import PositionRow from './PositionRow';
+import React from 'react';
+import _ from 'lodash';
 import { formatDayHeadingDate } from '../utils/formats';
 import t from '../utils/texts';
 
-function DayExpensesBody({ dayPositions, newPosition, editPosition, date }) {
+function DayPositionsBody({ dayPositions, newPosition, editPosition, date }) {
     if (dayPositions.positions === null) {
         return (
             <div className='placeholder-glow'>
@@ -31,19 +31,20 @@ function DayExpensesBody({ dayPositions, newPosition, editPosition, date }) {
             </h5>
         );
     }
-    return dayPositions.positions.map(p => <PositionRow
-        key={p._id}
-        description={p.description}
-        amount={p.amount}
-        currency={p.currency}
-        emphasizeIncome={true}
-        onClick={() => editPosition(p._id)} />);
+    return _.orderBy(dayPositions.positions, 'createDate')
+        .map(p => <PositionRow
+            key={p._id}
+            description={p.description}
+            amount={p.amount}
+            currency={p.currency}
+            emphasizeIncome={true}
+            onClick={() => editPosition(p._id)} />);
 }
 
-export default function DayExpenses({ dayExpenses: dayPositions, newPosition, editPosition }) {
+export default function DayPositions({ dayPositions, newPosition, editPosition }) {
     const date = new Date(dayPositions.ymd);
     return (<>
         <Heading level="h5" label={formatDayHeadingDate(date)} amount={dayPositions?.sum} />
-        <DayExpensesBody dayPositions={dayPositions} newPosition={newPosition} editPosition={editPosition} date={date} />
+        <DayPositionsBody dayPositions={dayPositions} newPosition={newPosition} editPosition={editPosition} date={date} />
     </>);
 };

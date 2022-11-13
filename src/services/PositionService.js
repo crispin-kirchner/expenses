@@ -1,7 +1,8 @@
-import * as EntityType from '../enums/EntityType.js';
 import * as dates from '../utils/dates.js';
 import * as db from './db.js';
 import * as positions from '../utils/positions.js';
+
+import EntityType from '../enums/EntityType.js';
 
 function docToPosition(doc) {
     doc.date = doc.date ? new Date(doc.date) : null;
@@ -28,24 +29,13 @@ async function getAllPositions() {
         .map(docToPosition);
 }
 
-// TODO 1. ganzen Monat anzeigen
-// TODO 2. gezielt queryen
-async function getDayExpenses(date) {
-    const all = await getAllPositions();
-    const dayPositions = all
-        .filter(pos => !pos.recurring && dates.isSameDay(date, pos.date));
-
-    const sum = dayPositions
-        .reduce((sum, pos) => sum + positions.getSign(pos) * positions.computeMonthlyAmountChf(pos), 0.0);
-
-    return {
-        expenses: dayPositions,
-        sum: sum
-    };
+function storePosition(pos) {
+    db.put(positionToDoc(pos));
 }
 
-async function storePosition(pos) {
-    db.put(positionToDoc(pos));
+// TODO versuchen, nur ID und REV zu senden
+function deletePosition(pos) {
+    return db.remove(positionToDoc(pos));
 }
 
 async function getPositionsOfMonth(date) {
@@ -55,8 +45,8 @@ async function getPositionsOfMonth(date) {
 }
 
 export {
-    getDayExpenses,
     getPositionsOfMonth,
     loadPosition,
-    storePosition
+    storePosition,
+    deletePosition
 };

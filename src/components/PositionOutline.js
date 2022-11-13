@@ -1,11 +1,9 @@
-import * as PositionType from '../enums/PositionType.js';
-
 import React, { useEffect, useState } from "react";
 import { computeMonthlyAmountChf, createEmptyPosition, getSign } from "../utils/positions.js";
 import { decrementMonth, incrementMonth, toYmd } from '../utils/dates.js';
-import { getPositionsOfMonth, loadPosition } from "../services/PositionService.js";
+import { deletePosition, getPositionsOfMonth, loadPosition, storePosition } from "../services/PositionService.js";
 
-import DayExpenses from "./DayExpenses.js";
+import DayPositions from "./DayPositions.js";
 import { LinkButton } from "./Navbar";
 import MonthDisplay from "../enums/MonthDisplay.js";
 import Outline from "./Outline";
@@ -35,13 +33,17 @@ function getOverviewSection(pos) {
     return _.find(OverviewSections, s => s.type && pos.type === s.type && s.recurringFilter(pos)).id;
 }
 
-// FIXME zwischen "s" und "md" sind zwei new buttons sichtbar und man könnte den navbar-container hier nicht-fluid machen weil das Form es nicht ist
+function throwAfter(ms) {
+    return new Promise((accept, reject) => setTimeout(reject, ms));
+}
+
+// FIXME zwischen "s" und "md" könnte man den navbar-container hier nicht-fluid machen weil das Form es nicht ist
 export default function PositionOutline(props) {
     const [date, setDate] = useState(new Date());
     const [editedPosition, setEditedPosition] = useState(null);
     const [monthDisplay, setMonthDisplay] = useState(MonthDisplay.CALENDAR.id);
 
-    const [positionsOfMonth, setPositionsOfMonthInternal] = useState([]);
+    const [positionsOfMonth, setPositionsOfMonthInternal] = useState({});
 
     const [incomePositions, setIncomePositions] = useState({ childRows: [] });
     const [recurringPositions, setRecurringPositions] = useState({ childRows: [] });
@@ -76,7 +78,7 @@ export default function PositionOutline(props) {
             .keyBy('ymd')
             .value());
 
-        setPositionsOfMonthInternal(positions);
+        setPositionsOfMonthInternal(_.keyBy(positions, '_id'));
         setIncomePositions(overviewSections[OverviewSections.INCOME.id] || { monthlyAmountChf: '0', childRows: [] });
         setRecurringPositions(overviewSections[OverviewSections.RECURRING.id] || { monthlyAmountChf: '0', childRows: [] });
         setExpensePositions(overviewSections[OverviewSections.EXPENSE.id] || { monthlyAmountChf: '0', childRows: [] });
@@ -90,9 +92,42 @@ export default function PositionOutline(props) {
 
     const newPosition = d => setEditedPosition(createEmptyPosition(d));
     const editPosition = async id => setEditedPosition(await loadPosition(id));
-    const saveAction = pos => {
+
+    // TODO "pending" state hinzufügen falls ich das sinnvoll finde
+    const saveAction = async pos => {
         setEditedPosition(null);
-        setPositionsOfMonth([...positionsOfMonth, pos]);
+        pos = { ...pos, createDate: new Date() }
+        const previousPosition = positionsOfMonth[pos._id];
+        positionsOfMonth[pos._id] = pos;
+        setPositionsOfMonth(Object.values(positionsOfMonth));
+        try {
+            await storePosition(pos);
+        }
+        catch (err) {
+            if (!previousPosition) {
+                delete positionsOfMonth[pos._id];
+            }
+            else {
+                positionsOfMonth[pos._id] = previousPosition;
+            }
+            setPositionsOfMonth(Object.values(positionsOfMonth));
+            throw err;
+        }
+    };
+
+    const deleteAction = async id => {
+        setEditedPosition(null);
+        const previousPosition = positionsOfMonth[id];
+        delete positionsOfMonth[id];
+        setPositionsOfMonth(Object.values(positionsOfMonth));
+        try {
+            await deletePosition(previousPosition);
+        }
+        catch (err) {
+            positionsOfMonth[previousPosition._id] = previousPosition;
+            setPositionsOfMonth(Object.values(positionsOfMonth));
+            throw err;
+        }
     };
 
     return <>
@@ -118,11 +153,12 @@ export default function PositionOutline(props) {
                 expensePositions={expensePositions}
                 editPosition={editPosition} />}
             sideOnMobile={MonthDisplay[monthDisplay].sideOnMobile}
-            side={<DayExpenses dayExpenses={positionsByDay[toYmd(date)] || { ymd: toYmd(date), positions: null }} newPosition={newPosition} editPosition={editPosition} />}
+            side={<DayPositions dayPositions={positionsByDay[toYmd(date)] || { ymd: toYmd(date), positions: null }} newPosition={newPosition} editPosition={editPosition} />}
             rightDrawer={() => <PositionForm
                 position={editedPosition}
                 saveAction={saveAction}
-                abortAction={() => setEditedPosition(null)} />}
+                abortAction={() => setEditedPosition(null)}
+                deleteAction={deleteAction} />}
             rightDrawerVisible={!!editedPosition}
             footerContent={<>
                 <div className="me-auto">

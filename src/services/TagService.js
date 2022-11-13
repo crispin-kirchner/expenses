@@ -1,9 +1,7 @@
-import * as EntityType from '../enums/EntityType.js';
-
 import { buildHierarchyRecursive, getTags } from '../utils/tags.js';
 
+import EntityType from '../enums/EntityType.js';
 import TagDimension from '../enums/TagDimension.js';
-import _ from 'lodash';
 import { getAllDocuments } from './db.js';
 
 async function getAllNames() {

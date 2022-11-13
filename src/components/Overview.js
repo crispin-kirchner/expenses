@@ -1,5 +1,4 @@
 import React, { useContext } from 'react';
-import currencies, { isDefaultCurrency } from '../enums/currencies';
 
 import OverviewSections from '../enums/OverviewSections';
 import PositionRow from './PositionRow';
@@ -7,6 +6,7 @@ import TagContext from './TagContext';
 import TagDimension from '../enums/TagDimension';
 import _ from 'lodash';
 import { computeMonthlyAmount } from '../utils/positions';
+import { isDefaultCurrency } from '../enums/currencies';
 import { removeTagFromString } from '../utils/tags';
 import t from '../utils/texts';
 
@@ -84,7 +84,7 @@ function groupAndSort(childRows, tagHierarchy) {
                 let _id = groupName;
                 if (groupName[0] === '#') {
                     _id = groupName.substring(1);
-                    childRows = _.each(childRows, pos => pos.description = removeTagFromString(_id, pos.description));
+                    childRows = _.map(childRows, pos => ({ ...pos, description: removeTagFromString(_id, pos.description) }));
                 }
                 childRows = _.orderBy(childRows, ['monthlyAmountChf'], ['desc']);
                 return {

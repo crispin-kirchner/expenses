@@ -1,4 +1,6 @@
-const POSITION = 'position';
-const TAG = 'label';
+const EntityType = {
+    POSITION: 'position',
+    TAG: 'label'
+};
 
-export { POSITION, TAG };
+export default EntityType;

@@ -27,20 +27,21 @@ function TypeDropdown({ classes, type, setPositionType }) {
 
 // FIXME implement/test delete functionality
 // FIXME beim abspeichern muss die exchange rate überschrieben werden, falls es default currency ist, ebenso recurrence Felder
-export default function PositionForm(props) {
-    const [type, setType] = useState(props.position.type);
-    const [amount, setAmount] = useState(prettyPrintFloatString(props.position.amount, 2, NumberFormats.DEFAULT));
-    const [currency, setCurrency] = useState(props.position.currency);
-    const [exchangeRate, setExchangeRate] = useState(prettyPrintFloatString(props.position.exchangeRate, 5, NumberFormats.DEFAULT));
-    const [description, setDescription] = useState(props.position.description);
-    const [startDate, setStartDate] = useState(props.position.recurring ? toYmd(props.position.recurrenceFrom) : toYmd(props.position.date));
-    const [endDate, setEndDate] = useState(toYmd(props.position.recurrenceTo));
-    const [isRecurring, setRecurring] = useState(props.position.recurring);
-    const [recurrencePeriodicity, setRecurrencePeriodicity] = useState(props.position.recurrencePeriodicity || RecurrencePeriodicity.MONTHLY);
-    const [recurrenceFrequency, setRecurrenceFrequency] = useState(props.position.recurrenceFrequency || '1');
+export default function PositionForm({ position, saveAction, abortAction, deleteAction }) {
+    const [type, setType] = useState(position.type);
+    const [amount, setAmount] = useState(prettyPrintFloatString(position.amount, 2, NumberFormats.DEFAULT));
+    const [currency, setCurrency] = useState(position.currency);
+    const [exchangeRate, setExchangeRate] = useState(prettyPrintFloatString(position.exchangeRate, 5, NumberFormats.DEFAULT));
+    const [description, setDescription] = useState(position.description);
+    const [startDate, setStartDate] = useState(position.recurring ? toYmd(position.recurrenceFrom) : toYmd(position.date));
+    const [endDate, setEndDate] = useState(toYmd(position.recurrenceTo));
+    const [isRecurring, setRecurring] = useState(position.recurring);
+    const [recurrencePeriodicity, setRecurrencePeriodicity] = useState(position.recurrencePeriodicity || RecurrencePeriodicity.MONTHLY);
+    const [recurrenceFrequency, setRecurrenceFrequency] = useState(position.recurrenceFrequency || '1');
 
-    const saveActionInternal = () => props.saveAction({
-        _id: props.position._id || v4(),
+    const saveActionInternal = () => saveAction({
+        ...position,
+        _id: position._id || v4(),
         type,
         amount: localToFloatString(amount),
         currency,
@@ -57,9 +58,9 @@ export default function PositionForm(props) {
     return (
         <Form
             id="position-form"
-            abortAction={props.abortAction}
+            abortAction={abortAction}
             saveAction={saveActionInternal}
-            deleteAction={props.position._id ? () => console.log('Delete position', props.position._id) : null}
+            deleteAction={() => deleteAction(position._id)}
             title={classes => <TypeDropdown type={type} setPositionType={setType} classes={classes} />}>
             <FormRow>
                 <div className="col-8 form-floating">
