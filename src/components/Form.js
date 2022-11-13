@@ -93,7 +93,7 @@ export function DateInput({ id, label, value, setState }) {
 }
 
 export default function Form({ id, title, abortAction, deleteAction, saveAction, children }) {
-
+    // TODO Hotkeys
     return (<>
         <div className="d-md-none mb-3">
             <Navbar>
