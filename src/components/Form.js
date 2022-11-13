@@ -1,7 +1,7 @@
 import Navbar, { LinkButton } from "./Navbar";
 
 import React from "react";
-import { prettyPrintIntlFloatString } from "../utils/formats";
+import { prettyPrintFloatString } from "../utils/formats";
 import t from "../utils/texts";
 
 function FormButton({ classes, type, label, onClick, icon, showLabel, form }) {
@@ -46,11 +46,9 @@ export function TextInput({ id, classes, label, value, attrs, onChange, onInput,
         value,
         onInput,
         onBlur,
+        onChange,
         ...attrs
     };
-    if (onChange) {
-        attributes.onChange = e => onChange(e.target.value);
-    }
     const inputElement = React.createElement('input', attributes);
     if (!label) {
         return inputElement;
@@ -74,7 +72,7 @@ export function NumberInput({ id, label, value, setState, numFractionDigits }) {
             onBlur={e => {
                 try {
                     // TODO visuelle Validierung hinzufügen
-                    setState(prettyPrintIntlFloatString(e.target.value, numFractionDigits));
+                    setState(prettyPrintFloatString(e.target.value, numFractionDigits));
                 } catch (error) {
                     console.error(error);
                 }
@@ -85,11 +83,12 @@ export function NumberInput({ id, label, value, setState, numFractionDigits }) {
     </>;
 }
 
-export function DateInput({ id, label, value }) {
+export function DateInput({ id, label, value, setState }) {
     return <TextInput
         id={id}
         label={label}
         value={value}
+        onChange={e => setState(e.target.value)}
         attrs={{ type: 'date' }} />
 }
 

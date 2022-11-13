@@ -3,8 +3,9 @@ import * as PositionType from '../enums/PositionType.js';
 import Form, { DateInput, FormRow, NumberInput, TextInput } from "./Form.js";
 import React, { useState } from "react";
 import currencies, { getDefaultCurrency } from "../enums/currencies.js";
-import { defaultDecimalSeparatorRegex, parseIntlFloat, prettyPrintIntlFloatString } from '../utils/formats.js';
+import { localToFloatString, parseIntlFloat, prettyPrintFloatString } from '../utils/formats.js';
 
+import NumberFormats from '../enums/NumberFormats.js';
 import RecurrencePeriodicity from '../enums/RecurrencePeriodicity.js';
 import { computeAmountChf } from '../utils/positions.js';
 import t from '../utils/texts.js';
@@ -27,22 +28,30 @@ function TypeDropdown({ classes, type, setPositionType }) {
 // FIXME beim abspeichern muss die exchange rate überschrieben werden, falls es default currency ist, ebenso recurrence Felder
 export default function PositionForm(props) {
     const [type, setType] = useState(props.position.type);
-    const [amount, setAmount] = useState(prettyPrintIntlFloatString(props.position.amount, 2, defaultDecimalSeparatorRegex));
+    const [amount, setAmount] = useState(prettyPrintFloatString(props.position.amount, 2, NumberFormats.DEFAULT));
     const [currency, setCurrency] = useState(props.position.currency);
-    const [exchangeRate, setExchangeRate] = useState(prettyPrintIntlFloatString(props.position.exchangeRate, 5, defaultDecimalSeparatorRegex));
+    const [exchangeRate, setExchangeRate] = useState(prettyPrintFloatString(props.position.exchangeRate, 5, NumberFormats.DEFAULT));
     const [description, setDescription] = useState(props.position.description);
+    const [startDate, setStartDate] = useState(props.position.recurring ? toYmd(props.position.recurrenceFrom) : toYmd(props.position.date));
+    const [endDate, setEndDate] = useState(toYmd(props.position.recurrenceTo));
     const [isRecurring, setRecurring] = useState(props.position.recurring);
     const [recurrencePeriodicity, setRecurrencePeriodicity] = useState(props.position.recurrencePeriodicity || RecurrencePeriodicity.MONTHLY);
-    // FIXME: from/to Felder befüllen
+    const [recurrenceFrequency, setRecurrenceFrequency] = useState(props.position.recurrenceFrequency || '1');
 
     const saveActionInternal = () => props.saveAction({
         type,
-        amount,
+        amount: localToFloatString(amount),
         currency,
-        exchangeRate,
-        description
+        exchangeRate: localToFloatString(exchangeRate),
+        description,
+        date: isRecurring ? null : new Date(startDate),
+        recurring: isRecurring,
+        recurrencePeriodicity: isRecurring ? recurrencePeriodicity : null,
+        recurrenceFrequency: isRecurring ? Number(recurrenceFrequency) : null,
+        recurrenceFrom: isRecurring ? new Date(startDate) : null,
+        recurrenceTo: isRecurring ? new Date(endDate) : null
     });
-    // FIXME re-implement proposals
+
     return (
         <Form
             id="position-form"
@@ -90,10 +99,18 @@ export default function PositionForm(props) {
             </FormRow>
             <FormRow>
                 <div className='col'>
-                    <DateInput id="date-input" label={isRecurring ? t('Start') : t('Date')} value={props.position.recurring ? toYmd(props.position.recurrenceFrom) : toYmd(props.position.date)} />
+                    <DateInput
+                        id="date-input"
+                        label={isRecurring ? t('Start') : t('Date')}
+                        value={startDate}
+                        setState={setStartDate} />
                 </div>
                 {isRecurring ? <div className='col'>
-                    <DateInput id="recurring-to-input" label={t('End')} value={toYmd(props.position.recurrenceTo)} />
+                    <DateInput
+                        id="recurring-to-input"
+                        label={t('End')}
+                        value={endDate}
+                        setState={setEndDate} />
                 </div> : null}
             </FormRow>
             <FormRow classes="align-items-center">
@@ -107,7 +124,15 @@ export default function PositionForm(props) {
                     </div>
                 </div>
                 <div className={`input-group col ${!isRecurring ? 'invisible' : ''}`}>
-                    <input data-testid="recurrence-frequency" type="number" className="form-control text-end" size="2" maxLength="2" inputMode="numeric" defaultValue={props.position.recurrenceFrequency || '1'} />
+                    <input
+                        data-testid="recurrence-frequency"
+                        type="number"
+                        className="form-control text-end"
+                        size="2"
+                        maxLength="2"
+                        inputMode="numeric"
+                        value={recurrenceFrequency}
+                        onChange={e => setRecurrenceFrequency(e.target.value)} />
 
                     <input
                         name="recurring-periodicity"

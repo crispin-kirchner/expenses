@@ -1,5 +1,6 @@
 import * as texts from './texts.js';
 
+import NumberFormats from '../enums/NumberFormats.js';
 import { capitalizeFirstLetter } from './strings.js';
 
 const dayHeadingFormat = new Intl.DateTimeFormat(texts.languages, { weekday: 'long', day: '2-digit', month: '2-digit' });
@@ -9,20 +10,22 @@ numberFormats[0] = new Intl.NumberFormat(texts.languages, { useGrouping: true, m
 numberFormats[2] = new Intl.NumberFormat(texts.languages, { useGrouping: true, minimumFractionDigits: 2, maximumFractionDigits: 2 });
 numberFormats[5] = new Intl.NumberFormat(texts.languages, { useGrouping: true, minimumFractionDigits: 5, maximumFractionDigits: 5 });
 
-const defaultDecimalSeparatorRegex = /\./;
-export { defaultDecimalSeparatorRegex };
-
-const { decimalSeparator, groupSeparatorRegex, intlDecimalSeparatorRegex, numberRegex } = (() => {
+const { localDecimalSeparator, localGroupSeparator } = (() => {
     const parts = new Intl.NumberFormat(texts.languages, { useGrouping: true }).formatToParts('12345.6');
-    const groupSeparator = parts[1].value;
-    const decimalSeparator = parts[3].value;
-    return {
-        decimalSeparator,
-        groupSeparatorRegex: new RegExp(`\\${groupSeparator}`, 'g'),
-        intlDecimalSeparatorRegex: new RegExp(`\\${decimalSeparator}`),
-        numberRegex: new RegExp(`^[0-9\\${groupSeparator}\\${decimalSeparator}]*$`)
-    };
+    const localGroupSeparator = parts[1].value;
+    const localDecimalSeparator = parts[3].value;
+    return { localDecimalSeparator, localGroupSeparator };
 })();
+
+const numberRegex = {};
+numberRegex[NumberFormats.DEFAULT] = /^[0-9\.]*$/;
+numberRegex[NumberFormats.LOCAL] = new RegExp(`^[0-9\\${localGroupSeparator}\\${localDecimalSeparator}]*$`);
+
+const decimalSeparatorRegex = {};
+decimalSeparatorRegex[NumberFormats.DEFAULT] = /\./;
+decimalSeparatorRegex[NumberFormats.LOCAL] = new RegExp(`\\${localDecimalSeparator}`);
+
+const localGroupSeparatorRegex = new RegExp(`\\${localGroupSeparator}`, 'g');
 
 export function formatMonth(date) {
     return capitalizeFirstLetter(monthFormat.format(date));
@@ -32,35 +35,35 @@ export function formatDayHeadingDate(date) {
     return capitalizeFirstLetter(dayHeadingFormat.format(date));
 }
 
-export function formatFloat(f, numDigits) {
-    numDigits = numDigits || 2;
-    return numberFormats[numDigits].format(f);
+export function formatFloat(f) {
+    return numberFormats[2].format(f);
 }
 
 export function parseIntlFloat(number) {
-    if (!isIntlFloat(number)) {
+    if (!numberRegex[NumberFormats.LOCAL].test(number)) {
         return NaN;
     }
-    return parseFloat(number
-        .replaceAll(groupSeparatorRegex, '')
-        .replace(intlDecimalSeparatorRegex, '.'));
+    return parseFloat(localToFloatString(number));
 }
 
-function isIntlFloat(number) {
-    return numberRegex.test(number);
+export function localToFloatString(number) {
+    return number
+        .replaceAll(localGroupSeparatorRegex, '')
+        .replace(decimalSeparatorRegex[NumberFormats.LOCAL], '.');
 }
 
-export function prettyPrintIntlFloatString(number, numFractionDigits, decimalSeparatorRegex) {
+export function prettyPrintFloatString(number, numFractionDigits, inputFormat) {
     if (!number) {
         return '';
     }
-    if (!isIntlFloat(number)) {
+
+    inputFormat = inputFormat || NumberFormats.LOCAL;
+
+    if (!numberRegex[inputFormat].test(number)) {
         throw 'number contains illegal characters';
     }
 
-    decimalSeparatorRegex = decimalSeparatorRegex || intlDecimalSeparatorRegex;
-
-    let [integerPart, fractionalPart] = number.split(decimalSeparatorRegex);
+    let [integerPart, fractionalPart] = number.split(decimalSeparatorRegex[inputFormat]);
 
     integerPart = integerPart
         ? numberFormats[0].format(integerPart)
@@ -70,5 +73,5 @@ export function prettyPrintIntlFloatString(number, numFractionDigits, decimalSep
         ? fractionalPart.substring(0, numFractionDigits).padEnd(numFractionDigits, '0')
         : '0'.repeat(numFractionDigits);
 
-    return `${integerPart}${decimalSeparator}${fractionalPart}`;
+    return `${integerPart}${localDecimalSeparator}${fractionalPart}`;
 }
