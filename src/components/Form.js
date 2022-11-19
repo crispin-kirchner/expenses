@@ -30,8 +30,8 @@ function Title({ formId, closeButton, content, classes, deleteAction }) {
     </>);
 }
 
-export function FormRow(props) {
-    return <div className={`row g-2 mb-3 ${props.classes}`}>{props.children}</div>;
+export function FormRow({ classes, children }) {
+    return <div className={`row g-2 mb-3 ${classes}`}>{children}</div>;
 }
 
 export function TextInput({ id, classes, label, value, attrs, onChange, onInput, onBlur }) {
@@ -59,11 +59,11 @@ export function TextInput({ id, classes, label, value, attrs, onChange, onInput,
     </div>;
 }
 
-// TODO visuelle Validierung hinzufügen
 // FIXME Holländisch und 33.3 gibt "33,00"
+// TODO Numpad-Punkt gibt locale decimalsep, unabhängig vom Zeichen
 export function NumberInput({ id, label, value, setState, numFractionDigits }) {
     numFractionDigits = numFractionDigits || 2;
-    return <>
+    return (
         <TextInput
             classes="text-end"
             id={id}
@@ -74,13 +74,14 @@ export function NumberInput({ id, label, value, setState, numFractionDigits }) {
                 try {
                     setState(prettyPrintFloatString(e.target.value, numFractionDigits));
                 } catch (error) {
+                    // TODO visuelle Validierung hinzufügen
                     console.error(error);
                 }
             }}
             attrs={{
                 inputMode: "numeric"
             }} />
-    </>;
+    );
 }
 
 export function DateInput({ id, label, value, setState }) {

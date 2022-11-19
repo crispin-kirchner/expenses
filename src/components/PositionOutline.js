@@ -125,6 +125,10 @@ export default function PositionOutline(props) {
         }
     };
 
+    const dayPositions = _.isEmpty(positionsByDay)
+        ? { ymd: toYmd(date), positions: null }
+        : positionsByDay[toYmd(date)] || { ymd: toYmd(date), positions: [] };
+
     return <>
         <Outline
             navbarContent={<>
@@ -148,7 +152,7 @@ export default function PositionOutline(props) {
                 expensePositions={expensePositions}
                 editPosition={editPosition} />}
             sideOnMobile={MonthDisplay[monthDisplay].sideOnMobile}
-            side={<DayPositions dayPositions={positionsByDay[toYmd(date)] || { ymd: toYmd(date), positions: null }} newPosition={newPosition} editPosition={editPosition} />}
+            side={<DayPositions dayPositions={dayPositions} newPosition={newPosition} editPosition={editPosition} />}
             rightDrawer={() => <PositionForm
                 position={editedPosition}
                 saveAction={saveAction}

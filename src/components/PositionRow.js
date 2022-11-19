@@ -1,6 +1,3 @@
-import * as PositionType from '../enums/PositionType.js';
-import * as positions from '../utils/positions.js';
-
 import React, { useContext } from 'react';
 import currencies, { isDefaultCurrency } from '../enums/currencies.js';
 
@@ -8,7 +5,6 @@ import { TAG_REGEX } from '../utils/tags.js';
 import TagContext from './TagContext.js';
 import colors from '../enums/colors.js';
 import { formatFloat } from '../utils/formats.js';
-import { loadPosition } from '../services/PositionService.js';
 
 function Tag(props) {
     const tags = useContext(TagContext);
