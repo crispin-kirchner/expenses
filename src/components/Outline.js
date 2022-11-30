@@ -1,20 +1,14 @@
 import * as ViewMode from '../enums/ViewMode.js';
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 import Navbar from './Navbar';
-import TagContext from './TagContext.js';
-import { getTagsAndHierarchy } from '../services/TagService.js';
+import TagQuery from './TagQuery.js';
 
 // FIXME shift6m quer ist sm, nicht md!
 // FIXME re-add viewmode changing when adding sidebar
 export default function Outline(props) {
     const [viewMode, setViewMode] = useState(ViewMode.MONTH_DISPLAY);
-    const [tags, setTags] = useState(null);
-    useEffect(() => {
-        getTagsAndHierarchy()
-            .then(setTags);
-    }, []);
 
     const drawerPosStart = props.rightDrawerVisible ? 'start-0' : 'start-100';
     const mainClasses = props.sideOnMobile ? 'h-50' : 'h-100';
@@ -22,10 +16,10 @@ export default function Outline(props) {
 
     return (
         <div id="app" className='d-flex h-100 flex-column overflow-hidden position-relative'>
-            <Navbar viewMode={viewMode} setViewMode={setViewMode}>
-                {props.navbarContent}
-            </Navbar>
-            <TagContext.Provider value={tags}>
+            <Navbar
+                brandContent={props.navbarBrandContent}
+                formContent={props.navbarFormContent} />
+            <TagQuery>
                 <div className="container-lg flex-grow-1 h-100 overflow-hidden">
                     <div className="row h-100">
                         <div id="main" className={`col-md col-lg-8 h-md-100 overflow-auto pt-2 ${mainClasses}`}>
@@ -41,7 +35,7 @@ export default function Outline(props) {
                         </div>
                     </div>
                 </div>
-            </TagContext.Provider>
+            </TagQuery>
             {props.footerContent ? <div className="d-sm-none bg-secondary d-flex p-2" style={{ '--bs-bg-opacity': 0.5 }}>
                 {props.footerContent}
             </div> : null

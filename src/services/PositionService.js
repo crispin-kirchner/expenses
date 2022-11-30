@@ -1,5 +1,4 @@
 import * as dates from '../utils/dates.js';
-import * as db from './db.js';
 import * as positions from '../utils/positions.js';
 
 import EntityType from '../enums/EntityType.js';
@@ -20,27 +19,27 @@ function positionToDoc(pos) {
     return pos;
 }
 
-async function loadPosition(id) {
+async function loadPosition(db, id) {
     return docToPosition(await db.getDocument('position', id));
 }
 
-async function getAllPositions() {
+async function getAllPositions(db) {
     return (await db.getAllDocuments(EntityType.POSITION))
         .map(docToPosition);
 }
 
-function storePosition(pos) {
-    db.put(positionToDoc(pos));
+function storePosition(db, pos) {
+    return db.put(positionToDoc(pos));
 }
 
-// TODO versuchen, nur ID und REV zu senden
-function deletePosition(pos) {
+function deletePosition(db, pos) {
     return db.remove(positionToDoc(pos));
 }
 
-async function getPositionsOfMonth(date) {
-    return (await getAllPositions())
-        .filter(ex => positions.isValidInMonth(ex, date));
+async function getPositionsOfMonth(db, date) {
+    const allDocuments = (await getAllPositions(db))
+        .filter(d => positions.isValidInMonth(d, date));
+    return allDocuments;
 }
 
 export {

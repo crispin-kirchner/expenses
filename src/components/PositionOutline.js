@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import Database, { DbContext, useDataVersion } from "./Database.js";
+import React, { useCallback, useContext, useState } from "react";
 import { computeMonthlyAmountChf, createEmptyPosition, getSign } from "../utils/positions.js";
-import { decrementMonth, incrementMonth, toYmd } from '../utils/dates.js';
+import { decrementMonth, incrementMonth, isSameDay, toYmd } from '../utils/dates.js';
 import { deletePosition, getPositionsOfMonth, loadPosition, storePosition } from "../services/PositionService.js";
 
 import DayPositions from "./DayPositions.js";
@@ -33,19 +34,25 @@ function getOverviewSection(pos) {
 }
 
 // FIXME zwischen "s" und "md" könnte man den navbar-container hier nicht-fluid machen weil das Form es nicht ist
-export default function PositionOutline(props) {
+export default function PositionOutline({ unsyncedDocuments }) {
     const [date, setDate] = useState(new Date());
     const [editedPosition, setEditedPosition] = useState(null);
     const [monthDisplay, setMonthDisplay] = useState(MonthDisplay.CALENDAR.id);
 
-    const [positionsOfMonth, setPositionsOfMonthInternal] = useState({});
+    const [positionsOfMonth, setPositionsOfMonth] = useState({});
 
     const [incomePositions, setIncomePositions] = useState({ childRows: [] });
     const [recurringPositions, setRecurringPositions] = useState({ childRows: [] });
     const [expensePositions, setExpensePositions] = useState({ childRows: [] });
     const [positionsByDay, setPositionsByDay] = useState({});
 
-    const setPositionsOfMonth = (positions) => {
+    const { dataVersion, incrementDataVersion } = useDataVersion();
+
+    const db = useContext(DbContext);
+
+    const queryCallback = useCallback(async db => {
+        const positions = await getPositionsOfMonth(db, date);
+
         const positionsLabeled = _.map(positions, pos => ({
             ...pos,
             monthlyAmountChf: computeMonthlyAmountChf(pos),
@@ -73,99 +80,75 @@ export default function PositionOutline(props) {
             .keyBy('ymd')
             .value());
 
-        setPositionsOfMonthInternal(_.keyBy(positions, '_id'));
+        setPositionsOfMonth(_.keyBy(positions, '_id'));
         setIncomePositions(overviewSections[OverviewSections.INCOME.id] || { monthlyAmountChf: '0', childRows: [] });
         setRecurringPositions(overviewSections[OverviewSections.RECURRING.id] || { monthlyAmountChf: '0', childRows: [] });
         setExpensePositions(overviewSections[OverviewSections.EXPENSE.id] || { monthlyAmountChf: '0', childRows: [] });
-    };
-
-    // TODO date in month und day auftrennen oder day gleich ganz weglassen
-    useEffect(() => {
-        getPositionsOfMonth(date)
-            .then(setPositionsOfMonth);
-    }, [date]);
+    },
+        [date]);
 
     const newPosition = d => setEditedPosition(createEmptyPosition(d));
-    const editPosition = async id => setEditedPosition(await loadPosition(id));
+    const editPosition = async id => setEditedPosition(await loadPosition(db, id));
 
-    // TODO "pending" state hinzufügen falls ich das sinnvoll finde
     const saveAction = async pos => {
         setEditedPosition(null);
-        pos = { ...pos, createDate: new Date() }
-        const previousPosition = positionsOfMonth[pos._id];
-        positionsOfMonth[pos._id] = pos;
-        setPositionsOfMonth(Object.values(positionsOfMonth));
-        try {
-            await storePosition(pos);
-        }
-        catch (err) {
-            if (!previousPosition) {
-                delete positionsOfMonth[pos._id];
-            }
-            else {
-                positionsOfMonth[pos._id] = previousPosition;
-            }
-            setPositionsOfMonth(Object.values(positionsOfMonth));
-            throw err;
-        }
+        pos.createDate = pos.createDate || new Date();
+        storePosition(db, pos);
+        incrementDataVersion();
     };
 
     const deleteAction = async id => {
         setEditedPosition(null);
-        const previousPosition = positionsOfMonth[id];
-        delete positionsOfMonth[id];
-        setPositionsOfMonth(Object.values(positionsOfMonth));
-        try {
-            await deletePosition(previousPosition);
-        }
-        catch (err) {
-            positionsOfMonth[previousPosition._id] = previousPosition;
-            setPositionsOfMonth(Object.values(positionsOfMonth));
-            throw err;
-        }
+        const position = positionsOfMonth[id];
+        deletePosition(db, position);
+        incrementDataVersion();
     };
 
     const dayPositions = _.isEmpty(positionsByDay)
         ? { ymd: toYmd(date), positions: null }
         : positionsByDay[toYmd(date)] || { ymd: toYmd(date), positions: [] };
 
-    return <>
-        <Outline
-            navbarContent={<>
-                <div className='navbar-brand'>
-                    <BrandContent date={date} setDate={setDate} />
-                </div>
-                <form className="d-flex" autoComplete='off'>
+    // TODO refactoren zu PositionOutlineQuery
+    return (
+        <Database.LiveQuery queryCallback={queryCallback} dataVersion={dataVersion}>
+            <Outline
+                navbarBrandContent={<BrandContent date={date} setDate={setDate} />}
+                navbarFormContent={<>
+                    {isSameDay(new Date(), date) ? null : <LinkButton
+                        icon='bi-calendar-date-fill'
+                        title={t('Today')}
+                        onClick={() => setDate(new Date())} />}
+                    {unsyncedDocuments}
                     <LinkButton
-                        className={"btn btn-light d-none d-sm-inline-block"}
+                        className={"btn btn-light d-none d-sm-inline-block ms-2"}
                         icon="bi-plus-square"
                         title={t('New')}
                         onClick={() => newPosition(date)}
                         disabled={!!editedPosition}>
                         <span className='d-none d-sm-inline-block'>&nbsp;{t('New')}</span>
                     </LinkButton>
-                </form>
-            </>}
-            main={<Overview
-                incomePositions={incomePositions}
-                recurringPositions={recurringPositions}
-                expensePositions={expensePositions}
-                editPosition={editPosition} />}
-            sideOnMobile={MonthDisplay[monthDisplay].sideOnMobile}
-            side={<DayPositions dayPositions={dayPositions} newPosition={newPosition} editPosition={editPosition} />}
-            rightDrawer={() => <PositionForm
-                position={editedPosition}
-                saveAction={saveAction}
-                abortAction={() => setEditedPosition(null)}
-                deleteAction={deleteAction} />}
-            rightDrawerVisible={!!editedPosition}
-            footerContent={<>
-                <div className="me-auto">
-                    {Object.values(MonthDisplay).map(md => <button type="button" key={md.id} className={`btn ${md.id === monthDisplay ? 'active' : ''}`} onClick={() => setMonthDisplay(md.id)}><i className={`bi bi-${md.icon}`} /></button>)}
-                </div>
-                <>
-                    <button type="button" className="btn btn-primary" onClick={() => newPosition(date)}><i className="bi bi-plus-square" /> {t('New')}</button>
-                </>
-            </>} />
-    </>;
+                </>}
+                main={<Overview
+                    incomePositions={incomePositions}
+                    recurringPositions={recurringPositions}
+                    expensePositions={expensePositions}
+                    editPosition={editPosition} />}
+                sideOnMobile={MonthDisplay[monthDisplay].sideOnMobile}
+                side={<DayPositions dayPositions={dayPositions} newPosition={newPosition} editPosition={editPosition} />}
+                rightDrawer={() => <PositionForm
+                    position={editedPosition}
+                    saveAction={saveAction}
+                    abortAction={() => setEditedPosition(null)}
+                    deleteAction={deleteAction} />}
+                rightDrawerVisible={!!editedPosition}
+                footerContent={<>
+                    <div className="me-auto">
+                        {Object.values(MonthDisplay).map(md => <button type="button" key={md.id} className={`btn ${md.id === monthDisplay ? 'active' : ''}`} onClick={() => setMonthDisplay(md.id)}><i className={`bi bi-${md.icon}`} /></button>)}
+                    </div>
+                    <>
+                        <button type="button" className="btn btn-primary" onClick={() => newPosition(date)}><i className="bi bi-plus-square" /> {t('New')}</button>
+                    </>
+                </>} />
+        </Database.LiveQuery>
+    );
 }

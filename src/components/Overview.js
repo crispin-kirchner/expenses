@@ -43,18 +43,18 @@ function Hierarchy(props) {
     );
 }
 
-function OverviewSection(props) {
+function OverviewSection({ id, className, description, amount, loading, childRows, editPosition }) {
     return (
-        <div className="bg-dark text-light rounded p-2 mt-2">
+        <div className={`bg-dark text-light rounded p-2 mt-2 ${className ? className : ''}`}>
             <ul className="chevron m-0 ps-0">
                 <Hierarchy
-                    id={props.id}
-                    description={props.description}
-                    amount={props.amount}
-                    loading={props.loading}
-                    path={[props.id]}
-                    childRows={props.childRows}
-                    editPosition={props.editPosition} />
+                    id={id}
+                    description={description}
+                    amount={amount}
+                    loading={loading}
+                    path={[id]}
+                    childRows={childRows}
+                    editPosition={editPosition} />
             </ul>
         </div>
     );
@@ -132,6 +132,7 @@ export default function Overview(props) {
 
         <OverviewSection
             id={OverviewSections.REMAINING.id}
+            className="mb-2"
             description={t('Remaining')}
             amount={remainderAmount}
             loading={!remainderLoaded}
