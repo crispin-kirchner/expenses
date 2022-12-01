@@ -23,7 +23,6 @@ function DayPositionsBody({ dayPositions, newPosition, editPosition, date }) {
         );
     }
     if (dayPositions.positions.length === 0) {
-        // TODO linksbündig, Neu-Button dazu rechts
         return (
             <h5 className='text-center text-secondary border-top pt-2 cursor-pointer' onClick={() => newPosition(date)}>
                 <i className="bi bi-piggy-bank-fill" />

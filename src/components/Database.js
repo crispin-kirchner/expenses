@@ -94,6 +94,7 @@ export default function Database({ children, markUnsynced, markSynced }) {
             setDb(null);
         }
     }, [markUnsynced, markSynced]);
+    // Linter meckiert über fehlende Dependency "db"; wenn man die hinzufügt explodiert die Welt -> nicht machen
 
     return (
         <DbContext.Provider value={db}>

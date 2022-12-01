@@ -44,7 +44,7 @@ export default function PositionOutline({ unsyncedDocuments }) {
     const [incomePositions, setIncomePositions] = useState({ childRows: [] });
     const [recurringPositions, setRecurringPositions] = useState({ childRows: [] });
     const [expensePositions, setExpensePositions] = useState({ childRows: [] });
-    const [positionsByDay, setPositionsByDay] = useState({});
+    const [positionsByDay, setPositionsByDay] = useState(null);
 
     const { dataVersion, incrementDataVersion } = useDataVersion();
 
@@ -104,7 +104,7 @@ export default function PositionOutline({ unsyncedDocuments }) {
         incrementDataVersion();
     };
 
-    const dayPositions = _.isEmpty(positionsByDay)
+    const dayPositions = !positionsByDay
         ? { ymd: toYmd(date), positions: null }
         : positionsByDay[toYmd(date)] || { ymd: toYmd(date), positions: [] };
 
