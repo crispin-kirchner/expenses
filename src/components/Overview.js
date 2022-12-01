@@ -97,10 +97,10 @@ function groupAndSort(childRows, tagHierarchy) {
         .value();
 }
 
-export default function Overview(props) {
-    const remainderLoaded = props.incomePositions.monthlyAmountChf && props.recurringPositions.monthlyAmountChf && props.expensePositions.monthlyAmountChf;
+export default function Overview({ incomePositions, recurringPositions, expensePositions, editPosition }) {
+    const remainderLoaded = incomePositions.monthlyAmountChf && recurringPositions.monthlyAmountChf && expensePositions.monthlyAmountChf;
     const remainderAmount = remainderLoaded
-        ? props.incomePositions.monthlyAmountChf - props.recurringPositions.monthlyAmountChf - props.expensePositions.monthlyAmountChf
+        ? incomePositions.monthlyAmountChf - recurringPositions.monthlyAmountChf - expensePositions.monthlyAmountChf
         : 2500;
 
     const tags = useContext(TagContext);
@@ -109,26 +109,26 @@ export default function Overview(props) {
         <OverviewSection
             id={OverviewSections.INCOME.id}
             description={t('Earnings')}
-            amount={-props.incomePositions.monthlyAmountChf || 10000}
-            loading={!props.incomePositions.monthlyAmountChf}
-            childRows={groupAndSort(props.incomePositions.childRows, tags?.hierarchy)}
-            editPosition={props.editPosition} />
+            amount={incomePositions.monthlyAmountChf ? -incomePositions.monthlyAmountChf : 10000}
+            loading={!incomePositions.monthlyAmountChf}
+            childRows={groupAndSort(incomePositions.childRows, tags?.hierarchy)}
+            editPosition={editPosition} />
 
         <OverviewSection
             id={OverviewSections.RECURRING.id}
             description={t('Recurring')}
-            amount={props.recurringPositions.monthlyAmountChf || 2500}
-            loading={!props.recurringPositions.monthlyAmountChf}
-            childRows={groupAndSort(props.recurringPositions.childRows, tags?.hierarchy)}
-            editPosition={props.editPosition} />
+            amount={recurringPositions.monthlyAmountChf || 2500}
+            loading={!recurringPositions.monthlyAmountChf}
+            childRows={groupAndSort(recurringPositions.childRows, tags?.hierarchy)}
+            editPosition={editPosition} />
 
         <OverviewSection
             id={OverviewSections.EXPENSE.id}
             description={t('Expenses')}
-            amount={props.expensePositions.monthlyAmountChf || 900}
-            loading={!props.expensePositions.monthlyAmountChf}
-            childRows={groupAndSort(props.expensePositions.childRows, tags?.hierarchy)}
-            editPosition={props.editPosition} />
+            amount={expensePositions.monthlyAmountChf || 900}
+            loading={!expensePositions.monthlyAmountChf}
+            childRows={groupAndSort(expensePositions.childRows, tags?.hierarchy)}
+            editPosition={editPosition} />
 
         <OverviewSection
             id={OverviewSections.REMAINING.id}
