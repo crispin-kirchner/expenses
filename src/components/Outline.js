@@ -16,9 +16,10 @@ export default function Outline(props) {
 
     return (
         <div id="app" className='d-flex h-100 flex-column overflow-hidden position-relative'>
-            <Navbar
-                brandContent={props.navbarBrandContent}
-                formContent={props.navbarFormContent} />
+            <Navbar>
+                <Navbar.Brand>{props.navbarBrandContent}</Navbar.Brand>
+                <Navbar.Form>{props.navbarFormContent}</Navbar.Form>
+            </Navbar>
             <TagQuery>
                 <div className="container-lg flex-grow-1 h-100 overflow-hidden">
                     <div className="row h-100">

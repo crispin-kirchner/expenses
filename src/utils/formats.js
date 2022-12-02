@@ -19,13 +19,22 @@ const { localDecimalSeparator, localGroupSeparator } = (() => {
 
 const numberRegex = {};
 numberRegex[NumberFormats.DEFAULT] = /^[0-9\.]*$/;
-numberRegex[NumberFormats.LOCAL] = new RegExp(`^[0-9\\${localGroupSeparator}\\${localDecimalSeparator}]*$`);
+numberRegex[NumberFormats.LOCAL] = new RegExp(`^[0-9${escape(localGroupSeparator)}${escape(localDecimalSeparator)}]*$`);
+
+export { numberRegex };
 
 const decimalSeparatorRegex = {};
 decimalSeparatorRegex[NumberFormats.DEFAULT] = /\./;
 decimalSeparatorRegex[NumberFormats.LOCAL] = new RegExp(`\\${localDecimalSeparator}`);
 
 const localGroupSeparatorRegex = new RegExp(`\\${localGroupSeparator}`, 'g');
+
+function escape(character) {
+    if (character === '.') {
+        return `\\${character}`;
+    }
+    return character;
+}
 
 export function formatMonth(date) {
     return capitalizeFirstLetter(monthFormat.format(date));
@@ -60,10 +69,10 @@ export function prettyPrintFloatString(number, numFractionDigits, inputFormat) {
     inputFormat = inputFormat || NumberFormats.LOCAL;
 
     if (!numberRegex[inputFormat].test(number)) {
-        throw 'number contains illegal characters';
+        return number;
     }
 
-    let [integerPart, fractionalPart] = number.split(decimalSeparatorRegex[inputFormat]);
+    let [integerPart, fractionalPart] = localToFloatString(number).split(decimalSeparatorRegex[NumberFormats.DEFAULT]);
 
     integerPart = integerPart
         ? numberFormats[0].format(integerPart)

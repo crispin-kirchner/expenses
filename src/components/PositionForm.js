@@ -38,6 +38,11 @@ export default function PositionForm({ position, saveAction, abortAction, delete
     const [recurrencePeriodicity, setRecurrencePeriodicity] = useState(position.recurrencePeriodicity || RecurrencePeriodicity.MONTHLY);
     const [recurrenceFrequency, setRecurrenceFrequency] = useState(position.recurrenceFrequency || '1');
 
+    const [amountValidated, setAmountValidated] = useState(false);
+    const [exchangeRateValidated, setExchangeRateValidated] = useState(false);
+    const [descriptionValidated, setDescriptionValidated] = useState(false);
+    const [frequencyValidated, setFrequencyValidated] = useState(false);
+
     const saveActionInternal = () => saveAction({
         ...position,
         _id: position._id || v4(),
@@ -54,20 +59,30 @@ export default function PositionForm({ position, saveAction, abortAction, delete
         recurrenceTo: isRecurring ? new Date(endDate) : null
     });
 
+    const descriptionLabel = `${PositionType.defs[type].benefactor}/${t('Description')}`;
+
+    // TODO NL-Übersetzungen für Validierungs-Messages
     return (
         <Form
-            id="position-form"
             abortAction={abortAction}
             saveAction={saveActionInternal}
             deleteAction={() => deleteAction(position._id)}
             title={classes => <TypeDropdown type={type} setPositionType={setType} classes={classes} />}>
             <FormRow>
-                <div className="col-8 form-floating">
+                <div className={`col-8 form-floating ${amountValidated ? 'was-validated' : 'needs-validation'}`}>
                     <NumberInput
                         id="amount"
-                        label={t('Amount')}
                         value={amount}
-                        setState={setAmount} />
+                        placeholder={t('Amount')}
+                        setState={a => {
+                            setAmount(a);
+                            setAmountValidated(true);
+                        }}
+                        required />
+                    <label htmlFor="amount">{t('Amount')}</label>
+                    <div className="invalid-feedback">
+                        {amount ? t('XIsNotANumber', amount) : t('PleaseProvideAnAmount')}
+                    </div>
                 </div>
                 <div className="col-4 form-floating">
                     <select id="currency-input" className="form-select" onChange={e => setCurrency(e.target.value)} defaultValue={currency} required>
@@ -77,35 +92,53 @@ export default function PositionForm({ position, saveAction, abortAction, delete
                 </div>
             </FormRow>
             {getDefaultCurrency().id !== currency ? <FormRow>
-                <div className="input-group">
+                <div className={`input-group has-validation ${exchangeRateValidated ? 'was-validated' : 'needs-validation'}`}>
                     <label htmlFor="exchange-rate-input" className="input-group-text">{t('ExchangeRate')}</label>
                     <NumberInput
                         id="exchange-rate-input"
                         className="form-control text-end"
                         value={exchangeRate}
-                        setState={setExchangeRate}
-                        numFractionDigits={5} />
+                        setState={er => {
+                            setExchangeRate(er);
+                            setExchangeRateValidated(true);
+                        }}
+                        numFractionDigits={5}
+                        required />
                     <span className="input-group-text" data-testid="chf-amount">
                         <span>{computeAmountChf(parseIntlFloat(amount), parseIntlFloat(exchangeRate))}</span>
                         <span>&nbsp;{getDefaultCurrency().displayName}</span>
                     </span>
+                    <div className="invalid-feedback">
+                        {exchangeRate ? t('XIsNotANumber', exchangeRate) : t('PleaseProvideAnExchangeRate')}
+                    </div>
                 </div>
             </FormRow> : null}
             <FormRow>
-                <TextInput
-                    id="description"
-                    classes="rounded-top"
-                    label={`${PositionType.defs[type].benefactor}/${t('Description')}`}
-                    value={description}
-                    onChange={e => setDescription(e.target.value)} />
+                <div className={`form-floating ${descriptionValidated ? 'was-validated' : 'needs-validation'}`}>
+                    <TextInput
+                        id="description"
+                        classes="rounded-top"
+                        placeholder={descriptionLabel}
+                        value={description}
+                        onChange={e => {
+                            setDescription(e.target.value);
+                            setDescriptionValidated(true);
+                        }}
+                        required />
+                    <label htmlFor="description">{descriptionLabel}</label>
+                    <div className='invalid-feedback'>
+                        {t('PleaseProvideADescription')}
+                    </div>
+                </div>
             </FormRow>
             <FormRow>
-                <div className='col'>
+                <div className="col">
                     <DateInput
                         id="date-input"
                         label={isRecurring ? t('Start') : t('Date')}
                         value={startDate}
-                        setState={setStartDate} />
+                        setState={setStartDate}
+                        required />
                 </div>
                 {isRecurring ? <div className='col'>
                     <DateInput
@@ -125,7 +158,7 @@ export default function PositionForm({ position, saveAction, abortAction, delete
                         </label>
                     </div>
                 </div>
-                <div className={`input-group col ${!isRecurring ? 'invisible' : ''}`}>
+                <div className={`input-group col has-validation position-relative ${!isRecurring ? 'invisible' : ''} ${isRecurring && frequencyValidated ? 'was-validated' : 'needs-validation'}`}>
                     <input
                         data-testid="recurrence-frequency"
                         type="number"
@@ -134,7 +167,11 @@ export default function PositionForm({ position, saveAction, abortAction, delete
                         maxLength="2"
                         inputMode="numeric"
                         value={recurrenceFrequency}
-                        onChange={e => setRecurrenceFrequency(e.target.value)} />
+                        onChange={e => {
+                            setRecurrenceFrequency(e.target.value);
+                            setFrequencyValidated(true);
+                        }}
+                        required={isRecurring} />
 
                     <input
                         name="recurring-periodicity"
@@ -153,6 +190,10 @@ export default function PositionForm({ position, saveAction, abortAction, delete
                         checked={recurrencePeriodicity === RecurrencePeriodicity.YEARLY}
                         onChange={() => setRecurrencePeriodicity(RecurrencePeriodicity.YEARLY)} />
                     <label htmlFor="recurring-yearly" className="btn btn-outline-primary">{t('Yearly')}</label>
+
+                    <div className='invalid-tooltip'>
+                        {t('PleaseProvideAFrequency')}
+                    </div>
                 </div>
             </FormRow>
         </Form>

@@ -14,7 +14,6 @@ function getDatabaseName() {
     }
 }
 
-// TODO wenn es keine bestückte IndexedDb gibt, funktioniert das Laden initial nicht (erst nach einem Reload)
 class DbWrapper {
     constructor(markUnsynced, markSynced) {
         this._markUnsynced = markUnsynced;
@@ -54,8 +53,6 @@ class DbWrapper {
         this._sync = null;
         this.pouchDb = null;
     }
-
-    // TODO prüfen welche wrapper-Funktionen es braucht und welche nicht
 
     put(document) {
         this._markUnsynced(document._id);

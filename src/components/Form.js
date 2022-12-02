@@ -1,6 +1,8 @@
 import Navbar, { LinkButton } from "./Navbar";
+import React, { useState } from "react";
 
-import React from "react";
+import NumberFormats from "../enums/NumberFormats";
+import { numberRegex } from '../utils/formats.js';
 import { prettyPrintFloatString } from "../utils/formats";
 import t from "../utils/texts";
 
@@ -31,72 +33,58 @@ function Title({ formId, closeButton, content, classes, deleteAction }) {
 }
 
 export function FormRow({ classes, children }) {
-    return <div className={`row g-2 mb-3 ${classes}`}>{children}</div>;
+    return <div className={`row g-2 mb-3 ${classes ? classes : ''}`}>{children}</div>;
 }
 
-export function TextInput({ id, classes, label, value, attrs, onChange, onInput, onBlur }) {
-    if (label && !id) {
-        // FIXME throw something different
-        throw 'Input with a label needs an id';
-    }
+export function TextInput({ id, classes, placeholder, value, attrs, onChange, onBlur, pattern, required }) {
     const attributes = {
         className: `form-control ${classes}`,
         id,
-        placeholder: label,
+        placeholder: placeholder,
+        pattern,
         value,
-        onInput,
         onBlur,
         onChange,
+        required,
         ...attrs
     };
-    const inputElement = React.createElement('input', attributes);
-    if (!label) {
-        return inputElement;
-    }
-    return <div className="form-floating">
-        {inputElement}
-        <label htmlFor={id}>{label}</label>
-    </div>;
+    return React.createElement('input', attributes);
 }
 
-// FIXME Holländisch und 33.3 gibt "33,00"
-// TODO Numpad-Punkt gibt locale decimalsep, unabhängig vom Zeichen
-export function NumberInput({ id, label, value, setState, numFractionDigits }) {
+export function NumberInput({ id, placeholder, value, setState, numFractionDigits, required }) {
     numFractionDigits = numFractionDigits || 2;
+    let pattern = numberRegex[NumberFormats.LOCAL].toString();
+    pattern = pattern.substring(1, pattern.length - 1);
     return (
         <TextInput
             classes="text-end"
             id={id}
-            label={label}
+            placeholder={placeholder}
             value={value}
-            onInput={e => setState(e.target.value)}
+            onChange={e => setState(e.target.value)}
             onBlur={e => {
-                try {
-                    setState(prettyPrintFloatString(e.target.value, numFractionDigits));
-                } catch (error) {
-                    // TODO visuelle Validierung hinzufügen
-                    console.error(error);
-                }
+                setState(prettyPrintFloatString(e.target.value, numFractionDigits));
             }}
+            pattern={pattern}
+            required={required}
             attrs={{
                 inputMode: "numeric"
             }} />
     );
 }
 
-export function DateInput({ id, label, value, setState }) {
+export function DateInput({ id, label, value, setState, required }) {
     return <TextInput
         id={id}
         label={label}
         value={value}
         onChange={e => setState(e.target.value)}
-        attrs={{ type: 'date' }} />
+        attrs={{ type: 'date' }}
+        required={required} />
 }
 
-// TODO Validierung beim Speichern
-// TODO Hotkeys
-// TODO Redesign: Buttons in eine zweite Bar mit sticky bottom verschieben, cancel Button rechts oben, Dropdown auch auf Desktop in eine secondary Navbar
 export default function Form({ id, title, abortAction, deleteAction, saveAction, children }) {
+    const [wasValidated, setWasValidated] = useState(false);
     return (<>
         <div className="d-md-none mb-3">
             <Navbar>
@@ -113,11 +101,16 @@ export default function Form({ id, title, abortAction, deleteAction, saveAction,
         </div>
         <form
             id={id}
-            className="container"
+            className={`container ${wasValidated ? 'was-validated' : 'needs-validation'}`}
             autoComplete="off"
             onSubmit={event => {
                 event.preventDefault();
+                setWasValidated(true);
+                if (!event.target.checkValidity()) {
+                    return;
+                }
                 saveAction();
+                setWasValidated(false);
             }}
             noValidate>
             <div className="align-items-center mt-2 mb-3 d-none d-md-flex">

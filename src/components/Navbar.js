@@ -16,17 +16,31 @@ export function LinkButton(props) {
 };
 
 // TODO die restlichen Features
-export default function Navbar({ brandContent, formContent }) {
+export default function Navbar({ children }) {
     return (
         <nav id="navbar" className="navbar navbar-dark text-light bg-dark">
             <div className="container-lg">
-                <div className='navbar-brand'>
-                    {brandContent}
-                </div>
-                <form className="d-flex" autoComplete='off'>
-                    {formContent}
-                </form>
+                {children}
             </div>
         </nav>
     );
 };
+
+function Brand({ children }) {
+    return (
+        <div className='navbar-brand'>
+            {children}
+        </div>
+    );
+}
+
+Navbar.Brand = Brand;
+
+function Form({ children }) {
+    return (
+        <form className="d-flex" autoComplete='off'>
+            {children}
+        </form>
+    );
+}
+Navbar.Form = Form;
