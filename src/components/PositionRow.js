@@ -43,27 +43,27 @@ function PositionDescription(props) {
     return parts.map(wrapperFunction);
 }
 
-export default function PositionRow(props) {
-    const classes = props.classes || 'py-1 border-top xpns-hover';
-    const amountClasses = props.emphasizeIncome && props.amount < 0 ? 'text-success' : '';
-    const multiplier = props.amount < 0 ? -1 : 1;
+export default function PositionRow({ classes, emphasizeIncome, amount, onClick, attributes, description, currency, loading, children }) {
+    classes = classes || 'py-1 border-top xpns-hover';
+    const amountClasses = emphasizeIncome && amount < 0 ? 'text-success' : '';
+    const multiplier = amount < 0 ? -1 : 1;
     return React.createElement('div', {
-        onClick: props.onClick,
+        onClick: onClick,
         className: `d-flex cursor-pointer ${classes}`,
-        ...props.attributes
+        ...attributes
     }, (<>
         <span className="d-flex overflow-hidden text-nowrap me-auto">
-            {props.children}
-            <PositionDescription text={props.description} wrapperFunction={(el, i) => <div key={i} className="overflow-hidden me-1">{el}</div>} />
+            {children}
+            <PositionDescription text={description} wrapperFunction={(el, i) => <div key={i} className="overflow-hidden me-1">{el}</div>} />
         </span>
-        {props.loading
-            ? <span className="placeholder-wave placeholder rounded" style={{ width: `${Math.log10(props.amount) + 2}rem` }} />
+        {loading
+            ? <span className="placeholder-wave placeholder rounded" style={{ width: `${Math.log10(amount) + 2}rem` }} />
             : <span className={`pe-1 text-end ${amountClasses}`}>
-                {props.amount < 0 ? '+' : ''}
-                {formatFloat(props.amount * multiplier)}
+                {amount < 0 ? '+' : ''}
+                {formatFloat(amount * multiplier)}
             </span>}
         <span className={`currency ${amountClasses}`}>
-            {props.currency && !isDefaultCurrency(props.currency) ? currencies[props.currency].displayName : ''}
+            {currency && !isDefaultCurrency(currency) ? currencies[currency].displayName : ''}
         </span>
     </>));
 }

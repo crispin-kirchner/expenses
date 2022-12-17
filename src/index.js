@@ -1,5 +1,4 @@
 import './App.scss';
-import 'bootstrap';
 
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 
