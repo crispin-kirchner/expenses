@@ -42,7 +42,8 @@ class DbWrapper {
             }
         };
 
-        const connectionString = `https://${window.location.hostname}:6984/${dbName}`;
+        const port = window.location.protocol === 'https:' ? '6984' : '5984';
+        const connectionString = `${window.location.protocol}//${window.location.hostname}:${port}/${dbName}`;
         this._sync = this.pouchDb.sync(connectionString, { live: true, retry: true });
         this._sync.on('change', this._changeHandler);
     }
