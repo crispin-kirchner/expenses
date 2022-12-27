@@ -36,6 +36,25 @@ function getOverviewSection(pos) {
     return _.find(OverviewSections, s => s.type && pos.type === s.type && s.recurringFilter(pos)).id;
 }
 
+function MonthDisplayComponent({ monthDisplay, date, incomePositions, recurringPositions, expensePositions, editPosition, positionsByDay }) {
+    switch (monthDisplay) {
+        case MonthDisplay.OVERVIEW.id:
+        default:
+            return <Overview
+                incomePositions={incomePositions}
+                recurringPositions={recurringPositions}
+                expensePositions={expensePositions}
+                editPosition={editPosition} />
+        case MonthDisplay.CHART.id:
+            return <MonthChart
+                date={date}
+                incomeAmount={incomePositions.monthlyAmountChf}
+                recurringAmount={recurringPositions.monthlyAmountChf}
+                positionsByDay={positionsByDay} />;
+    }
+}
+
+
 // FIXME zwischen "s" und "md" könnte man den navbar-container hier nicht-fluid machen weil das Form es nicht ist
 export default function PositionOutline({ unsyncedDocuments }) {
     const [date, setDate] = useState(new Date());
@@ -77,7 +96,7 @@ export default function PositionOutline({ unsyncedDocuments }) {
             .groupBy(pos => toYmd(pos.date))
             .map((positions, ymd) => {
                 const byType = _.groupBy(positions, 'type');
-                
+
                 return {
                     ymd: ymd,
                     expensesSum: _.sumBy(byType[PositionType.EXPENSE], 'monthlyAmountChf'),
@@ -136,13 +155,14 @@ export default function PositionOutline({ unsyncedDocuments }) {
                         <span className='d-none d-sm-inline-block'>&nbsp;{t('New')}</span>
                     </LinkButton>
                 </>}
-                main={monthDisplay === MonthDisplay.CHART.id
-                    ? <MonthChart date={date} incomeAmount={incomePositions.monthlyAmountChf} recurringAmount={recurringPositions.monthlyAmountChf} positionsByDay={positionsByDay} />
-                    : <Overview
-                        incomePositions={incomePositions}
-                        recurringPositions={recurringPositions}
-                        expensePositions={expensePositions}
-                        editPosition={editPosition} />}
+                main={<MonthDisplayComponent
+                    monthDisplay={monthDisplay}
+                    date={date}
+                    incomePositions={incomePositions}
+                    recurringPositions={recurringPositions}
+                    expensePositions={expensePositions}
+                    editPosition={editPosition}
+                    positionsByDay={positionsByDay} />}
                 sideOnMobile={MonthDisplay[monthDisplay].sideOnMobile}
                 side={<DayPositions dayPositions={dayPositions} newPosition={newPosition} editPosition={editPosition} />}
                 rightDrawer={() => <PositionForm
