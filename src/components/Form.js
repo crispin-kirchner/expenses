@@ -95,7 +95,6 @@ export default function Form({ id, title, abortAction, deleteAction, saveAction,
                         content={title}
                         abortAction={abortAction}
                         deleteAction={deleteAction}
-                        classes="btn-dark"
                         closeButton={<LinkButton onClick={abortAction} icon="bi-x-lg"></LinkButton>} />
                 </div>
             </Navbar>
@@ -119,7 +118,6 @@ export default function Form({ id, title, abortAction, deleteAction, saveAction,
                     formId={id}
                     content={title}
                     deleteAction={deleteAction}
-                    classes="btn-outline-dark"
                     closeButton={<button type="button" className="btn-close me-2" onClick={abortAction} />} />
             </div>
             {children}

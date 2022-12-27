@@ -5,6 +5,8 @@ import React, { useState } from "react";
 import currencies, { getDefaultCurrency } from "../enums/currencies.js";
 import { localToFloatString, parseIntlFloat, prettyPrintFloatString } from '../utils/formats.js';
 
+import Dropdown from 'react-bootstrap/Dropdown';
+import DropdownButton from 'react-bootstrap/DropdownButton';
 import NumberFormats from '../enums/NumberFormats.js';
 import RecurrencePeriodicity from '../enums/RecurrencePeriodicity.js';
 import { computeAmountChf } from '../utils/positions.js';
@@ -14,14 +16,11 @@ import { v4 } from 'uuid';
 
 function TypeDropdown({ classes, type, setPositionType }) {
     return (
-        <div className="dropdown">
-            <button className={`btn ${classes} btn-lg dropdown-toggle`} type="button" data-testid="type-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                {PositionType.defs[type].text}
-            </button>
-            <ul className="dropdown-menu">
-                {Object.values(PositionType.defs).map(d => <li key={d.id} data-testid={`option-${d.id}`} className="dropdown-item" onClick={() => setPositionType(d.id)}>{d.text}</li>)}
-            </ul>
-        </div>
+        <DropdownButton variant="dark" size="lg" title={PositionType.defs[type].text}>
+            {Object.values(PositionType.defs).map(d => (
+                <Dropdown.Item key={d.id} onClick={() => setPositionType(d.id)}>{d.text}</Dropdown.Item>
+            ))}
+        </DropdownButton>
     );
 }
 

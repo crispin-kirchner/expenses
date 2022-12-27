@@ -3,6 +3,7 @@ import PositionRow from './PositionRow';
 import React from 'react';
 import _ from 'lodash';
 import { formatDayHeadingDate } from '../utils/formats';
+import { getSign } from '../utils/positions';
 import t from '../utils/texts';
 
 function DayPositionsBody({ dayPositions, newPosition, editPosition, date }) {
@@ -34,7 +35,7 @@ function DayPositionsBody({ dayPositions, newPosition, editPosition, date }) {
         .map(p => <PositionRow
             key={p._id}
             description={p.description}
-            amount={p.amount}
+            amount={p.amount * getSign(p)}
             currency={p.currency}
             emphasizeIncome={true}
             onClick={() => editPosition(p._id)} />);
