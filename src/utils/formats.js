@@ -3,6 +3,7 @@ import * as texts from './texts.js';
 import NumberFormats from '../enums/NumberFormats.js';
 import { capitalizeFirstLetter } from './strings.js';
 
+const dayFormat = new Intl.DateTimeFormat(texts.languages, { day: 'numeric' });
 const dayHeadingFormat = new Intl.DateTimeFormat(texts.languages, { weekday: 'long', day: '2-digit', month: '2-digit' });
 const monthFormat = new Intl.DateTimeFormat(texts.languages, { month: 'long', year: 'numeric' });
 const numberFormats = {};
@@ -34,6 +35,10 @@ function escape(character) {
         return `\\${character}`;
     }
     return character;
+}
+
+export function formatDay(date) {
+    return dayFormat.format(date);
 }
 
 export function formatMonth(date) {

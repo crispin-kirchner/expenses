@@ -6,6 +6,7 @@ import { deletePosition, getPositionsOfMonth, loadPosition, storePosition } from
 
 import DayPositions from "./DayPositions.js";
 import { LinkButton } from "./Navbar";
+import MonthChart from "./MonthChart.js";
 import MonthDisplay from "../enums/MonthDisplay.js";
 import Outline from "./Outline";
 import Overview from "./Overview";
@@ -128,7 +129,9 @@ export default function PositionOutline({ unsyncedDocuments }) {
                         <span className='d-none d-sm-inline-block'>&nbsp;{t('New')}</span>
                     </LinkButton>
                 </>}
-                main={<Overview
+                main={monthDisplay === MonthDisplay.CHART.id 
+                    ?  <MonthChart date={date} incomeAmount={incomePositions.monthlyAmountChf} recurringAmount={recurringPositions.monthlyAmountChf} positionsByDay={positionsByDay} />
+                    : <Overview
                     incomePositions={incomePositions}
                     recurringPositions={recurringPositions}
                     expensePositions={expensePositions}

@@ -76,4 +76,6 @@ const colors = (() => {
     return result;
 })();
 
+export {baseColors};
+
 export default colors;

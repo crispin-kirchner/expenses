@@ -6,6 +6,7 @@ import { numberRegex } from '../utils/formats.js';
 import { prettyPrintFloatString } from "../utils/formats";
 import t from "../utils/texts";
 
+// TODO Form sieht doof aus auf desktop und submitted nicht auf mobile --> überarbeiten
 function FormButton({ classes, type, label, onClick, icon, showLabel, form }) {
     return <button
         className={`btn ${classes}`}
