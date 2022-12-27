@@ -40,10 +40,11 @@ function DayPositionsBody({ dayPositions, newPosition, editPosition, date }) {
             onClick={() => editPosition(p._id)} />);
 }
 
+// TODO earningsSum anzeigen
 export default function DayPositions({ dayPositions, newPosition, editPosition }) {
     const date = new Date(dayPositions.ymd);
     return (<>
-        <Heading level="h5" label={formatDayHeadingDate(date)} amount={dayPositions?.sum} />
+        <Heading level="h5" label={formatDayHeadingDate(date)} amount={dayPositions?.expensesSum} />
         <DayPositionsBody dayPositions={dayPositions} newPosition={newPosition} editPosition={editPosition} date={date} />
     </>);
 };

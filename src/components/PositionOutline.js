@@ -1,3 +1,5 @@
+import * as PositionType from '../enums/PositionType.js';
+
 import Database, { DbContext, useDataVersion } from "./Database.js";
 import React, { useCallback, useContext, useState } from "react";
 import { computeMonthlyAmountChf, createEmptyPosition, getSign } from "../utils/positions.js";
@@ -73,11 +75,16 @@ export default function PositionOutline({ unsyncedDocuments }) {
         setPositionsByDay(_(positionsLabeled)
             .filter(pos => !pos.recurring)
             .groupBy(pos => toYmd(pos.date))
-            .map((positions, ymd) => ({
-                ymd: ymd,
-                sum: _.sumBy(positions, pos => getSign(pos) * pos.monthlyAmountChf),
-                positions
-            }))
+            .map((positions, ymd) => {
+                const byType = _.groupBy(positions, 'type');
+                
+                return {
+                    ymd: ymd,
+                    expensesSum: _.sumBy(byType[PositionType.EXPENSE], 'monthlyAmountChf'),
+                    earningsSum: _.sumBy(byType[PositionType.INCOME], 'monthlyAmountChf'),
+                    positions
+                };
+            })
             .keyBy('ymd')
             .value());
 
@@ -129,13 +136,13 @@ export default function PositionOutline({ unsyncedDocuments }) {
                         <span className='d-none d-sm-inline-block'>&nbsp;{t('New')}</span>
                     </LinkButton>
                 </>}
-                main={monthDisplay === MonthDisplay.CHART.id 
-                    ?  <MonthChart date={date} incomeAmount={incomePositions.monthlyAmountChf} recurringAmount={recurringPositions.monthlyAmountChf} positionsByDay={positionsByDay} />
+                main={monthDisplay === MonthDisplay.CHART.id
+                    ? <MonthChart date={date} incomeAmount={incomePositions.monthlyAmountChf} recurringAmount={recurringPositions.monthlyAmountChf} positionsByDay={positionsByDay} />
                     : <Overview
-                    incomePositions={incomePositions}
-                    recurringPositions={recurringPositions}
-                    expensePositions={expensePositions}
-                    editPosition={editPosition} />}
+                        incomePositions={incomePositions}
+                        recurringPositions={recurringPositions}
+                        expensePositions={expensePositions}
+                        editPosition={editPosition} />}
                 sideOnMobile={MonthDisplay[monthDisplay].sideOnMobile}
                 side={<DayPositions dayPositions={dayPositions} newPosition={newPosition} editPosition={editPosition} />}
                 rightDrawer={() => <PositionForm

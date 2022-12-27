@@ -31,7 +31,6 @@ ChartJS.register(
 // TODO irgendwie global machen auch für Treemap
 ChartJS.defaults.font.family = 'system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"';
 
-// TODO nur Ausgaben einkalkulieren
 // TODO gespartes-Berechnung/Daily-Budget-Berechnung mit dem Kalender/der Outline teilen
 function computeData(date, incomeAmount, recurringAmount, positionsByDay) {
   const month = date.getMonth();
@@ -54,7 +53,7 @@ function computeData(date, incomeAmount, recurringAmount, positionsByDay) {
   for (let i = 0; i < labels.length; ++i) {
     const ymd = labels[i];
 
-    const dayAmount = positionsByDay[ymd]?.sum || 0;
+    const dayAmount = positionsByDay[ymd]?.expensesSum || 0;
     expensesData.push(dayAmount);
 
     if (ymd < today) {
