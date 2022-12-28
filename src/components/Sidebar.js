@@ -15,6 +15,7 @@ function Item({ active, onClick, icon, text }) {
   );
 }
 
+/* TODO text-overflow ellipsis */
 function Section({ caption, children }) {
   return <>
     <strong><small>{caption}</small></strong>
