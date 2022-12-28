@@ -1,8 +1,7 @@
 import * as ViewMode from '../enums/ViewMode.js';
 
-import React, { useState } from "react";
-
 import Navbar from './Navbar';
+import React from "react";
 import TagQuery from './TagQuery.js';
 
 // FIXME shift6m quer ist sm, nicht md!
@@ -17,7 +16,7 @@ export default function Outline(props) {
     return (
         <div id="app" className='d-flex h-100 flex-column overflow-hidden position-relative'>
             <Navbar>
-                <Navbar.Brand>{props.navbarBrandContent}</Navbar.Brand>
+                <Navbar.Brand isSidebarCollapsed={props.isSidebarCollapsed} toggleSidebar={props.toggleSidebar}>{props.navbarBrandContent}</Navbar.Brand>
                 <Navbar.Form>{props.navbarFormContent}</Navbar.Form>
             </Navbar>
             <TagQuery>

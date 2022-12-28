@@ -24,9 +24,7 @@ function Section({ caption, children }) {
   </>;
 }
 
-export default function Sidebar({ children }) {
-  const [isCollapsed, setCollapsed] = useState(true);
-
+export default function Sidebar({ children, isCollapsed, toggleSidebar }) {
   return (
     <div id="sidebar" className={`position-absolute p-2 h-100 d-flex flex-column flex-shrink-0 bg-light ${isCollapsed ? 'collapsed' : ''}`}>
       <span className="d-none d-xl-flex align-items-center text-center">
@@ -36,7 +34,7 @@ export default function Sidebar({ children }) {
         <span className='sidebar-brand ms-2'>{t('Expenses')}</span>
       </span>
       <span className="d-flex align-items-center d-xl-none">
-        <Hamburger toggled={!isCollapsed} toggle={() => setCollapsed(c => !c)} />
+        <Hamburger toggled={!isCollapsed} toggle={toggleSidebar} />
         <span className="ms-2 collapsed-hidden sidebar-brand">{t('Expenses')}</span>
       </span>
       <hr className='mt-2' />

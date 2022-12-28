@@ -2,7 +2,7 @@ $mt-content: 64px;
 $mt-content-md: 80px;
 
 $sidebar-width-collapse: 4rem;
-$sidebar-width: 16rem;
+$sidebar-width: 11rem;
 
 @import "../node_modules/bootstrap/scss/functions";
 @import "../node_modules/bootstrap/scss/variables";
@@ -139,7 +139,7 @@ div.bg-dark > ul.chevron > li.leaf-entry > div::before {
     @include media-breakpoint-up(sm) {
         margin-left: $sidebar-width-collapse;
     }
-    
+
     @include media-breakpoint-up(xl) {
         margin-left: $sidebar-width;
     }
@@ -147,12 +147,20 @@ div.bg-dark > ul.chevron > li.leaf-entry > div::before {
 
 #sidebar {
     z-index: 1;
-    transition: width 0.25s ease;
-    right: 100%;
+    transition-property: width, left;
+    transition-duration: 0.25s;
+    transition-timing-function: ease;
+    width: $sidebar-width;
+    left: 0;
+
+    &.collapsed {
+        left: -$sidebar-width;
+    }
 
     @include media-breakpoint-up(sm) {
-        width: $sidebar-width;
-        left: 0;
+        &.collapsed {
+            left: 0;
+        }
     }
 
     @include media-breakpoint-down(xl) {

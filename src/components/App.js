@@ -1,6 +1,6 @@
 import * as ViewMode from '../enums/ViewMode.js';
 
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import UnsyncedDocuments, { useUnsyncedDocuments } from './UnsyncedDocuments.js';
 
 import Database from './Database.js';
@@ -10,28 +10,31 @@ import PositionOutline from './PositionOutline.js';
 import Sidebar from './Sidebar.js';
 import t from '../utils/texts.js';
 
-function getOutline(viewMode, unsyncedDocuments, monthDisplay, setMonthDisplay) {
+function getOutline(viewMode, unsyncedDocuments, monthDisplay, setMonthDisplay, isSidebarCollapsed, toggleSidebar) {
   switch (viewMode) {
     case ViewMode.MONTH_DISPLAY:
     default:
-      return <PositionOutline unsyncedDocuments={unsyncedDocuments} monthDisplay={monthDisplay} setMonthDisplay={setMonthDisplay} />
+      return <PositionOutline unsyncedDocuments={unsyncedDocuments} isSidebarCollapsed={isSidebarCollapsed} toggleSidebar={toggleSidebar} monthDisplay={monthDisplay} setMonthDisplay={setMonthDisplay} />
 
     case ViewMode.MANAGE_TAGS:
-      return <EditTagsOutline unsyncedDocuments={unsyncedDocuments} />;
+      return <EditTagsOutline unsyncedDocuments={unsyncedDocuments} isSidebarCollapsed={isSidebarCollapsed} toggleSidebar={toggleSidebar} />;
   }
 }
 
 // TODO gleich Router einbauen?
 function App() {
   const { unsyncedDocuments, markUnsynced, markSynced } = useUnsyncedDocuments();
+  const [isSidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [viewMode, setViewMode] = useState(ViewMode.MONTH_DISPLAY);
   const [monthDisplay, setMonthDisplay] = useState(MonthDisplay.CALENDAR.id);
+
+  const toggleSidebar = useCallback(() => setSidebarCollapsed(c => !c));
 
   const unsyncedDocumentsComponent = <UnsyncedDocuments unsyncedDocuments={unsyncedDocuments} />;
 
   return (
     <div className='position-relative h-100'>
-      <Sidebar>
+      <Sidebar isCollapsed={isSidebarCollapsed} toggleSidebar={toggleSidebar}>
         <Sidebar.Section caption={t('Month')}>
           {Object.values(MonthDisplay).map(md => (
             <Sidebar.Item
@@ -55,7 +58,7 @@ function App() {
         </Sidebar.Section>
       </Sidebar>
       <Database markUnsynced={markUnsynced} markSynced={markSynced}>
-        {getOutline(viewMode, unsyncedDocumentsComponent, monthDisplay, setMonthDisplay)}
+        {getOutline(viewMode, unsyncedDocumentsComponent, monthDisplay, setMonthDisplay, isSidebarCollapsed, toggleSidebar)}
       </Database>
     </div>
   );

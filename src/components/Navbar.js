@@ -1,3 +1,4 @@
+import { Squash as Hamburger } from 'hamburger-react';
 import React from 'react';
 
 export function LinkButton(props) {
@@ -26,10 +27,15 @@ export default function Navbar({ children }) {
     );
 };
 
-function Brand({ children }) {
+function Brand({ children, isSidebarCollapsed, toggleSidebar }) {
     return (
-        <div className='navbar-brand'>
-            {children}
+        <div className='d-flex'>
+            <div className="d-sm-none">
+                <Hamburger toggled={!isSidebarCollapsed} toggle={toggleSidebar} />
+            </div>
+            <div className='navbar-brand'>
+                {children}
+            </div>
         </div>
     );
 }

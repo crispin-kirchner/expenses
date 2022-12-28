@@ -56,7 +56,7 @@ function MonthDisplayComponent({ monthDisplay, date, incomePositions, recurringP
 
 
 // FIXME zwischen "s" und "md" könnte man den navbar-container hier nicht-fluid machen weil das Form es nicht ist
-export default function PositionOutline({ unsyncedDocuments, monthDisplay, setMonthDisplay }) {
+export default function PositionOutline({ unsyncedDocuments, monthDisplay, setMonthDisplay, isSidebarCollapsed, toggleSidebar }) {
     const [date, setDate] = useState(new Date());
     const [editedPosition, setEditedPosition] = useState(null);
 
@@ -139,6 +139,8 @@ export default function PositionOutline({ unsyncedDocuments, monthDisplay, setMo
     return (
         <Database.LiveQuery queryCallback={queryCallback} dataVersion={dataVersion}>
             <Outline
+                isSidebarCollapsed={isSidebarCollapsed}
+                toggleSidebar={toggleSidebar}
                 navbarBrandContent={<BrandContent date={date} setDate={setDate} />}
                 navbarFormContent={<>
                     {isSameDay(new Date(), date) ? null : <LinkButton
