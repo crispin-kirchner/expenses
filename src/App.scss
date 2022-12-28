@@ -1,13 +1,16 @@
 $mt-content: 64px;
 $mt-content-md: 80px;
 
+$sidebar-width-collapse: 4rem;
+$sidebar-width: 16rem;
+
 @import "../node_modules/bootstrap/scss/functions";
 @import "../node_modules/bootstrap/scss/variables";
 
 $spacers: map-merge(
     $spacers,
     (
-        "05": $spacer * .125
+        "05": $spacer * 0.125,
     )
 );
 
@@ -22,20 +25,26 @@ $utilities: map-merge(
             property: border-top-left-radius border-bottom-right-radius,
             class: rounded-tlbr,
             values: (
-                    null: $border-radius,
-                    1: $border-radius-sm,
-                    2: $border-radius,
-                    3: $border-radius-lg,
-            )
+                null: $border-radius,
+                1: $border-radius-sm,
+                2: $border-radius,
+                3: $border-radius-lg,
+            ),
         ),
-        "height": map-merge(
-            map-get($utilities, "height"),
-            (responsive: true)
-        ),
-        "position": map-merge(
-            map-get($utilities, "position"),
-            (responsive: true)
-        )
+        "height":
+            map-merge(
+                map-get($utilities, "height"),
+                (
+                    responsive: true,
+                )
+            ),
+        "position":
+            map-merge(
+                map-get($utilities, "position"),
+                (
+                    responsive: true,
+                )
+            ),
     )
 );
 
@@ -47,7 +56,7 @@ $utilities: map-merge(
 @import "../node_modules/bootstrap/scss/containers";
 @import "../node_modules/bootstrap/scss/grid";
 @import "../node_modules/bootstrap/scss/tables";
-@import "../node_modules/bootstrap/scss/forms"; 
+@import "../node_modules/bootstrap/scss/forms";
 @import "../node_modules/bootstrap/scss/buttons";
 @import "../node_modules/bootstrap/scss/transitions";
 @import "../node_modules/bootstrap/scss/dropdown";
@@ -87,7 +96,7 @@ ul.chevron {
     li {
         list-style-type: none;
 
-        &>div::before {
+        & > div::before {
             content: " ";
             width: 0.5rem;
             height: 0.5rem;
@@ -101,11 +110,11 @@ ul.chevron {
             transform-origin: 75% 25%;
         }
 
-        &>div.collapsed::before {
+        & > div.collapsed::before {
             transform: rotate(45deg) translateY(0px);
         }
 
-        &.leaf-entry>div::before {
+        &.leaf-entry > div::before {
             content: "\2022";
             margin-top: 0;
             transform: rotate(0) translateY(0) translateX(4px);
@@ -114,13 +123,52 @@ ul.chevron {
     }
 }
 
-div.bg-dark>ul.chevron>li.leaf-entry>div::before {
+div.bg-dark > ul.chevron > li.leaf-entry > div::before {
     /* no bullet points for root-level leafs */
     content: " ";
 }
 
 #drawer-right {
     transition: left 0.25s ease;
+}
+
+#app {
+    z-index: 0;
+    transition: margin-left 0.25s ease;
+
+    @include media-breakpoint-up(sm) {
+        margin-left: $sidebar-width-collapse;
+    }
+    
+    @include media-breakpoint-up(xl) {
+        margin-left: $sidebar-width;
+    }
+}
+
+#sidebar {
+    z-index: 1;
+    transition: width 0.25s ease;
+    right: 100%;
+
+    @include media-breakpoint-up(sm) {
+        width: $sidebar-width;
+        left: 0;
+    }
+
+    @include media-breakpoint-down(xl) {
+        &.collapsed {
+            width: $sidebar-width-collapse;
+
+            .collapsed-hidden {
+                /* TODO width 0 uncover animation */
+                display: none;
+            }
+        }
+    }
+
+    .sidebar-brand {
+        font-size: $navbar-brand-font-size;
+    }
 }
 
 .error {
@@ -162,8 +210,8 @@ div.bg-dark>ul.chevron>li.leaf-entry>div::before {
 }
 
 .gutter-padding {
-    padding-right: calc(var(--bs-gutter-x) * .5); // stylelint-disable-line function-disallowed-list
-    padding-left: calc(var(--bs-gutter-x) * .5); // stylelint-disable-line function-disallowed-list
+    padding-right: calc(var(--bs-gutter-x) * 0.5); // stylelint-disable-line function-disallowed-list
+    padding-left: calc(var(--bs-gutter-x) * 0.5); // stylelint-disable-line function-disallowed-list
 }
 
 /* lg */

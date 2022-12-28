@@ -56,10 +56,9 @@ function MonthDisplayComponent({ monthDisplay, date, incomePositions, recurringP
 
 
 // FIXME zwischen "s" und "md" könnte man den navbar-container hier nicht-fluid machen weil das Form es nicht ist
-export default function PositionOutline({ unsyncedDocuments }) {
+export default function PositionOutline({ unsyncedDocuments, monthDisplay, setMonthDisplay }) {
     const [date, setDate] = useState(new Date());
     const [editedPosition, setEditedPosition] = useState(null);
-    const [monthDisplay, setMonthDisplay] = useState(MonthDisplay.CALENDAR.id);
 
     const [positionsOfMonth, setPositionsOfMonth] = useState({});
 
@@ -136,6 +135,7 @@ export default function PositionOutline({ unsyncedDocuments }) {
         : positionsByDay[toYmd(date)] || { ymd: toYmd(date), positions: [] };
 
     // TODO refactoren zu PositionOutlineQuery
+    // TODO prüfen wie es mit dem footer weitergehen soll
     return (
         <Database.LiveQuery queryCallback={queryCallback} dataVersion={dataVersion}>
             <Outline
