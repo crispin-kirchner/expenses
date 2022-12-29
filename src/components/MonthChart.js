@@ -140,7 +140,7 @@ const options = {
   }
 }
 
-// TODO Linie shiften implementieren
+// TODO Linie shiften implementieren/Background/onclick
 export default function MonthChart({ date, incomeAmount, recurringAmount, positionsByDay }) {
   const data = useMemo(() => computeData(date, incomeAmount, recurringAmount, positionsByDay), [date, incomeAmount, recurringAmount, positionsByDay]);
   return (

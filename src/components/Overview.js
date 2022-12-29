@@ -15,7 +15,7 @@ import t from '../utils/texts';
 function Hierarchy({ id, entity, type, path, childRows, description, amount, currency, loading, editPosition }) {
     const [open, setOpen] = useState(false);
     const hasChildren = childRows && childRows.length > 0;
-    // FIXME amount ist mal 100 wenn man es auf macht
+    // TODO wenn man eine expense auf macht und eine zweite anklickt, ändert sich das form nicht
     return (
         <li className={!hasChildren ? 'leaf-entry' : ''}>
             <PositionRow

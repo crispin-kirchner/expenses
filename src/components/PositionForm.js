@@ -60,7 +60,6 @@ export default function PositionForm({ position, saveAction, abortAction, delete
 
     const descriptionLabel = `${PositionType.defs[type].benefactor}/${t('Description')}`;
 
-    // TODO NL-Übersetzungen für Validierungs-Messages
     return (
         <Form
             abortAction={abortAction}

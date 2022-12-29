@@ -16,7 +16,6 @@ export function LinkButton(props) {
     );
 };
 
-// TODO die restlichen Features
 export default function Navbar({ children }) {
     return (
         <nav id="navbar" className="navbar navbar-dark text-light bg-dark">

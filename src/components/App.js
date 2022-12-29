@@ -23,6 +23,7 @@ function getOutline(viewMode, unsyncedDocuments, monthDisplay, setMonthDisplay, 
 }
 
 // TODO gleich Router einbauen?
+// TODO NL-Übersetzungen (siehe Unit-Test)
 function App() {
   const { unsyncedDocuments, markUnsynced, markSynced } = useUnsyncedDocuments();
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(true);

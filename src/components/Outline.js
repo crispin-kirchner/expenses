@@ -5,13 +5,11 @@ import React from "react";
 import TagQuery from './TagQuery.js';
 
 // FIXME shift6m quer ist sm, nicht md!
-// FIXME re-add viewmode changing when adding sidebar
 export default function Outline(props) {
     const drawerPosStart = props.rightDrawerVisible ? 'start-0' : 'start-100';
     const mainClasses = props.sideOnMobile ? 'h-50' : 'h-100';
     const sideClasses = props.sideOnMobile ? 'h-50' : 'h-0';
 
-    // TODO Button um Sidebar auf mobile auszufahren
     // TODO "Glass-Pane" um Sidebar wieder einzufahren
     return (
         <div id="app" className='d-flex h-100 flex-column overflow-hidden position-relative'>
