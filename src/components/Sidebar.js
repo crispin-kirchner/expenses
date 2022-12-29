@@ -28,7 +28,7 @@ export default function Sidebar({ children, isCollapsed, toggleSidebar }) {
   return (
     <div id="sidebar" className={`position-absolute p-2 h-100 d-flex flex-column flex-shrink-0 bg-light ${isCollapsed ? 'collapsed' : ''}`}>
       <span className="d-none d-xl-flex align-items-center text-center">
-        <div style={{ width: '48px' }}>
+        <div className='bg-dark text-light rounded' style={{ width: '48px' }}>
           <i className="bi bi-piggy-bank" style={{ fontSize: '2rem' }}></i>
         </div>
         <span className='sidebar-brand ms-2'>{t('Expenses')}</span>
