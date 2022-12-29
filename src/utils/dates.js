@@ -1,3 +1,19 @@
+function getDayMondayBased(date) {
+    return (((date.getDay() - 1) % 7) + 7) % 7;
+}
+
+function getFirstDayOfWeek(date) {
+    const result = new Date(date);
+    result.setDate(result.getDate() - getDayMondayBased(date));
+    return result;
+}
+
+function getLastDayOfWeek(date) {
+    const result = new Date(date);
+    result.setDate(result.getDate() + (6 - getDayMondayBased(date)));
+    return result;
+}
+
 function getFirstDayOfNextMonth(date) {
     const result = incrementMonth(date);
     result.setDate(1);
@@ -29,12 +45,12 @@ function isValidInMonth(validFrom, validTo, month) {
 
 function isSameDay(d1, d2) {
     return isSameMonth(d1, d2)
-        && d1.getFullYear() === d2.getFullYear();
+        && d1.getDate() === d2.getDate();
 }
 
 function isSameMonth(d1, d2) {
-    return d1.getDate() === d2.getDate()
-        && d1.getMonth() === d2.getMonth();
+    return d1.getMonth() === d2.getMonth()
+        && d1.getFullYear() === d2.getFullYear();
 }
 
 function toYmd(date) {
@@ -82,6 +98,8 @@ function decrementMonth(date) {
 
 export {
     decrementMonth,
+    getFirstDayOfWeek,
+    getLastDayOfWeek,
     getFirstDayOfMonth,
     getFirstDayOfNextMonth,
     getLastDayOfMonth,

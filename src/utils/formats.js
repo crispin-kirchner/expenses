@@ -5,6 +5,7 @@ import { capitalizeFirstLetter } from './strings.js';
 
 const dayFormat = new Intl.DateTimeFormat(texts.languages, { day: 'numeric' });
 const dayHeadingFormat = new Intl.DateTimeFormat(texts.languages, { weekday: 'long', day: '2-digit', month: '2-digit' });
+const dayCalendarFormat = new Intl.DateTimeFormat(texts.languages, { weekday: 'short' });
 const monthFormat = new Intl.DateTimeFormat(texts.languages, { month: 'long', year: 'numeric' });
 const numberFormats = {};
 numberFormats[0] = new Intl.NumberFormat(texts.languages, { useGrouping: true, maximumFractionDigits: 0 });
@@ -41,12 +42,20 @@ export function formatDay(date) {
     return dayFormat.format(date);
 }
 
+export function formatCalendarWeekday(date) {
+    return dayCalendarFormat.format(date);
+}
+
 export function formatMonth(date) {
     return capitalizeFirstLetter(monthFormat.format(date));
 }
 
 export function formatDayHeadingDate(date) {
     return capitalizeFirstLetter(dayHeadingFormat.format(date));
+}
+
+export function formatInteger(i) {
+    return numberFormats[0].format(i);
 }
 
 export function formatFloat(f) {
@@ -80,7 +89,7 @@ export function prettyPrintFloatString(number, numFractionDigits, inputFormat) {
     let [integerPart, fractionalPart] = localToFloatString(number).split(decimalSeparatorRegex[NumberFormats.DEFAULT]);
 
     integerPart = integerPart
-        ? numberFormats[0].format(integerPart)
+        ? formatInteger(integerPart)
         : '0';
 
     fractionalPart = fractionalPart

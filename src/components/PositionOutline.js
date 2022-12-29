@@ -6,6 +6,7 @@ import { computeMonthlyAmountChf, createEmptyPosition } from "../utils/positions
 import { decrementMonth, incrementMonth, isSameDay, toYmd } from '../utils/dates.js';
 import { deletePosition, getPositionsOfMonth, loadPosition, storePosition } from "../services/PositionService.js";
 
+import Calendar from './Calendar.js';
 import DayPositions from "./DayPositions.js";
 import { LinkButton } from "./Navbar";
 import MonthChart from "./MonthChart.js";
@@ -36,7 +37,7 @@ function getOverviewSection(pos) {
     return _.find(OverviewSections, s => s.type && pos.type === s.type && s.recurringFilter(pos)).id;
 }
 
-function MonthDisplayComponent({ monthDisplay, date, incomePositions, recurringPositions, expensePositions, editPosition, positionsByDay }) {
+function MonthDisplayComponent({ monthDisplay, date, incomePositions, recurringPositions, expensePositions, setDate, editPosition, positionsByDay }) {
     switch (monthDisplay) {
         case MonthDisplay.OVERVIEW.id:
         default:
@@ -45,6 +46,8 @@ function MonthDisplayComponent({ monthDisplay, date, incomePositions, recurringP
                 recurringPositions={recurringPositions}
                 expensePositions={expensePositions}
                 editPosition={editPosition} />
+        case MonthDisplay.CALENDAR.id:
+            return <Calendar date={date} setDate={setDate} positionsByDay={positionsByDay} />
         case MonthDisplay.CHART.id:
             return <MonthChart
                 date={date}
@@ -90,6 +93,7 @@ export default function PositionOutline({ unsyncedDocuments, monthDisplay, setMo
             .keyBy('_id')
             .value();
 
+        // TODO hier schon das saved berechnen
         setPositionsByDay(_(positionsLabeled)
             .filter(pos => !pos.recurring)
             .groupBy(pos => toYmd(pos.date))
@@ -160,6 +164,7 @@ export default function PositionOutline({ unsyncedDocuments, monthDisplay, setMo
                 main={<MonthDisplayComponent
                     monthDisplay={monthDisplay}
                     date={date}
+                    setDate={setDate}
                     incomePositions={incomePositions}
                     recurringPositions={recurringPositions}
                     expensePositions={expensePositions}

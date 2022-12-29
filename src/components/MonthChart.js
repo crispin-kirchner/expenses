@@ -47,7 +47,7 @@ function computeData(date, incomeAmount, recurringAmount, positionsByDay) {
 
   const dailyBudget = (incomeAmount - recurringAmount) / labels.length;
 
-  const today = new Date().toISOString();
+  const today = toYmd(new Date());
 
   if (!positionsByDay) {
     labels.splice(0, 0, '');
