@@ -28,7 +28,7 @@ function App() {
   const [viewMode, setViewMode] = useState(ViewMode.MONTH_DISPLAY);
   const [monthDisplay, setMonthDisplay] = useState(MonthDisplay.CALENDAR.id);
 
-  const toggleSidebar = useCallback(() => setSidebarCollapsed(c => !c));
+  const toggleSidebar = useCallback(() => setSidebarCollapsed(c => !c), [setSidebarCollapsed]);
 
   const unsyncedDocumentsComponent = <UnsyncedDocuments unsyncedDocuments={unsyncedDocuments} />;
 

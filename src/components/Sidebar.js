@@ -1,16 +1,15 @@
 // TODO nen burger machen mit nem Pfeil
 import { Squash as Hamburger } from 'hamburger-react';
 import t from "../utils/texts";
-import { useState } from "react";
 
 // TODO tooltips solange collapsed ist
 function Item({ active, onClick, icon, text }) {
   return (
     <li className={`${active ? 'nav-item' : ''}`}>
-      <a href="#" className={`nav-link text-nowrap ${active ? 'active' : ''}`} onClick={onClick}>
+      <button type="button" className={`nav-link text-nowrap w-100 text-start ${active ? 'active' : ''}`} onClick={onClick}>
         <i className={`bi bi-${icon}`}></i>
         <span className='ms-2 collapsed-hidden'>{text}</span>
-      </a>
+      </button>
     </li>
   );
 }

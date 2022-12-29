@@ -2,7 +2,7 @@ import * as PositionType from '../enums/PositionType.js';
 
 import Database, { DbContext, useDataVersion } from "./Database.js";
 import React, { useCallback, useContext, useState } from "react";
-import { computeMonthlyAmountChf, createEmptyPosition, getSign } from "../utils/positions.js";
+import { computeMonthlyAmountChf, createEmptyPosition } from "../utils/positions.js";
 import { decrementMonth, incrementMonth, isSameDay, toYmd } from '../utils/dates.js';
 import { deletePosition, getPositionsOfMonth, loadPosition, storePosition } from "../services/PositionService.js";
 

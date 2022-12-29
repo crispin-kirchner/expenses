@@ -10,12 +10,12 @@ import {
   Tooltip
 } from 'chart.js';
 import { getFirstDayOfMonth, toYmd } from '../utils/dates';
-import { useEffect, useMemo } from 'react';
 
 import { Chart } from 'react-chartjs-2';
 import { baseColors } from '../enums/colors';
 import { formatDay } from '../utils/formats';
 import t from '../utils/texts';
+import { useMemo } from 'react';
 
 ChartJS.register(
   LineElement,
