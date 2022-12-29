@@ -47,8 +47,15 @@ function computeData(date, incomeAmount, recurringAmount, positionsByDay) {
 
   const dailyBudget = (incomeAmount - recurringAmount) / labels.length;
 
-  // TODO prüfen wo das sonst noch gebraucht wird, evtl. rausrefactoren
   const today = new Date().toISOString();
+
+  if (!positionsByDay) {
+    labels.splice(0, 0, '');
+    return {
+      labels,
+      datasets: []
+    };
+  }
 
   for (let i = 0; i < labels.length; ++i) {
     const ymd = labels[i];
@@ -64,7 +71,6 @@ function computeData(date, incomeAmount, recurringAmount, positionsByDay) {
 
   labels.splice(0, 0, '');
   expensesData.splice(0, 0, 0);
-  savedCumulativeData.splice(0, 0, 0);
 
   return {
     labels,
@@ -135,7 +141,6 @@ const options = {
 }
 
 // TODO Linie shiften implementieren
-// TODO reload mit monthDisplay chart gibt Fehler (fehlende suspense)
 export default function MonthChart({ date, incomeAmount, recurringAmount, positionsByDay }) {
   const data = useMemo(() => computeData(date, incomeAmount, recurringAmount, positionsByDay), [date, incomeAmount, recurringAmount, positionsByDay]);
   return (
