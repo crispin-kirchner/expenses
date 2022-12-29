@@ -5,6 +5,7 @@ import UnsyncedDocuments, { useUnsyncedDocuments } from './UnsyncedDocuments.js'
 
 import Database from './Database.js';
 import EditTagsOutline from './EditTagsOutline.js';
+import LocalStorage from '../enums/LocalStorage.js';
 import MonthDisplay from '../enums/MonthDisplay.js';
 import PositionOutline from './PositionOutline.js';
 import Sidebar from './Sidebar.js';
@@ -26,9 +27,13 @@ function App() {
   const { unsyncedDocuments, markUnsynced, markSynced } = useUnsyncedDocuments();
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [viewMode, setViewMode] = useState(ViewMode.MONTH_DISPLAY);
-  const [monthDisplay, setMonthDisplay] = useState(MonthDisplay.CALENDAR.id);
+  const [monthDisplay, setMonthDisplayInternal] = useState(localStorage.getItem(LocalStorage.MONTH_DISPLAY) || MonthDisplay.OVERVIEW.id);
 
   const toggleSidebar = useCallback(() => setSidebarCollapsed(c => !c), [setSidebarCollapsed]);
+  const setMonthDisplay = useCallback(md => {
+    setMonthDisplayInternal(md);
+    localStorage.setItem(LocalStorage.MONTH_DISPLAY, md);
+  }, [setMonthDisplayInternal]);
 
   const unsyncedDocumentsComponent = <UnsyncedDocuments unsyncedDocuments={unsyncedDocuments} />;
 

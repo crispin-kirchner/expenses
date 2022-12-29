@@ -1,18 +1,18 @@
 import React, { useCallback, useState } from "react";
 
-const UNSYNCED_DOCUMENTS_KEY = 'unsyncedDocuments';
+import LocalStorage from "../enums/LocalStorage";
 
 function load() {
-    let unsyncedDocumentsString = localStorage.getItem(UNSYNCED_DOCUMENTS_KEY);
+    let unsyncedDocumentsString = localStorage.getItem(LocalStorage.UNSYNCED_DOCUMENTS);
     if (!unsyncedDocumentsString) {
         unsyncedDocumentsString = '[]';
-        localStorage.setItem(UNSYNCED_DOCUMENTS_KEY, unsyncedDocumentsString);
+        localStorage.setItem(LocalStorage.UNSYNCED_DOCUMENTS, unsyncedDocumentsString);
     }
     return new Set(JSON.parse(unsyncedDocumentsString));
 }
 
 function store(unsyncedDocuments, setUnsyncedDocuments) {
-    localStorage.setItem(UNSYNCED_DOCUMENTS_KEY, JSON.stringify([...unsyncedDocuments]));
+    localStorage.setItem(LocalStorage.UNSYNCED_DOCUMENTS, JSON.stringify([...unsyncedDocuments]));
     setUnsyncedDocuments(unsyncedDocuments);
 }
 
