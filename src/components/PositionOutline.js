@@ -116,19 +116,19 @@ export default function PositionOutline({ unsyncedDocuments, monthDisplay, setMo
     const newPosition = d => setEditedPosition(createEmptyPosition(d));
     const editPosition = async id => setEditedPosition(await loadPosition(db, id));
 
-    const saveAction = async pos => {
+    const saveAction = useCallback(async pos => {
         setEditedPosition(null);
         pos.createDate = pos.createDate || new Date();
         storePosition(db, pos);
         incrementDataVersion();
-    };
+    }, [setEditedPosition, db, incrementDataVersion]);
 
-    const deleteAction = async id => {
+    const deleteAction = useCallback(async id => {
         setEditedPosition(null);
         const position = positionsOfMonth[id];
         deletePosition(db, position);
         incrementDataVersion();
-    };
+    }, [setEditedPosition, positionsOfMonth, db, incrementDataVersion]);
 
     const dayPositions = !positionsByDay
         ? { ymd: toYmd(date), positions: null }
@@ -167,18 +167,19 @@ export default function PositionOutline({ unsyncedDocuments, monthDisplay, setMo
                     positionsByDay={positionsByDay} />}
                 sideOnMobile={MonthDisplay[monthDisplay].sideOnMobile}
                 side={<DayPositions dayPositions={dayPositions} newPosition={newPosition} editPosition={editPosition} />}
-                rightDrawer={() => <PositionForm
+                rightDrawer={editedPosition ? <PositionForm
+                    key={editedPosition._id}
                     position={editedPosition}
                     saveAction={saveAction}
                     abortAction={() => setEditedPosition(null)}
-                    deleteAction={deleteAction} />}
+                    deleteAction={deleteAction} /> : null}
                 rightDrawerVisible={!!editedPosition}
                 footerContent={<>
                     <div className="me-auto">
                         {Object.values(MonthDisplay).map(md => <button type="button" key={md.id} className={`btn ${md.id === monthDisplay ? 'active' : ''}`} onClick={() => setMonthDisplay(md.id)}><i className={`bi bi-${md.icon}`} /></button>)}
                     </div>
                     <>
-                        <button type="button" className="btn btn-primary" onClick={() => newPosition(date)}><i className="bi bi-plus-square" /> {t('New')}</button>
+                        <button type="button" className="btn btn-primary" onClick={() => newPosition(date)}><i className="bi bi-plus-square" />&nbsp;{t('New')}</button>
                     </>
                 </>} />
         </Database.LiveQuery>

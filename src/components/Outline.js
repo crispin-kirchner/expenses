@@ -1,5 +1,3 @@
-import * as ViewMode from '../enums/ViewMode.js';
-
 import Navbar from './Navbar';
 import React from "react";
 import TagQuery from './TagQuery.js';
@@ -28,7 +26,7 @@ export default function Outline(props) {
                                 {props.side}
                             </div>
                             <div id="drawer-right" className={`position-absolute top-0 ${drawerPosStart} overflow-auto w-100 h-100 bg-white`}>
-                                {props.rightDrawerVisible ? props.rightDrawer() : null}
+                                {props.rightDrawerVisible ? props.rightDrawer : null}
                             </div>
                         </div>
                     </div>

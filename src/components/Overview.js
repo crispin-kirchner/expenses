@@ -12,10 +12,9 @@ import { isDefaultCurrency } from '../enums/currencies';
 import { removeTagFromString } from '../utils/tags';
 import t from '../utils/texts';
 
-function Hierarchy({ id, entity, type, path, childRows, description, amount, currency, loading, editPosition }) {
+function Hierarchy({ id, entity, path, childRows, description, amount, currency, loading, editPosition }) {
     const [open, setOpen] = useState(false);
     const hasChildren = childRows && childRows.length > 0;
-    // TODO wenn man eine expense auf macht und eine zweite anklickt, ändert sich das form nicht
     return (
         <li className={!hasChildren ? 'leaf-entry' : ''}>
             <PositionRow
@@ -33,7 +32,6 @@ function Hierarchy({ id, entity, type, path, childRows, description, amount, cur
                                 key={row._id}
                                 id={row._id}
                                 entity={row.entity}
-                                type={row.type}
                                 description={row.description}
                                 currency={row.currency}
                                 amount={row.currency && !isDefaultCurrency(row.currency) ? computeMonthlyAmount(row) : row.monthlyAmountChf}
