@@ -11,7 +11,7 @@ import {
 } from 'chart.js';
 import { getFirstDayOfMonth, toYmd } from '../utils/dates';
 
-import { Chart } from 'react-chartjs-2';
+import { Bar } from 'react-chartjs-2';
 import { baseColors } from '../enums/colors';
 import { formatDay } from '../utils/formats';
 import t from '../utils/texts';
@@ -92,9 +92,10 @@ function computeData(date, incomeAmount, recurringAmount, positionsByDay) {
         yAxisID: 'ySaved',
         data: savedCumulativeData,
         tension: 0.25,
-        pointRadius: 0,
+        // pointRadius: 0,
         pointHoverRadius: 0,
         pointHitRadius: 10,
+        clip: false
       }
     ]
   };
@@ -104,10 +105,7 @@ const options = {
   aspectRatio: 1.25,
   scales: {
     x: {
-      min: 0.5,
-      grid: {
-        drawOnChartArea: false
-      },
+      min: 1,
       ticks: {
         callback: function (v) { return this.getLabelForValue(v) === '' ? '' : formatDay(new Date(this.getLabelForValue(v))); }
       }
@@ -140,10 +138,45 @@ const options = {
   }
 }
 
-// TODO Linie shiften implementieren/Background/onclick
+class MonthChartPlugin {
+  constructor() {
+    this.id = 'month-chart-plugin';
+
+    this.areaLeft = null;
+  }
+
+  beforeDraw(chart) {
+  }
+
+  beforeDatasetDraw(chart, dataset) {
+    if (dataset.meta.type !== 'line') {
+      return;
+    }
+    const ctx = chart.canvas.getContext('2d');
+    ctx.save();
+    const offset = chart.scales.x.getPixelForValue(0.5) - chart.scales.x.getPixelForValue(0);
+    this.areaLeft = chart.chartArea.left;
+    chart.chartArea.left -= offset;
+    ctx.translate(offset, 0);
+  }
+
+  afterDatasetDraw(chart, dataset) {
+    if (dataset.meta.type !== 'line') {
+      return;
+    }
+    chart.chartArea.left = this.areaLeft;
+    const ctx = chart.canvas.getContext('2d');
+    ctx.restore();
+  }
+}
+
+const plugin = new MonthChartPlugin();
+
+// TODO Background/onclick
 export default function MonthChart({ date, incomeAmount, recurringAmount, positionsByDay }) {
   const data = useMemo(() => computeData(date, incomeAmount, recurringAmount, positionsByDay), [date, incomeAmount, recurringAmount, positionsByDay]);
+
   return (
-    <Chart data={data} options={options} />
+    <Bar data={data} options={options} plugins={[plugin]} />
   );
 }
