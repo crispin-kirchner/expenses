@@ -101,14 +101,58 @@ function computeData(date, incomeAmount, recurringAmount, positionsByDay) {
   };
 }
 
+function highlightXIndex(ctx, chart, index, color) {
+  if (!index) {
+    return;
+  }
+
+  ctx.fillStyle = color;
+
+  const xStart = chart.scales.x.getPixelForValue(index - 0.5);
+  const xEnd = chart.scales.x.getPixelForValue(index + 0.5);
+
+  const yStart = chart.scales.ySaved.getPixelForValue(chart.scales.ySaved.min);
+  const yEnd = chart.scales.ySaved.getPixelForValue(chart.scales.ySaved.max);
+  ctx.fillRect(xStart, yStart, xEnd - xStart, yEnd - yStart);
+}
+
+function isInsideGrid(e, chart) {
+  return e.y > chart.scales.ySaved.top
+    && e.y < chart.scales.ySaved.bottom
+    && e.x > chart.scales.x.left
+    && e.x < chart.scales.x.right;
+}
+
 class MonthChartPlugin {
   constructor() {
     this.id = 'month-chart-plugin';
 
     this.areaLeft = null;
+    this.hoverDay = null;
+    this.date = null;
   }
 
   beforeDraw(chart) {
+    const ctx = chart.canvas.getContext('2d');
+    ctx.save();
+    ctx.globalCompositeOperation = 'destination-over';
+
+    chart.config.data.labels
+      .forEach((ymd, i) => {
+        if (!ymd) {
+          return;
+        }
+        const dayOfWeek = new Date(ymd).getDay();
+        if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+          return;
+        }
+        highlightXIndex(ctx, chart, i, 'rgba(25,134,84,0.1)');
+      });
+
+    highlightXIndex(ctx, chart, this.date?.getDate(), 'rgba(0,0,0,0.1)');
+    highlightXIndex(ctx, chart, this.hoverDay, 'rgba(0,0,0,0.075)');
+
+    ctx.restore();
   }
 
   beforeDatasetDraw(chart, dataset) {
@@ -135,8 +179,8 @@ class MonthChartPlugin {
 
 const plugin = new MonthChartPlugin();
 
-// TODO Background/onclick
 export default function MonthChart({ date, incomeAmount, recurringAmount, positionsByDay, setDate }) {
+  plugin.date = date;
   const data = useMemo(() => computeData(date, incomeAmount, recurringAmount, positionsByDay), [date, incomeAmount, recurringAmount, positionsByDay]);
 
   const isValidDay = useCallback(day => day > 0 && day <= data.labels.length, [data]);
@@ -181,6 +225,16 @@ export default function MonthChart({ date, incomeAmount, recurringAmount, positi
         }
       }
     },
+    onHover(e, _, chart) {
+      let day = chart.scales.x.getValueForPixel(e.x);
+      if (!isValidDay(day) || !isInsideGrid(e, chart)) {
+        day = null;
+      }
+      if (plugin.hoverDay !== day) {
+        plugin.hoverDay = day;
+        chart.render();
+      }
+    },
     onClick(e, activeElements, chart) {
       if (activeElements.length) {
         const ymd = data.labels[activeElements[0].index];
@@ -197,7 +251,7 @@ export default function MonthChart({ date, incomeAmount, recurringAmount, positi
       newDate.setDate(day);
       setDate(newDate);
     }
-  }), [data, date, setDate]);
+  }), [data, date, setDate, isValidDay]);
 
   return (
     <Bar data={data} options={options} plugins={[plugin]} />
