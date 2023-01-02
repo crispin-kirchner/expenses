@@ -57,7 +57,6 @@ function MonthDisplayComponent({ monthDisplay, date, incomePositions, recurringP
     }
 }
 
-
 // FIXME zwischen "s" und "md" könnte man den navbar-container hier nicht-fluid machen weil das Form es nicht ist
 export default function PositionOutline({ unsyncedDocuments, monthDisplay, setMonthDisplay, isSidebarCollapsed, toggleSidebar }) {
     const [date, setDate] = useState(new Date());

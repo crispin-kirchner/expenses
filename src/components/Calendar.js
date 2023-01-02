@@ -116,7 +116,7 @@ function Week({ monday, date, today, setDate, positionsByDay }) {
 }
 
 // TODO suspense
-// TODO auf kleinen devices gutter entfernen, borders collapsen, schauen was noch nötig ist (landscape)
+// TODO auf kleinen devices gutter entfernen, borders entfernen, schauen was noch nötig ist (landscape)
 // TODO Formatting für saved
 export default function Calendar({ date, setDate, positionsByDay }) {
   const firstDayOfMonth = getFirstDayOfMonth(date);
