@@ -10,12 +10,12 @@ import {
   Tooltip
 } from 'chart.js';
 import { getFirstDayOfMonth, toYmd } from '../utils/dates';
+import { useCallback, useMemo } from 'react';
 
 import { Bar } from 'react-chartjs-2';
 import { baseColors } from '../enums/colors';
 import { formatDay } from '../utils/formats';
 import t from '../utils/texts';
-import { useMemo } from 'react';
 
 ChartJS.register(
   LineElement,
@@ -92,50 +92,13 @@ function computeData(date, incomeAmount, recurringAmount, positionsByDay) {
         yAxisID: 'ySaved',
         data: savedCumulativeData,
         tension: 0.25,
-        // pointRadius: 0,
+        pointRadius: 0,
         pointHoverRadius: 0,
         pointHitRadius: 10,
         clip: false
       }
     ]
   };
-}
-
-const options = {
-  aspectRatio: 1.25,
-  scales: {
-    x: {
-      min: 1,
-      ticks: {
-        callback: function (v) { return this.getLabelForValue(v) === '' ? '' : formatDay(new Date(this.getLabelForValue(v))); }
-      }
-    },
-    ySaved: {
-      position: 'right',
-      grid: {
-        drawTicks: false
-      },
-      ticks: {
-        mirror: true,
-        padding: -5,
-        z: 1,
-        showLabelBackdrop: true,
-        backdropColor: `rgba(${baseColors.blue.rgb}, 0.1)`,
-      }
-    },
-    ySpent: {
-      position: 'left',
-      grid: {
-        drawTicks: false,
-        drawOnChartArea: false
-      },
-      ticks: {
-        mirror: true,
-        showLabelBackdrop: true,
-        backdropColor: `rgba(${baseColors.yellow.rgb}, 0.2)`,
-      }
-    }
-  }
 }
 
 class MonthChartPlugin {
@@ -173,8 +136,68 @@ class MonthChartPlugin {
 const plugin = new MonthChartPlugin();
 
 // TODO Background/onclick
-export default function MonthChart({ date, incomeAmount, recurringAmount, positionsByDay }) {
+export default function MonthChart({ date, incomeAmount, recurringAmount, positionsByDay, setDate }) {
   const data = useMemo(() => computeData(date, incomeAmount, recurringAmount, positionsByDay), [date, incomeAmount, recurringAmount, positionsByDay]);
+
+  const isValidDay = useCallback(day => day > 0 && day <= data.labels.length, [data]);
+
+  const options = useMemo(() => ({
+    aspectRatio: 1.25,
+    scales: {
+      x: {
+        min: 1,
+        grid: {
+          drawOnChartArea: false
+        },
+        ticks: {
+          callback: function (v) { return this.getLabelForValue(v) === '' ? '' : formatDay(new Date(this.getLabelForValue(v))); }
+        }
+      },
+      ySaved: {
+        position: 'right',
+        beginAtZero: true,
+        grid: {
+          drawTicks: false
+        },
+        ticks: {
+          mirror: true,
+          padding: -5,
+          z: 1,
+          showLabelBackdrop: true,
+          backdropColor: `rgba(${baseColors.blue.rgb}, 0.1)`,
+        }
+      },
+      ySpent: {
+        position: 'left',
+        beginAtZero: true,
+        grid: {
+          drawTicks: false,
+          drawOnChartArea: false
+        },
+        ticks: {
+          mirror: true,
+          showLabelBackdrop: true,
+          backdropColor: `rgba(${baseColors.yellow.rgb}, 0.2)`,
+        }
+      }
+    },
+    onClick(e, activeElements, chart) {
+      if (activeElements.length) {
+        const ymd = data.labels[activeElements[0].index];
+        if (ymd.length === 10) {
+          setDate(new Date(ymd));
+          return;
+        }
+      }
+      const day = chart.scales.x.getValueForPixel(e.x);
+      if (!isValidDay(day)) {
+        return;
+      }
+      const newDate = new Date(date);
+      newDate.setDate(day);
+      setDate(newDate);
+    }
+  }), [data, date, setDate]);
 
   return (
     <Bar data={data} options={options} plugins={[plugin]} />

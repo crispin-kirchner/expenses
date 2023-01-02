@@ -51,6 +51,7 @@ function MonthDisplayComponent({ monthDisplay, date, incomePositions, recurringP
         case MonthDisplay.CHART.id:
             return <MonthChart
                 date={date}
+                setDate={setDate}
                 incomeAmount={incomePositions.monthlyAmountChf}
                 recurringAmount={recurringPositions.monthlyAmountChf}
                 positionsByDay={positionsByDay} />;
