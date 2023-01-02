@@ -5,7 +5,7 @@ import { capitalizeFirstLetter } from './strings.js';
 
 const dayFormat = new Intl.DateTimeFormat(texts.languages, { day: 'numeric' });
 const dayHeadingFormat = new Intl.DateTimeFormat(texts.languages, { weekday: 'long', day: '2-digit', month: '2-digit' });
-const dayCalendarFormat = new Intl.DateTimeFormat(texts.languages, { weekday: 'short' });
+const monthCalendarFormat = new Intl.DateTimeFormat(texts.languages, { month: 'short' });
 const monthFormat = new Intl.DateTimeFormat(texts.languages, { month: 'long', year: 'numeric' });
 const numberFormats = {};
 numberFormats[0] = new Intl.NumberFormat(texts.languages, { useGrouping: true, maximumFractionDigits: 0 });
@@ -42,8 +42,8 @@ export function formatDay(date) {
     return dayFormat.format(date);
 }
 
-export function formatCalendarWeekday(date) {
-    return dayCalendarFormat.format(date);
+export function formatCalendarMonth(date) {
+    return monthCalendarFormat.format(date);
 }
 
 export function formatMonth(date) {

@@ -1,19 +1,20 @@
-import { formatCalendarWeekday, formatDay, formatFloat, formatInteger } from "../utils/formats";
+import { formatCalendarMonth, formatDay, formatFloat, formatInteger } from "../utils/formats";
 import { getFirstDayOfMonth, getFirstDayOfWeek, getLastDayOfMonth, getLastDayOfWeek, isSameDay, isSameMonth, toYmd } from "../utils/dates";
 
 import Col from 'react-bootstrap/Col'
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import _ from 'lodash';
+import { render } from "@testing-library/react";
 
-function DayNumber({ date, isCurrentMonth }) {
+function DayNumber({ date, renderMonth, isCurrentMonth }) {
   return (
     <div className="position-absolute d-flex top-0 start-0 small lh-small">
       <div className={`${isCurrentMonth ? 'bg-dark' : 'bg-secondary'} text-light rounded-tlbr-1 me-1 text-center`} style={{ width: '1.4rem' }}>
         {formatDay(date)}
       </div>
       <div className={isCurrentMonth ? '' : 'text-secondary'}>
-        {formatCalendarWeekday(date)}
+        {renderMonth ? formatCalendarMonth(date) : ''}
       </div>
     </div>
   );
@@ -77,7 +78,7 @@ function getBgClasses({ isSelectedDate, isToday, isWeekend, isCurrentMonth }) {
   return '';
 }
 
-function Day({ date, selectedDate, today, setDate, positions }) {
+function Day({ renderMonth, date, selectedDate, today, setDate, positions }) {
   const isCurrentMonth = isSameMonth(date, selectedDate);
   const isSelectedDate = isSameDay(date, selectedDate);
   const isToday = isSameDay(date, today);
@@ -91,7 +92,7 @@ function Day({ date, selectedDate, today, setDate, positions }) {
         className={`ratio ratio-1x1 position-relative border rounded xpns-hover cursor-pointer ${getBorderClasses(classification)} ${getBgClasses(classification)} `}
         onClick={() => setDate(date)}>
         <div>
-          <DayNumber date={date} isCurrentMonth={isCurrentMonth} />
+          <DayNumber renderMonth={renderMonth} date={date} isCurrentMonth={isCurrentMonth} />
           {isCurrentMonth && !isFuture ? <DayAmounts positions={positions} /> : null}
         </div>
       </div>
@@ -99,17 +100,19 @@ function Day({ date, selectedDate, today, setDate, positions }) {
   );
 }
 
-function Week({ monday, date, today, setDate, positionsByDay }) {
+function Week({ weekIndex, monday, date, today, setDate, positionsByDay }) {
   return (
     <Row>
       {_.range(7)
-        .map(i => {
+        .map(dayIndex => {
           const currentDay = new Date(monday);
-          currentDay.setDate(currentDay.getDate() + i);
+          currentDay.setDate(currentDay.getDate() + dayIndex);
+
+          const renderMonth = weekIndex === 0 && dayIndex === 0 || currentDay.getDate() === 1;
 
           const positions = positionsByDay?.[toYmd(currentDay)];
 
-          return <Day key={i} date={currentDay} selectedDate={date} today={today} setDate={setDate} positions={positions} />;
+          return <Day key={dayIndex} date={currentDay} renderMonth={renderMonth} selectedDate={date} today={today} setDate={setDate} positions={positions} />;
         })}
     </Row>
   );
@@ -136,7 +139,7 @@ export default function Calendar({ date, setDate, positionsByDay }) {
 
   return (
     <Container>
-      {mondays.map(m => <Week key={m} monday={m} date={date} today={today} setDate={setDate} positionsByDay={positionsByDay} />)}
+      {mondays.map((m, i) => <Week key={i} weekIndex={i} monday={m} date={date} today={today} setDate={setDate} positionsByDay={positionsByDay} />)}
     </Container>
   );
 }
