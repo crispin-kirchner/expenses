@@ -21,9 +21,20 @@ $spacers: map-merge(
 $utilities: map-merge(
     $utilities,
     (
-        "rounded-tlbr": (
-            property: border-top-left-radius border-bottom-right-radius,
-            class: rounded-tlbr,
+        "rounded-tl": (
+            property: border-top-left-radius,
+            class: rounded-tl,
+            values: (
+                null: $border-radius,
+                1: $border-radius-sm,
+                2: $border-radius,
+                3: $border-radius-lg,
+            ),
+            responsive: true,
+        ),
+        "rounded-br": (
+            property: border-bottom-right-radius,
+            class: rounded-br,
             values: (
                 null: $border-radius,
                 1: $border-radius-sm,
@@ -41,6 +52,27 @@ $utilities: map-merge(
         "position":
             map-merge(
                 map-get($utilities, "position"),
+                (
+                    responsive: true,
+                )
+            ),
+        "border":
+            map-merge(
+                map-get($utilities, "border"),
+                (
+                    responsive: true,
+                )
+            ),
+        "border-color":
+            map-merge(
+                map-get($utilities, "border-color"),
+                (
+                    responsive: true,
+                )
+            ),
+        "rounded":
+            map-merge(
+                map-get($utilities, "rounded"),
                 (
                     responsive: true,
                 )

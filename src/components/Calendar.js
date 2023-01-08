@@ -10,7 +10,7 @@ import { render } from "@testing-library/react";
 function DayNumber({ date, renderMonth, isCurrentMonth }) {
   return (
     <div className="position-absolute d-flex top-0 start-0 small lh-small">
-      <div className={`${isCurrentMonth ? 'bg-dark' : 'bg-secondary'} text-light rounded-tlbr-1 me-1 text-center`} style={{ width: '1.4rem' }}>
+      <div className={`${isCurrentMonth ? 'bg-dark' : 'bg-secondary'} text-light rounded-tl-lg-1 rounded-br-1 me-1 text-center`} style={{ width: '1.4rem' }}>
         {formatDay(date)}
       </div>
       <div className={isCurrentMonth ? '' : 'text-secondary'}>
@@ -54,13 +54,13 @@ function DayAmounts({ positions }) {
 
 function getBorderClasses({ isCurrentMonth, isWeekend, isToday }) {
   if (isToday) {
-    return 'border-warning';
+    return 'border-lg-warning';
   }
   if (isWeekend && isCurrentMonth) {
-    return 'border-success';
+    return 'border-lg-success';
   }
   if (!isCurrentMonth) {
-    return 'border-light';
+    return 'border-lg-light';
   }
   return '';
 }
@@ -87,9 +87,9 @@ function Day({ renderMonth, date, selectedDate, today, setDate, positions }) {
   const classification = { isCurrentMonth, isSelectedDate, isToday, isWeekend }
 
   return (
-    <Col className="gx-1 gy-1">
+    <Col className="gx-0 gx-lg-1 gy-0 gy-lg-1">
       <div
-        className={`ratio ratio-1x1 position-relative border rounded xpns-hover cursor-pointer ${getBorderClasses(classification)} ${getBgClasses(classification)} `}
+        className={`ratio ratio-1x1 position-relative border-lg rounded-lg xpns-hover cursor-pointer ${getBorderClasses(classification)} ${getBgClasses(classification)} `}
         onClick={() => setDate(date)}>
         <div>
           <DayNumber renderMonth={renderMonth} date={date} isCurrentMonth={isCurrentMonth} />

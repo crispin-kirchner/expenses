@@ -18,10 +18,10 @@ export default function Outline(props) {
             <TagQuery>
                 <div className="container-lg flex-grow-1 h-100 overflow-hidden">
                     <div className="row h-100">
-                        <div id="main" className={`col-md col-lg-8 h-md-100 overflow-auto pt-2 ${mainClasses}`}>
+                        <div id="main" className={`col-sm col-lg-8 h-sm-100 overflow-auto px-0 ${mainClasses}`}>
                             {props.main}
                         </div>
-                        <div id="side" className={`col-md col-lg-4 h-md-100 px-0 ${sideClasses} position-md-relative`}>
+                        <div id="side" className={`col-sm col-lg-4 h-sm-100 px-0 ${sideClasses} position-sm-relative`}>
                             <div className="overflow-auto pt-2 h-100 gutter-padding">
                                 {props.side}
                             </div>
