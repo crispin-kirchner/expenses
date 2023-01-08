@@ -3,10 +3,15 @@ import { Squash as Hamburger } from 'hamburger-react';
 import t from "../utils/texts";
 
 // TODO tooltips solange collapsed ist
-function Item({ active, onClick, icon, text }) {
+function Item({ active, onClick, icon, text, setSidebarCollapsed }) {
   return (
     <li className={`${active ? 'nav-item' : ''}`}>
-      <button type="button" className={`nav-link text-nowrap w-100 text-start ${active ? 'active' : ''}`} onClick={onClick}>
+      <button type="button" className={`nav-link text-nowrap w-100 text-start ${active ? 'active' : ''}`} onClick={() => {
+        if (onClick) {
+          onClick();
+        }
+        setSidebarCollapsed(true);
+      }}>
         <i className={`bi bi-${icon}`}></i>
         <span className='ms-2 collapsed-hidden'>{text}</span>
       </button>

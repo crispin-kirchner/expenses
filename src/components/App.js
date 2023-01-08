@@ -51,13 +51,15 @@ function App() {
                 setMonthDisplay(md.id);
               }}
               icon={md.icon}
-              text={md.text} />
+              text={md.text}
+              setSidebarCollapsed={setSidebarCollapsed} />
           ))}
         </Sidebar.Section>
         <hr />
         <Sidebar.Section caption={t('Settings')}>
           <Sidebar.Item
             active={viewMode === ViewMode.MANAGE_TAGS}
+            setSidebarCollapsed={setSidebarCollapsed}
             onClick={() => setViewMode(ViewMode.MANAGE_TAGS)}
             icon="tags-fill"
             text={t('EditTags')} />
