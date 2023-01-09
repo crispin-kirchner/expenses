@@ -4,6 +4,8 @@ $sidebar-width: 11rem;
 @import "../node_modules/bootstrap/scss/functions";
 @import "../node_modules/bootstrap/scss/variables";
 
+$sidebar-box-shadow-light: 0px 0px 3px 0px $gray-800;
+
 $spacers: map-merge(
     $spacers,
     (
@@ -191,6 +193,7 @@ div.bg-dark > ul.chevron > li.leaf-entry > div::before {
     @include media-breakpoint-up(sm) {
         &.collapsed {
             left: 0;
+            box-shadow: $sidebar-box-shadow-light;
         }
     }
 
@@ -205,6 +208,10 @@ div.bg-dark > ul.chevron > li.leaf-entry > div::before {
                 display: none;
             }
         }
+    }
+
+    @include media-breakpoint-up(xl) {
+        box-shadow: $sidebar-box-shadow-light;
     }
 
     .sidebar-brand {
@@ -293,14 +300,10 @@ div.bg-dark > ul.chevron > li.leaf-entry > div::before {
     font-size: $font-size-base;
 
     @include media-breakpoint-up(sm) {
-        & {
-            font-size: $font-size-base * 0.8;
-        }
+        font-size: $font-size-base * 0.8;
     }
 
     @include media-breakpoint-up(lg) {
-        & {
-            font-size: $font-size-base;
-        }
+        font-size: $font-size-base;
     }
 }
