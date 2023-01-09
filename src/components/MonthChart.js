@@ -9,13 +9,13 @@ import {
   PointElement,
   Tooltip
 } from 'chart.js';
-import { getFirstDayOfMonth, toYmd } from '../utils/dates';
 import { useCallback, useMemo } from 'react';
 
 import { Bar } from 'react-chartjs-2';
 import { baseColors } from '../enums/colors';
 import { formatDay } from '../utils/formats';
 import t from '../utils/texts';
+import { toYmd } from '../utils/dates';
 
 ChartJS.register(
   LineElement,
@@ -32,20 +32,10 @@ ChartJS.register(
 ChartJS.defaults.font.family = 'system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"';
 
 // TODO gespartes-Berechnung/Daily-Budget-Berechnung mit dem Kalender/der Outline teilen
-function computeData(date, incomeAmount, recurringAmount, positionsByDay) {
-  const month = date.getMonth();
-  const labels = [];
+function computeData(daysOfMonth, dailyBudget, positionsByDay) {
+  const labels = daysOfMonth;
   const expensesData = [];
   const savedCumulativeData = [0];
-
-  for (const currentDay = getFirstDayOfMonth(date)
-    ; currentDay.getMonth() === month
-    ; currentDay.setDate(currentDay.getDate() + 1)) {
-
-    labels.push(toYmd(currentDay));
-  }
-
-  const dailyBudget = (incomeAmount - recurringAmount) / labels.length;
 
   const today = toYmd(new Date());
 
@@ -179,9 +169,9 @@ class MonthChartPlugin {
 
 const plugin = new MonthChartPlugin();
 
-export default function MonthChart({ date, incomeAmount, recurringAmount, positionsByDay, setDate }) {
+export default function MonthChart({ date, dailyBudget, daysOfMonth, positionsByDay, setDate }) {
   plugin.date = date;
-  const data = useMemo(() => computeData(date, incomeAmount, recurringAmount, positionsByDay), [date, incomeAmount, recurringAmount, positionsByDay]);
+  const data = useMemo(() => computeData(daysOfMonth, dailyBudget, positionsByDay), [daysOfMonth, dailyBudget, positionsByDay]);
 
   const isValidDay = useCallback(day => day > 0 && day <= data.labels.length, [data]);
 

@@ -1,9 +1,9 @@
 import * as PositionType from '../enums/PositionType.js';
 
 import Database, { DbContext, useDataVersion } from "./Database.js";
-import React, { useCallback, useContext, useState } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import { computeMonthlyAmountChf, createEmptyPosition } from "../utils/positions.js";
-import { decrementMonth, incrementMonth, isSameDay, toYmd } from '../utils/dates.js';
+import { decrementMonth, getFirstDayOfMonth, incrementMonth, isSameDay, toYmd } from '../utils/dates.js';
 import { deletePosition, getPositionsOfMonth, loadPosition, storePosition } from "../services/PositionService.js";
 
 import Calendar from './Calendar.js';
@@ -37,7 +37,7 @@ function getOverviewSection(pos) {
     return _.find(OverviewSections, s => s.type && pos.type === s.type && s.recurringFilter(pos)).id;
 }
 
-function MonthDisplayComponent({ monthDisplay, date, incomePositions, recurringPositions, expensePositions, setDate, editPosition, positionsByDay }) {
+function MonthDisplayComponent({ monthDisplay, date, setDate, dailyBudget, daysOfMonth, incomePositions, recurringPositions, expensePositions, editPosition, positionsByDay }) {
     switch (monthDisplay) {
         case MonthDisplay.OVERVIEW.id:
         default:
@@ -51,71 +51,96 @@ function MonthDisplayComponent({ monthDisplay, date, incomePositions, recurringP
         case MonthDisplay.CHART.id:
             return <MonthChart
                 date={date}
+                dailyBudget={dailyBudget}
+                daysOfMonth={daysOfMonth}
                 setDate={setDate}
-                incomeAmount={incomePositions.monthlyAmountChf}
-                recurringAmount={recurringPositions.monthlyAmountChf}
                 positionsByDay={positionsByDay} />;
     }
+}
+
+function computeData(positionsOfMonth, daysOfMonth) {
+    const positionsLabeled = _.map(positionsOfMonth, pos => ({
+        ...pos,
+        monthlyAmountChf: computeMonthlyAmountChf(pos),
+        tags: getTags(pos.description)
+    }));
+
+    const overviewSections = _(positionsLabeled)
+        .groupBy(getOverviewSection)
+        .map((positions, overviewSection) => ({
+            _id: overviewSection,
+            monthlyAmountChf: _.sumBy(positions, 'monthlyAmountChf'),
+            childRows: positions
+        }))
+        .keyBy('_id')
+        .value();
+
+    const incomePositions = overviewSections[OverviewSections.INCOME.id] || { monthlyAmountChf: '0', childRows: [] };
+    const recurringPositions = overviewSections[OverviewSections.RECURRING.id] || { monthlyAmountChf: '0', childRows: [] };
+    const expensePositions = overviewSections[OverviewSections.EXPENSE.id] || { monthlyAmountChf: '0', childRows: [] };
+
+    const dailyBudget = (incomePositions.monthlyAmountChf - recurringPositions.monthlyAmountChf) / daysOfMonth.length;
+
+    const positionsByDay = _(positionsLabeled)
+        .filter(pos => !pos.recurring)
+        .groupBy(pos => toYmd(pos.date))
+        .map((positions, ymd) => {
+            const byType = _.groupBy(positions, 'type');
+            const expensesSum = _.sumBy(byType[PositionType.EXPENSE], 'monthlyAmountChf');
+
+            return {
+                ymd,
+                expensesSum,
+                earningsSum: _.sumBy(byType[PositionType.INCOME], 'monthlyAmountChf'),
+                saved: dailyBudget - expensesSum,
+                positions
+            };
+        })
+        .keyBy('ymd')
+        .value();
+
+    for (const ymd of daysOfMonth) {
+        if (positionsByDay[ymd]) {
+            continue;
+        }
+        positionsByDay[ymd] = {
+            ymd,
+            expensesSum: 0,
+            earningsSum: 0,
+            saved: dailyBudget,
+            positions: []
+        };
+    }
+
+    return { incomePositions, recurringPositions, expensePositions, positionsByDay, dailyBudget };
 }
 
 // FIXME zwischen "s" und "md" könnte man den navbar-container hier nicht-fluid machen weil das Form es nicht ist
 export default function PositionOutline({ unsyncedDocuments, monthDisplay, setMonthDisplay, isSidebarCollapsed, toggleSidebar }) {
     const [date, setDate] = useState(new Date());
     const [editedPosition, setEditedPosition] = useState(null);
-
     const [positionsOfMonth, setPositionsOfMonth] = useState({});
-
-    const [incomePositions, setIncomePositions] = useState({ childRows: [] });
-    const [recurringPositions, setRecurringPositions] = useState({ childRows: [] });
-    const [expensePositions, setExpensePositions] = useState({ childRows: [] });
-    const [positionsByDay, setPositionsByDay] = useState(null);
-
     const { dataVersion, incrementDataVersion } = useDataVersion();
 
-    const db = useContext(DbContext);
+    const daysOfMonth = useMemo(() => {
+        const month = date.getMonth();
+        const daysOfMonth = [];
+        for (const currentDay = getFirstDayOfMonth(date)
+            ; currentDay.getMonth() === month
+            ; currentDay.setDate(currentDay.getDate() + 1)) {
 
+            daysOfMonth.push(toYmd(currentDay));
+        }
+        return daysOfMonth;
+    }, [date]);
+
+    const { incomePositions, recurringPositions, expensePositions, positionsByDay, dailyBudget } = useMemo(() => computeData(positionsOfMonth, daysOfMonth), [positionsOfMonth, daysOfMonth]);
+
+    const db = useContext(DbContext);
     const queryCallback = useCallback(async db => {
         const positions = await getPositionsOfMonth(db, date);
-
-        const positionsLabeled = _.map(positions, pos => ({
-            ...pos,
-            monthlyAmountChf: computeMonthlyAmountChf(pos),
-            tags: getTags(pos.description)
-        }));
-
-        const overviewSections = _(positionsLabeled)
-            .groupBy(getOverviewSection)
-            .map((positions, overviewSection) => ({
-                _id: overviewSection,
-                monthlyAmountChf: _.sumBy(positions, 'monthlyAmountChf'),
-                childRows: positions
-            }))
-            .keyBy('_id')
-            .value();
-
-        // TODO hier schon das saved berechnen
-        setPositionsByDay(_(positionsLabeled)
-            .filter(pos => !pos.recurring)
-            .groupBy(pos => toYmd(pos.date))
-            .map((positions, ymd) => {
-                const byType = _.groupBy(positions, 'type');
-
-                return {
-                    ymd: ymd,
-                    expensesSum: _.sumBy(byType[PositionType.EXPENSE], 'monthlyAmountChf'),
-                    earningsSum: _.sumBy(byType[PositionType.INCOME], 'monthlyAmountChf'),
-                    positions
-                };
-            })
-            .keyBy('ymd')
-            .value());
-
         setPositionsOfMonth(_.keyBy(positions, '_id'));
-        setIncomePositions(overviewSections[OverviewSections.INCOME.id] || { monthlyAmountChf: '0', childRows: [] });
-        setRecurringPositions(overviewSections[OverviewSections.RECURRING.id] || { monthlyAmountChf: '0', childRows: [] });
-        setExpensePositions(overviewSections[OverviewSections.EXPENSE.id] || { monthlyAmountChf: '0', childRows: [] });
-    },
-        [date]);
+    }, [date]);
 
     const newPosition = d => setEditedPosition(createEmptyPosition(d));
     const editPosition = async id => setEditedPosition(await loadPosition(db, id));
@@ -138,7 +163,6 @@ export default function PositionOutline({ unsyncedDocuments, monthDisplay, setMo
         ? { ymd: toYmd(date), positions: null }
         : positionsByDay[toYmd(date)] || { ymd: toYmd(date), positions: [] };
 
-    // TODO refactoren zu PositionOutlineQuery
     // TODO prüfen wie es mit dem footer weitergehen soll
     return (
         <Database.LiveQuery queryCallback={queryCallback} dataVersion={dataVersion}>
@@ -165,6 +189,8 @@ export default function PositionOutline({ unsyncedDocuments, monthDisplay, setMo
                     monthDisplay={monthDisplay}
                     date={date}
                     setDate={setDate}
+                    dailyBudget={dailyBudget}
+                    daysOfMonth={daysOfMonth}
                     incomePositions={incomePositions}
                     recurringPositions={recurringPositions}
                     expensePositions={expensePositions}

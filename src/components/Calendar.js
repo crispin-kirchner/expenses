@@ -5,7 +5,6 @@ import Col from 'react-bootstrap/Col'
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import _ from 'lodash';
-import { render } from "@testing-library/react";
 
 function DayNumber({ date, renderMonth, isCurrentMonth }) {
   return (
@@ -28,25 +27,34 @@ function DayAmount({ amount }) {
 }
 
 function DayAmounts({ positions }) {
-  let spent = '';
+  let spent = null;
+  let saved = null;
+  let savedClasses = 'text-success';
+  let savedIcon = 'piggy-bank';
   if (positions) {
     if (positions.positions.length === 0) {
-      spent = '&ndash;&ndash;';
+      spent = <>&ndash;&ndash;</>;
+      savedIcon = 'piggy-bank-fill';
     }
     else {
       spent = <DayAmount amount={positions.expensesSum} />
+      if (positions.saved < 0) {
+        savedClasses = 'text-danger';
+      }
     }
+    saved = <DayAmount amount={positions.saved} />;
   }
 
   return (
-    <div className="position-absolute bottom-0 end-0 text-end p-05 sm-small lh-1 lh-md-base w-100">
+    <div className="position-absolute bottom-0 end-0 text-end p-05 lh-1 lh-md-base w-100">
       <span className="w-100 d-inline-flex justify-content-between">
         <i className="bi-box-arrow-right"></i>
         {spent}
       </span>
       <br />
-      <span className="w-100 d-inline-flex justify-content-between">
-        <i className="bi bi-piggy-bank"></i>
+      <span className={`w-100 d-inline-flex justify-content-between ${savedClasses}`}>
+        <i className={`bi bi-${savedIcon}`}></i>
+        {saved}
       </span>
     </div>
   );
@@ -87,7 +95,7 @@ function Day({ renderMonth, date, selectedDate, today, setDate, positions }) {
   const classification = { isCurrentMonth, isSelectedDate, isToday, isWeekend }
 
   return (
-    <Col className="gx-0 gx-lg-1 gy-0 gy-lg-1">
+    <Col className="gx-0 gx-lg-1 gy-0 gy-lg-1 fs-calendar">
       <div
         className={`ratio ratio-1x1 position-relative border-lg rounded-lg xpns-hover cursor-pointer ${getBorderClasses(classification)} ${getBgClasses(classification)} `}
         onClick={() => setDate(date)}>
@@ -108,7 +116,7 @@ function Week({ weekIndex, monday, date, today, setDate, positionsByDay }) {
           const currentDay = new Date(monday);
           currentDay.setDate(currentDay.getDate() + dayIndex);
 
-          const renderMonth = weekIndex === 0 && dayIndex === 0 || currentDay.getDate() === 1;
+          const renderMonth = (weekIndex === 0 && dayIndex === 0) || currentDay.getDate() === 1;
 
           const positions = positionsByDay?.[toYmd(currentDay)];
 
