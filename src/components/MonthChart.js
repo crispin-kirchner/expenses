@@ -12,6 +12,7 @@ import {
 import { useCallback, useMemo } from 'react';
 
 import { Bar } from 'react-chartjs-2';
+import _ from 'lodash';
 import { baseColors } from '../enums/colors';
 import { formatDay } from '../utils/formats';
 import t from '../utils/texts';
@@ -31,9 +32,8 @@ ChartJS.register(
 // TODO irgendwie global machen auch für Treemap
 ChartJS.defaults.font.family = 'system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"';
 
-// TODO gespartes-Berechnung/Daily-Budget-Berechnung mit dem Kalender/der Outline teilen
 function computeData(daysOfMonth, dailyBudget, positionsByDay) {
-  const labels = daysOfMonth;
+  const labels = _.clone(daysOfMonth);
   const expensesData = [];
   const savedCumulativeData = [0];
 
@@ -53,7 +53,7 @@ function computeData(daysOfMonth, dailyBudget, positionsByDay) {
     const dayAmount = positionsByDay[ymd]?.expensesSum || 0;
     expensesData.push(dayAmount);
 
-    if (ymd < today) {
+    if (ymd <= today) {
       const savedToday = dailyBudget - dayAmount;
       savedCumulativeData[i + 1] = savedCumulativeData[i] + savedToday;
     }
@@ -169,6 +169,7 @@ class MonthChartPlugin {
 
 const plugin = new MonthChartPlugin();
 
+// TODO Tooltips
 export default function MonthChart({ date, dailyBudget, daysOfMonth, positionsByDay, setDate }) {
   plugin.date = date;
   const data = useMemo(() => computeData(daysOfMonth, dailyBudget, positionsByDay), [daysOfMonth, dailyBudget, positionsByDay]);

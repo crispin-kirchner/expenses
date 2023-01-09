@@ -115,7 +115,8 @@ function computeData(positionsOfMonth, daysOfMonth) {
     return { incomePositions, recurringPositions, expensePositions, positionsByDay, dailyBudget };
 }
 
-// FIXME zwischen "s" und "md" könnte man den navbar-container hier nicht-fluid machen weil das Form es nicht ist
+// TODO loading-Zustände beim wechseln des Monats
+// TODO zwischen "s" und "md" könnte man den navbar-container hier nicht-fluid machen weil das Form es nicht ist
 export default function PositionOutline({ unsyncedDocuments, monthDisplay, setMonthDisplay, isSidebarCollapsed, toggleSidebar }) {
     const [date, setDate] = useState(new Date());
     const [editedPosition, setEditedPosition] = useState(null);

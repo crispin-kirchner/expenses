@@ -99,6 +99,7 @@ function groupByTagAndSort(childRows, tagHierarchy) {
         .value();
 }
 
+// TODO Padding auf kleinen Geräten
 export default function Overview({ incomePositions, recurringPositions, expensePositions, editPosition }) {
     const remainderLoaded = incomePositions.monthlyAmountChf && recurringPositions.monthlyAmountChf && expensePositions.monthlyAmountChf;
     const remainderAmount = remainderLoaded
@@ -107,6 +108,7 @@ export default function Overview({ incomePositions, recurringPositions, expenseP
 
     const tags = useContext(TagContext);
 
+    // TODO gespartes als zusätzliche section
     return <>
         <OverviewSection
             id={OverviewSections.INCOME.id}
