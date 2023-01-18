@@ -1,8 +1,9 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 
 import Collapse from 'react-bootstrap/Collapse';
 import EntityType from '../enums/EntityType';
 import OverviewSections from '../enums/OverviewSections';
+import OverviewTreemap from './OverviewTreemap';
 import PositionRow from './PositionRow';
 import TagContext from './TagContext';
 import TagDimension from '../enums/TagDimension';
@@ -99,7 +100,7 @@ function groupByTagAndSort(childRows, tagHierarchy) {
         .value();
 }
 
-// TODO Padding auf kleinen Geräten
+// TODO Padding
 export default function Overview({ incomePositions, recurringPositions, expensePositions, editPosition }) {
     const remainderLoaded = incomePositions.monthlyAmountChf && recurringPositions.monthlyAmountChf && expensePositions.monthlyAmountChf;
     const remainderAmount = remainderLoaded
@@ -108,8 +109,12 @@ export default function Overview({ incomePositions, recurringPositions, expenseP
 
     const tags = useContext(TagContext);
 
-    // TODO gespartes als zusätzliche section
+    const expensesChildRows = useMemo(() => groupByTagAndSort(expensePositions.childRows, tags?.hierarchy), [expensePositions, tags]);
+
+    // TODO gespartes als zusätzliche section --> auch in treemap
     return <>
+        <OverviewTreemap expensesChildRows={expensesChildRows} remainderAmount={remainderAmount} />
+
         <OverviewSection
             id={OverviewSections.INCOME.id}
             description={t('Earnings')}
@@ -131,7 +136,7 @@ export default function Overview({ incomePositions, recurringPositions, expenseP
             description={t('Expenses')}
             amount={expensePositions.monthlyAmountChf || 900}
             loading={!expensePositions.monthlyAmountChf}
-            childRows={groupByTagAndSort(expensePositions.childRows, tags?.hierarchy)}
+            childRows={expensesChildRows}
             editPosition={editPosition} />
 
         <OverviewSection
