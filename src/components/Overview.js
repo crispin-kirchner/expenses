@@ -1,4 +1,5 @@
 import React, { useContext, useMemo, useState } from 'react';
+import { getLastDayOfMonth, toYmd } from '../utils/dates';
 
 import Collapse from 'react-bootstrap/Collapse';
 import EntityType from '../enums/EntityType';
@@ -47,18 +48,18 @@ function Hierarchy({ id, entity, path, childRows, description, amount, currency,
     );
 }
 
-function OverviewSection({ id, className, description, amount, loading, childRows, editPosition }) {
+function OverviewSection({ section, className, amount, loading, childRows, editPosition }) {
     return (
         <div className={`bg-dark text-light rounded p-2 mt-2 ${className ? className : ''}`}>
             <ul className="chevron m-0 ps-0">
                 <Hierarchy
-                    id={id}
+                    id={section.id}
                     type="section"
-                    description={description}
+                    description={section.name}
                     amount={amount}
                     loading={loading}
-                    path={[id]}
-                    childRows={childRows}
+                    path={[section.id]}
+                    childRows={childRows || []}
                     editPosition={editPosition} />
             </ul>
         </div>
@@ -100,51 +101,64 @@ function groupByTagAndSort(childRows, tagHierarchy) {
         .value();
 }
 
-// TODO Padding
-export default function Overview({ incomePositions, recurringPositions, expensePositions, editPosition }) {
-    const remainderLoaded = incomePositions.monthlyAmountChf && recurringPositions.monthlyAmountChf && expensePositions.monthlyAmountChf;
+// TODO beim Monatswechsel zuckt es
+export default function Overview({ date, incomePositions, recurringPositions, expensePositions, editPosition, positionsByDay }) {
+    const savedLoaded = positionsByDay && Object.keys(positionsByDay).length > 0;
+    const today = toYmd(new Date());
+    const lastDayOfMonth = toYmd(getLastDayOfMonth(date));
+    const monthInProgress = today <= lastDayOfMonth;
+    let savedAmount = 900;
+    if (savedLoaded) {
+        savedAmount = monthInProgress
+            ? positionsByDay[today].savedCumulative
+            : positionsByDay[lastDayOfMonth].savedCumulative;
+    }
+
+    const remainderLoaded = savedLoaded && incomePositions.monthlyAmountChf && recurringPositions.monthlyAmountChf && expensePositions.monthlyAmountChf;
     const remainderAmount = remainderLoaded
-        ? incomePositions.monthlyAmountChf - recurringPositions.monthlyAmountChf - expensePositions.monthlyAmountChf
+        ? incomePositions.monthlyAmountChf - recurringPositions.monthlyAmountChf - expensePositions.monthlyAmountChf - savedAmount
         : 2500;
+
+    // TODO bei saved und remainder cursor-pointer verhindern
 
     const tags = useContext(TagContext);
 
     const expensesChildRows = useMemo(() => groupByTagAndSort(expensePositions.childRows, tags?.hierarchy), [expensePositions, tags]);
 
-    // TODO gespartes als zusätzliche section --> auch in treemap
-    return <>
-        <OverviewTreemap expensesChildRows={expensesChildRows} remainderAmount={remainderAmount} />
+    return <div className='p-md-2'>
+        <OverviewTreemap tags={tags} expensesChildRows={expensesChildRows} savedAmount={savedAmount} remainderAmount={remainderAmount} />
 
         <OverviewSection
-            id={OverviewSections.INCOME.id}
-            description={t('Earnings')}
+            section={OverviewSections.INCOME}
             amount={incomePositions.monthlyAmountChf ? -incomePositions.monthlyAmountChf : 10000}
             loading={!incomePositions.monthlyAmountChf}
             childRows={groupByTagAndSort(incomePositions.childRows, tags?.hierarchy)}
             editPosition={editPosition} />
 
         <OverviewSection
-            id={OverviewSections.RECURRING.id}
-            description={t('Recurring')}
+            section={OverviewSections.RECURRING}
             amount={recurringPositions.monthlyAmountChf || 2500}
             loading={!recurringPositions.monthlyAmountChf}
             childRows={groupByTagAndSort(recurringPositions.childRows, tags?.hierarchy)}
             editPosition={editPosition} />
 
         <OverviewSection
-            id={OverviewSections.EXPENSE.id}
-            description={t('Expenses')}
+            section={OverviewSections.EXPENSE}
             amount={expensePositions.monthlyAmountChf || 900}
             loading={!expensePositions.monthlyAmountChf}
             childRows={expensesChildRows}
             editPosition={editPosition} />
 
         <OverviewSection
-            id={OverviewSections.REMAINING.id}
+            section={OverviewSections.SAVED}
+            description={OverviewSections.SAVED.name}
+            amount={savedAmount}
+            loading={!savedLoaded} />
+
+        {monthInProgress ? <OverviewSection
+            section={OverviewSections.REMAINING}
             className="mb-2"
-            description={t('Remaining')}
             amount={remainderAmount}
-            loading={!remainderLoaded}
-            childRows={[]} />
-    </>;
+            loading={!remainderLoaded} /> : null}
+    </div>;
 };

@@ -23,11 +23,11 @@ import t from "../utils/texts.js";
 function BrandContent(props) {
     return (<>
         <LinkButton
-            icon="bi-chevron-left"
+            icon="bi-chevron-up"
             onClick={() => props.setDate(decrementMonth(props.date))} />
 
         <LinkButton
-            icon="bi-chevron-right"
+            icon="bi-chevron-down"
             onClick={() => props.setDate(incrementMonth(props.date))} />
         {formatMonth(props.date)}
     </>);
@@ -42,10 +42,12 @@ function MonthDisplayComponent({ monthDisplay, date, setDate, dailyBudget, daysO
         case MonthDisplay.OVERVIEW.id:
         default:
             return <Overview
+                date={date}
                 incomePositions={incomePositions}
                 recurringPositions={recurringPositions}
                 expensePositions={expensePositions}
-                editPosition={editPosition} />
+                editPosition={editPosition}
+                positionsByDay={positionsByDay} />
         case MonthDisplay.CALENDAR.id:
             return <Calendar date={date} setDate={setDate} positionsByDay={positionsByDay} />
         case MonthDisplay.CHART.id:
@@ -99,17 +101,22 @@ function computeData(positionsOfMonth, daysOfMonth) {
         .keyBy('ymd')
         .value();
 
+    const today = toYmd(new Date());
+    let lastSavedCumulative = 0;
     for (const ymd of daysOfMonth) {
-        if (positionsByDay[ymd]) {
-            continue;
+        if (!positionsByDay[ymd]) {
+            positionsByDay[ymd] = {
+                ymd,
+                expensesSum: 0,
+                earningsSum: 0,
+                saved: dailyBudget,
+                positions: []
+            };
         }
-        positionsByDay[ymd] = {
-            ymd,
-            expensesSum: 0,
-            earningsSum: 0,
-            saved: dailyBudget,
-            positions: []
-        };
+        if (ymd <= today) {
+            positionsByDay[ymd].savedCumulative = lastSavedCumulative + positionsByDay[ymd].saved;
+            lastSavedCumulative = positionsByDay[ymd].savedCumulative;
+        }
     }
 
     return { incomePositions, recurringPositions, expensePositions, positionsByDay, dailyBudget };

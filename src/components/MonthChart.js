@@ -9,12 +9,12 @@ import {
   PointElement,
   Tooltip
 } from 'chart.js';
+import { formatDay, formatDayHeadingDate, formatFloat } from '../utils/formats';
 import { useCallback, useMemo } from 'react';
 
 import { Bar } from 'react-chartjs-2';
 import _ from 'lodash';
 import { baseColors } from '../enums/colors';
-import { formatDay } from '../utils/formats';
 import t from '../utils/texts';
 import { toYmd } from '../utils/dates';
 
@@ -29,7 +29,6 @@ ChartJS.register(
   Tooltip
 );
 
-// TODO irgendwie global machen auch für Treemap
 ChartJS.defaults.font.family = 'system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"';
 
 function computeData(daysOfMonth, dailyBudget, positionsByDay) {
@@ -54,8 +53,7 @@ function computeData(daysOfMonth, dailyBudget, positionsByDay) {
     expensesData.push(dayAmount);
 
     if (ymd <= today) {
-      const savedToday = dailyBudget - dayAmount;
-      savedCumulativeData[i + 1] = savedCumulativeData[i] + savedToday;
+      savedCumulativeData[i + 1] = positionsByDay[ymd].savedCumulative;
     }
   }
 
@@ -213,6 +211,14 @@ export default function MonthChart({ date, dailyBudget, daysOfMonth, positionsBy
           mirror: true,
           showLabelBackdrop: true,
           backdropColor: `rgba(${baseColors.yellow.rgb}, 0.2)`,
+        }
+      }
+    },
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: ctx => `${ctx.dataset.label}: ${formatFloat(ctx.dataset.data[ctx.dataIndex])}`,
+          title: ctx => ctx.map(c => formatDayHeadingDate(new Date(c.label)))
         }
       }
     },

@@ -21,6 +21,10 @@ const OverviewSections = {
         type: PositionType.EXPENSE,
         recurringFilter: ex => !ex.recurring
     },
+    SAVED: {
+        id: 'SAVED',
+        name: t('Saved')
+    },
     REMAINING: {
         id: 'REMAINING',
         name: t('Remaining')
