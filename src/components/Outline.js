@@ -5,8 +5,8 @@ import TagQuery from './TagQuery.js';
 // FIXME shift6m quer ist sm, nicht md!
 export default function Outline(props) {
     const drawerPosStart = props.rightDrawerVisible ? 'start-0' : 'start-100';
-    const mainClasses = props.sideOnMobile ? 'h-50' : 'h-100';
-    const sideClasses = props.sideOnMobile ? 'h-50' : 'h-0';
+    const mainClasses = props.sideOnMobile ? 'h-60' : 'h-100';
+    const sideClasses = props.sideOnMobile ? 'h-40' : 'h-0';
 
     // TODO "Glass-Pane" um Sidebar wieder einzufahren
     return (

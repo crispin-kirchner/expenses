@@ -46,6 +46,7 @@ function formatLabel(ctx) {
     return v;
 }
 
+// TODO Tooltips
 // TODO nach dem erstellen einer neuen Ausgabe sah es komisch aus
 export default function OverviewTreemap({ tags, expensesChildRows, savedAmount, remainderAmount }) {
     const data = useMemo(() => ({
