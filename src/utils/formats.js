@@ -13,10 +13,10 @@ numberFormats[2] = new Intl.NumberFormat(texts.languages, { useGrouping: true, m
 numberFormats[5] = new Intl.NumberFormat(texts.languages, { useGrouping: true, minimumFractionDigits: 5, maximumFractionDigits: 5 });
 
 const { localDecimalSeparator, localGroupSeparator } = (() => {
-    const parts = new Intl.NumberFormat(texts.languages, { useGrouping: true }).formatToParts('12345.6');
-    const localGroupSeparator = parts[1].value;
-    const localDecimalSeparator = parts[3].value;
-    return { localDecimalSeparator, localGroupSeparator };
+  const parts = new Intl.NumberFormat(texts.languages, { useGrouping: true }).formatToParts('12345.6');
+  const localGroupSeparator = parts[1].value;
+  const localDecimalSeparator = parts[3].value;
+  return { localDecimalSeparator, localGroupSeparator };
 })();
 
 const numberRegex = {};
@@ -32,69 +32,73 @@ decimalSeparatorRegex[NumberFormats.LOCAL] = new RegExp(`\\${localDecimalSeparat
 const localGroupSeparatorRegex = new RegExp(`\\${localGroupSeparator}`, 'g');
 
 function escape(character) {
-    if (character === '.') {
-        return `\\${character}`;
-    }
-    return character;
+  if (character === '.') {
+    return `\\${character}`;
+  }
+  return character;
 }
 
 export function formatDay(date) {
-    return dayFormat.format(date);
+  return dayFormat.format(date);
 }
 
 export function formatCalendarMonth(date) {
-    return monthCalendarFormat.format(date);
+  return monthCalendarFormat.format(date);
 }
 
 export function formatMonth(date) {
-    return capitalizeFirstLetter(monthFormat.format(date));
+  return capitalizeFirstLetter(monthFormat.format(date));
 }
 
 export function formatDayHeadingDate(date) {
-    return capitalizeFirstLetter(dayHeadingFormat.format(date));
+  return capitalizeFirstLetter(dayHeadingFormat.format(date));
 }
 
 export function formatInteger(i) {
-    return numberFormats[0].format(i);
+  return numberFormats[0].format(i);
 }
 
 export function formatFloat(f) {
-    return numberFormats[2].format(f);
+  return numberFormats[2].format(f);
 }
 
 export function parseIntlFloat(number) {
-    if (!numberRegex[NumberFormats.LOCAL].test(number)) {
-        return NaN;
-    }
-    return parseFloat(localToFloatString(number));
+  if (!numberRegex[NumberFormats.LOCAL].test(number)) {
+    return NaN;
+  }
+  return parseFloat(localToFloatString(number));
 }
 
 export function localToFloatString(number) {
-    return number
-        .replaceAll(localGroupSeparatorRegex, '')
-        .replace(decimalSeparatorRegex[NumberFormats.LOCAL], '.');
+  return number
+    .replaceAll(localGroupSeparatorRegex, '')
+    .replace(decimalSeparatorRegex[NumberFormats.LOCAL], '.');
 }
 
 export function prettyPrintFloatString(number, numFractionDigits, inputFormat) {
-    if (!number) {
-        return '';
-    }
+  if (!number) {
+    return '';
+  }
 
-    inputFormat = inputFormat || NumberFormats.LOCAL;
+  inputFormat = inputFormat || NumberFormats.LOCAL;
 
-    if (!numberRegex[inputFormat].test(number)) {
-        return number;
-    }
+  if (!numberRegex[inputFormat].test(number)) {
+    return number;
+  }
 
-    let [integerPart, fractionalPart] = localToFloatString(number).split(decimalSeparatorRegex[NumberFormats.DEFAULT]);
+  if (inputFormat === NumberFormats.LOCAL) {
+    number = localToFloatString(number);
+  }
 
-    integerPart = integerPart
-        ? formatInteger(integerPart)
-        : '0';
+  let [integerPart, fractionalPart] = number.split(decimalSeparatorRegex[NumberFormats.DEFAULT]);
 
-    fractionalPart = fractionalPart
-        ? fractionalPart.substring(0, numFractionDigits).padEnd(numFractionDigits, '0')
-        : '0'.repeat(numFractionDigits);
+  integerPart = integerPart
+    ? formatInteger(integerPart)
+    : '0';
 
-    return `${integerPart}${localDecimalSeparator}${fractionalPart}`;
+  fractionalPart = fractionalPart
+    ? fractionalPart.substring(0, numFractionDigits).padEnd(numFractionDigits, '0')
+    : '0'.repeat(numFractionDigits);
+
+  return `${integerPart}${localDecimalSeparator}${fractionalPart}`;
 }
