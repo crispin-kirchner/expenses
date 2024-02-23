@@ -33,7 +33,7 @@ function Title({ formId, closeButton, content, classes, deleteAction }) {
   </>);
 }
 
-export function FormRow({ classes, children }) {
+export function Row({ classes, children }) {
   return <div className={`row g-2 mb-3 ${classes ? classes : ''}`}>{children}</div>;
 }
 
@@ -125,4 +125,4 @@ export default function Form({ id, title, abortAction, deleteAction, saveAction,
   </>);
 };
 
-Form.Row = FormRow;
+Form.Row = Row;

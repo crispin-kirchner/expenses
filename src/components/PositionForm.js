@@ -1,6 +1,6 @@
 import * as PositionType from '../enums/PositionType.js';
 
-import Form, { DateInput, FormRow, NumberInput, TextInput } from "./Form.js";
+import Form, { DateInput, NumberInput, TextInput } from "./Form.js";
 import React, { useState } from "react";
 import currencies, { DEFAULT_EXCHANGE_RATE, getDefaultCurrency, isDefaultCurrency } from "../enums/currencies.js";
 import { localToFloatString, parseIntlFloat, prettyPrintFloatString } from '../utils/formats.js';
@@ -65,7 +65,7 @@ export default function PositionForm({ position, saveAction, abortAction, delete
       saveAction={saveActionInternal}
       deleteAction={() => deleteAction(position._id)}
       title={classes => <TypeDropdown type={type} setPositionType={setType} classes={classes} />}>
-      <FormRow>
+      <Form.Row>
         <div className={`col-8 form-floating ${amountValidated ? 'was-validated' : 'needs-validation'}`}>
           <NumberInput
             id="amount"
@@ -87,8 +87,8 @@ export default function PositionForm({ position, saveAction, abortAction, delete
           </select>
           <label htmlFor="currency-input">{t('Currency')}</label>
         </div>
-      </FormRow>
-      {getDefaultCurrency().id !== currency ? <FormRow>
+      </Form.Row>
+      {getDefaultCurrency().id !== currency ? <Form.Row>
         <div className={`input-group has-validation ${exchangeRateValidated ? 'was-validated' : 'needs-validation'}`}>
           <label htmlFor="exchange-rate-input" className="input-group-text">{t('ExchangeRate')}</label>
           <NumberInput
@@ -109,8 +109,8 @@ export default function PositionForm({ position, saveAction, abortAction, delete
             {exchangeRate ? t('XIsNotANumber', exchangeRate) : t('PleaseProvideAnExchangeRate')}
           </div>
         </div>
-      </FormRow> : null}
-      <FormRow>
+      </Form.Row> : null}
+      <Form.Row>
         <div className={`form-floating ${descriptionValidated ? 'was-validated' : 'needs-validation'}`}>
           <TextInput
             id="description"
@@ -127,8 +127,8 @@ export default function PositionForm({ position, saveAction, abortAction, delete
             {t('PleaseProvideADescription')}
           </div>
         </div>
-      </FormRow>
-      <FormRow>
+      </Form.Row>
+      <Form.Row>
         <div className="col">
           <DateInput
             id="date-input"
@@ -144,8 +144,8 @@ export default function PositionForm({ position, saveAction, abortAction, delete
             value={endDate}
             setState={setEndDate} />
         </div> : null}
-      </FormRow>
-      <FormRow classes="align-items-center">
+      </Form.Row>
+      <Form.Row classes="align-items-center">
         <div className="col col-auto">
           <div className="form-check form-switch">
             <input id="recurring-checkbox" className="form-check-input" type="checkbox" checked={isRecurring} onChange={e => setRecurring(e.target.checked)} />
@@ -192,11 +192,11 @@ export default function PositionForm({ position, saveAction, abortAction, delete
             {t('PleaseProvideAFrequency')}
           </div>
         </div>
-      </FormRow>
+      </Form.Row>
       {/* FIXME hide this button in production */}
-      <FormRow>
+      <Form.Row>
         <a href={`https://localhost:6984/_utils/#database/expenses-dev/${position._id}`}><i className="bi bi-couch"></i>{position._id}</a>
-      </FormRow>
+      </Form.Row>
     </Form>
   );
 }
