@@ -1,10 +1,12 @@
-import { useContext, useState } from "react";
+import { useCallback, useContext, useState } from "react";
 
+import { DbContext } from "./Database";
 import Outline from "./Outline";
 import Tag from "./Tag";
 import TagDimension from "../enums/TagDimension";
 import TagForm from "./TagForm";
 import Tags from "./Tags";
+import { loadTag } from "../services/TagService";
 import t from "../utils/texts";
 
 function TagLine({ tag, subHierarchy, setEditedTag }) {
@@ -38,7 +40,11 @@ function TagsInternal({ setEditedTag }) {
 }
 
 export default function EditTagsOutline({ isSidebarCollapsed, toggleSidebar, unsyncedDocuments }) {
-  const [editedTag, setEditedTag] = useState(null);
+  const [editedTag, setEditedTagInternal] = useState(null);
+
+  const db = useContext(DbContext);
+
+  const setEditedTag = useCallback(async id => setEditedTagInternal(await loadTag(db, id)), [db, setEditedTagInternal]);
 
   return <Outline
     isSidebarCollapsed={isSidebarCollapsed}
@@ -46,6 +52,6 @@ export default function EditTagsOutline({ isSidebarCollapsed, toggleSidebar, uns
     navbarBrandContent={<><i className="bi bi-tags-fill"></i> {t('EditTags')}</>}
     navbarFormContent={unsyncedDocuments}
     main={<TagsInternal setEditedTag={setEditedTag} />}
-    rightDrawer={editedTag ? <TagForm editedTag={editedTag} abortAction={() => setEditedTag(null)} /> : null}
+    rightDrawer={editedTag ? <TagForm editedTag={editedTag} abortAction={() => setEditedTagInternal(null)} /> : null}
     rightDrawerVisible={!!editedTag} />
 }

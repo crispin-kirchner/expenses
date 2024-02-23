@@ -14,6 +14,9 @@ export default function Tag({ classes, name, onClick }) {
     // FIXME prüfen wo es diesen default color noch braucht und vereinheitlichen
     classes += colors['grayWhite'].classes;
   }
+  if (onClick) {
+    classes += ' cursor-pointer';
+  }
   return (
     <span
       className={`badge ${classes}`}
