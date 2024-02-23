@@ -1,8 +1,10 @@
+import { useContext, useState } from "react";
+
 import Outline from "./Outline";
+import Tag from "./Tag";
 import TagDimension from "../enums/TagDimension";
 import Tags from "./Tags";
 import t from "../utils/texts";
-import { useContext } from "react";
 
 function TagLine({ tag, subHierarchy }) {
   let children = null;
@@ -10,7 +12,7 @@ function TagLine({ tag, subHierarchy }) {
     children = <TagHierarchy tags={subHierarchy} />
   }
   return <li>
-    {tag}
+    {<Tag name={tag} />}
     {children}
   </li>
 }
@@ -38,7 +40,7 @@ export default function EditTagsOutline({ isSidebarCollapsed, toggleSidebar, uns
   return <Outline
     isSidebarCollapsed={isSidebarCollapsed}
     toggleSidebar={toggleSidebar}
-    navbarBrandContent={t('EditTags')}
+    navbarBrandContent={<><i className="bi bi-tags-fill"></i> {t('EditTags')}</>}
     navbarFormContent={unsyncedDocuments}
     main={<TagsInternal />} />
 }

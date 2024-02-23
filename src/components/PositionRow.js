@@ -1,30 +1,9 @@
-import React, { useContext } from 'react';
 import currencies, { isDefaultCurrency } from '../enums/currencies.js';
 
+import React from 'react';
 import { TAG_REGEX } from '../utils/tags.js';
-import Tags from './Tags.js';
-import colors from '../enums/colors.js';
+import Tag from './Tag.js';
 import { formatFloat } from '../utils/formats.js';
-
-function Tag(props) {
-  const tags = useContext(Tags.Context);
-  let classes = props.classes || '';
-  let tag = null;
-  if (tags && (tag = tags.flat[props.name])) {
-    classes += colors[tag.color].classes;
-  }
-  else {
-    // FIXME prüfen wo es diesen default color noch braucht und vereinheitlichen
-    classes += colors['grayWhite'].classes;
-  }
-  return (
-    <span
-      className={`badge ${classes}`}
-      data-xpns-tag={props.name}>
-      {props.name}
-    </span>)
-    ;
-}
 
 function PositionDescription(props) {
   const parts = [];

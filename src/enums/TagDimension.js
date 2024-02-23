@@ -2,8 +2,8 @@ const STANDARD = 'Standard';
 const UNSPECIFIC = 'Andere';
 
 const TagDimension = {
-  STANDARD: STANDARD,
-  UNSPECIFIC: UNSPECIFIC
+  STANDARD,
+  UNSPECIFIC
 };
 
 export default TagDimension;
