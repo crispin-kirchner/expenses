@@ -3,7 +3,7 @@ import React, { useContext } from 'react';
 import Tags from './Tags.js';
 import colors from '../enums/colors.js';
 
-export default function Tag({ classes, name }) {
+export default function Tag({ classes, name, onClick }) {
   const tags = useContext(Tags.Context);
   classes = classes || '';
   let tag = null;
@@ -17,7 +17,8 @@ export default function Tag({ classes, name }) {
   return (
     <span
       className={`badge ${classes}`}
-      data-xpns-tag={name}>
+      data-xpns-tag={name}
+      onClick={onClick}>
       {name}
     </span>);
 }

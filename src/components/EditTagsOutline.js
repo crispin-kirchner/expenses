@@ -10,10 +10,10 @@ import t from "../utils/texts";
 function TagLine({ tag, subHierarchy, setEditedTag }) {
   let children = null;
   if (subHierarchy) {
-    children = <TagHierarchy tags={subHierarchy} />
+    children = <TagHierarchy tags={subHierarchy} setEditedTag={setEditedTag} />
   }
-  return <li onClick={() => setEditedTag(tag)}>
-    {<Tag name={tag} />}
+  return <li>
+    {<Tag name={tag} onClick={() => setEditedTag(tag)} />}
     {children}
   </li>
 }
@@ -31,10 +31,10 @@ function TagsInternal({ setEditedTag }) {
     return 'FIXME suspense Keine Tags definiert';
   }
 
-  return Object.values(TagDimension).map(d => <>
+  return Object.values(TagDimension).map(d => <div key={d}>
     <h1>{d}</h1>
     <TagHierarchy tags={tags.hierarchy[d]} setEditedTag={setEditedTag} />
-  </>);
+  </div>);
 }
 
 export default function EditTagsOutline({ isSidebarCollapsed, toggleSidebar, unsyncedDocuments }) {
