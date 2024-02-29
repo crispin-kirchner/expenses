@@ -1,6 +1,6 @@
 import Navbar from './Navbar';
 import React from "react";
-import Tags from './Tags.js';
+import TagContextProvider from './TagContextProvider.js';
 
 // FIXME shift6m quer ist sm, nicht md!
 export default function Outline(props) {
@@ -15,7 +15,7 @@ export default function Outline(props) {
         <Navbar.Brand isSidebarCollapsed={props.isSidebarCollapsed} toggleSidebar={props.toggleSidebar}>{props.navbarBrandContent}</Navbar.Brand>
         <Navbar.Form>{props.navbarFormContent}</Navbar.Form>
       </Navbar>
-      <Tags>
+      <TagContextProvider>
         <div className="container-lg flex-grow-1 h-100 overflow-hidden">
           <div className="row h-100">
             <div id="main" className={`col-sm col-lg-8 h-sm-100 overflow-auto px-0 ${mainClasses}`}>
@@ -31,7 +31,7 @@ export default function Outline(props) {
             </div>
           </div>
         </div>
-      </Tags>
+      </TagContextProvider>
       {props.footerContent ? <div className="d-sm-none bg-secondary d-flex p-2" style={{ '--bs-bg-opacity': 0.5 }}>
         {props.footerContent}
       </div> : null

@@ -2,7 +2,7 @@ import currencies, { isDefaultCurrency } from '../enums/currencies.js';
 
 import React from 'react';
 import { TAG_REGEX } from '../utils/tags.js';
-import Tag from './Tag.js';
+import TagPill from './TagPill.js';
 import { formatFloat } from '../utils/formats.js';
 
 function PositionDescription(props) {
@@ -11,7 +11,7 @@ function PositionDescription(props) {
     if (i === 0 && m.index > 0) {
       parts.push(props.text.substring(0, m.index).trim());
     }
-    parts.push(<Tag key={i} name={m[1]} />);
+    parts.push(<TagPill key={i} name={m[1]} />);
     ++i;
   }
   if (parts.length === 0) {

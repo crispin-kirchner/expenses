@@ -1,12 +1,12 @@
+import { loadTag, storeTag } from "../services/TagService";
 import { useCallback, useContext, useState } from "react";
 
 import { DbContext } from "./Database";
 import Outline from "./Outline";
-import Tag from "./Tag";
+import TagContextProvider from "./TagContextProvider";
 import TagDimension from "../enums/TagDimension";
 import TagForm from "./TagForm";
-import Tags from "./Tags";
-import { loadTag } from "../services/TagService";
+import TagPill from "./TagPill";
 import t from "../utils/texts";
 
 function TagLine({ tag, subHierarchy, setEditedTag }) {
@@ -15,7 +15,7 @@ function TagLine({ tag, subHierarchy, setEditedTag }) {
     children = <TagHierarchy tags={subHierarchy} setEditedTag={setEditedTag} />
   }
   return <li>
-    {<Tag name={tag} onClick={() => setEditedTag(tag)} />}
+    {<TagPill name={tag} onClick={() => setEditedTag(tag)} />}
     {children}
   </li>
 }
@@ -28,7 +28,7 @@ function TagHierarchy({ tags, setEditedTag }) {
 
 function TagsInternal({ setEditedTag }) {
   // Helper component, because the Tags context is only defined inside the outline
-  const tags = useContext(Tags.Context);
+  const { tags } = useContext(TagContextProvider.Context);
   if (!tags) {
     return 'FIXME suspense Keine Tags definiert';
   }
@@ -41,17 +41,21 @@ function TagsInternal({ setEditedTag }) {
 
 export default function EditTagsOutline({ isSidebarCollapsed, toggleSidebar, unsyncedDocuments }) {
   const [editedTag, setEditedTagInternal] = useState(null);
-
   const db = useContext(DbContext);
 
   const setEditedTag = useCallback(async id => setEditedTagInternal(await loadTag(db, id)), [db, setEditedTagInternal]);
+  const saveAction = useCallback(tag => {
+    setEditedTagInternal(null);
+    storeTag(db, tag);
+  }, [setEditedTagInternal, db]);
 
+  // FIXME closing form is too abrupt
   return <Outline
     isSidebarCollapsed={isSidebarCollapsed}
     toggleSidebar={toggleSidebar}
     navbarBrandContent={<><i className="bi bi-tags-fill"></i> {t('EditTags')}</>}
     navbarFormContent={unsyncedDocuments}
     main={<TagsInternal setEditedTag={setEditedTag} />}
-    rightDrawer={editedTag ? <TagForm editedTag={editedTag} abortAction={() => setEditedTagInternal(null)} /> : null}
+    rightDrawer={editedTag ? <TagForm editedTag={editedTag} saveAction={saveAction} abortAction={() => setEditedTagInternal(null)} /> : null}
     rightDrawerVisible={!!editedTag} />
 }

@@ -61,6 +61,7 @@ export default function PositionForm({ position, saveAction, abortAction, delete
 
   return (
     <Form
+      id="position-form"
       abortAction={abortAction}
       saveAction={saveActionInternal}
       deleteAction={() => deleteAction(position._id)}

@@ -84,6 +84,7 @@ export function DateInput({ id, label, value, setState, required }) {
     required={required} />
 }
 
+// TODO use generated ID
 export default function Form({ id, title, abortAction, deleteAction, saveAction, children }) {
   const [wasValidated, setWasValidated] = useState(false);
   return (<>

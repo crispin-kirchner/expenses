@@ -6,8 +6,8 @@ import EntityType from '../enums/EntityType';
 import OverviewSections from '../enums/OverviewSections';
 import OverviewTreemap from './OverviewTreemap';
 import PositionRow from './PositionRow';
+import TagContextProvider from './TagContextProvider';
 import TagDimension from '../enums/TagDimension';
-import Tags from './Tags';
 import _ from 'lodash';
 import { computeMonthlyAmount } from '../utils/positions';
 import { isDefaultCurrency } from '../enums/currencies';
@@ -121,7 +121,7 @@ export default function Overview({ date, incomePositions, recurringPositions, ex
 
   // TODO bei saved und remainder cursor-pointer verhindern
 
-  const tags = useContext(Tags.Context);
+  const { tags } = useContext(TagContextProvider.Context);
 
   const expensesChildRows = useMemo(() => groupByTagAndSort(expensePositions.childRows, tags?.hierarchy), [expensePositions, tags]);
 

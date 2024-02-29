@@ -32,3 +32,7 @@ export async function getTagsAndHierarchy(db) {
 export function loadTag(db, id) {
   return db.getDocument(EntityType.TAG, id);
 }
+
+export function storeTag(db, tag) {
+  return db.put(tag);
+}

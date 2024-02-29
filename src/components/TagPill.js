@@ -1,10 +1,10 @@
 import React, { useContext } from 'react';
 
-import Tags from './Tags.js';
+import TagContextProvider from './TagContextProvider.js';
 import colors from '../enums/colors.js';
 
-export default function Tag({ classes, name, onClick }) {
-  const tags = useContext(Tags.Context);
+export default function TagPill({ classes, name, onClick }) {
+  const { tags } = useContext(TagContextProvider.Context);
   classes = classes || '';
   let tag = null;
   if (tags && (tag = tags.flat[name])) {
