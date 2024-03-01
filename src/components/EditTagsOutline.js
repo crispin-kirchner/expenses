@@ -43,6 +43,7 @@ export default function EditTagsOutline({ isSidebarCollapsed, toggleSidebar, uns
   const [editedTag, setEditedTagInternal] = useState(null);
   const db = useContext(DbContext);
 
+  // FIXME when clicking a pill when another is already open, only the title changes
   const setEditedTag = useCallback(async id => setEditedTagInternal(await loadTag(db, id)), [db, setEditedTagInternal]);
   const saveAction = useCallback(tag => {
     setEditedTagInternal(null);
