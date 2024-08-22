@@ -37,11 +37,9 @@ document.onkeydown = e => {
     cancelLineEdit();
     return false;
   }
-  if (e.ctrlKey) {
-    if (e.key === 'Insert') {
-      startNew();
-      return false;
-    }
+  if (e.key === 'Insert') {
+    startNew();
+    return false;
   }
   return true;
 };
