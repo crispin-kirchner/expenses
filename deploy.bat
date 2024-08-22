@@ -1,4 +1,4 @@
-rem call npm run build
+call npm run build
 
 set TARGET_PATH="%LocalAppData%\Expenses"
 mkdir %TARGET_PATH%

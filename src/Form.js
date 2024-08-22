@@ -11,10 +11,13 @@ import ExpensesError from './ExpensesError.js';
 import state from './state.js';
 import t from './texts.js';
 
-const RECURRING_TO_INPUT = 'recurring-to-input';
-const RECURRING_TO = 'recurring-to';
 const DATE_INPUT = 'date-input';
 const DATE_LABEL = 'date-label';
+const DESCRIPTION = 'description';
+const RECURRING_TO_INPUT = 'recurring-to-input';
+const RECURRING_TO = 'recurring-to';
+
+let dictionaryPromise = null;
 
 function getAmountInput() {
     return document.getElementById('amount');
@@ -45,11 +48,11 @@ function getDeleteButton() {
 }
 
 function getDescriptionInput() {
-    return document.getElementById('description');
+    return document.getElementById(DESCRIPTION);
 }
 
 function getDescriptionLabel() {
-    return App.getLabelByField('description');
+    return App.getLabelByField(DESCRIPTION);
 }
 
 function getExchangeRateInput() {
@@ -97,7 +100,6 @@ function refreshFormView() {
     getRecurringYearly()]
         .forEach(f => setVisible(f, getRecurringCheckbox().checked, true));
 
-
     setVisible(getRecurringTo(), getRecurringCheckbox().checked);
 
     setVisible(document.getElementById('form-line2'), !currencies.isDefault(getCurrencySelect().value));
@@ -143,18 +145,21 @@ async function handleCurrencyChanged() {
 }
 
 async function getDictionary() {
-    const allPositions = await positions.getAllPositions();
-    return allPositions
-        .map(e => e.description)
-        .reduce((dict, desc) => {
-            if (dict[desc]) {
-                dict[desc] += 1;
-            }
-            else {
-                dict[desc] = 1;
-            }
-            return dict;
-        }, {});
+    if (!dictionaryPromise) {
+        const allPositions = await positions.getAllPositions();
+        dictionaryPromise = allPositions
+            .map(e => e.description)
+            .reduce((dict, desc) => {
+                if (dict[desc]) {
+                    dict[desc] += 1;
+                }
+                else {
+                    dict[desc] = 1;
+                }
+                return dict;
+            }, {});
+    }
+    return dictionaryPromise;
 }
 
 function setProposalFieldVisible(visible) {
@@ -408,8 +413,8 @@ function render() {
                     </div>
                     <div id="description-container" class="bg-white">
                         <div class="form-floating mt-3">
-                        <input id="description" class="form-control rounded-top" placeholder="${getDescriptionLabelText()}" value="${position ? position.description : ''}" autocomplete="off" />
-                        <label for="description">${getDescriptionLabelText()}</label>
+                        <input id="${DESCRIPTION}" class="form-control rounded-top" placeholder="${getDescriptionLabelText()}" value="${position ? position.description : ''}" autocomplete="off" />
+                        <label for="${DESCRIPTION}">${getDescriptionLabelText()}</label>
                         </div>
                         <div id="proposal-container" class="mb-3">
                             <div id="proposal-field" class="form-select d-none px-0 py-1 overflow-auto border-top-0 rounded-bottom rounded-0" size="4" tabindex="-1">
@@ -481,6 +486,10 @@ function onAttach() {
     getRecurringFrequency().addEventListener('change', () => validateIntegerField(getRecurringFrequency()));
 
     getAmountInput().focus();
+
+    // invalidate dictionary
+    dictionaryPromise = null;
 }
 
-export { render, onAttach, submit, getProposalField, getDescriptionInput };
+export { getDescriptionInput, getProposalField, onAttach, render, submit };
+
