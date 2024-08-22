@@ -462,6 +462,10 @@ function deletePosition() {
 }
 
 function onAttach() {
+    // invalidate dictionary
+    dictionaryPromise = null;
+    getDictionary();
+
     refreshFormView();
 
     getCloseButton().addEventListener('click', App.cancelLineEdit);
@@ -486,9 +490,6 @@ function onAttach() {
     getRecurringFrequency().addEventListener('change', () => validateIntegerField(getRecurringFrequency()));
 
     getAmountInput().focus();
-
-    // invalidate dictionary
-    dictionaryPromise = null;
 }
 
 export { getDescriptionInput, getProposalField, onAttach, render, submit };
