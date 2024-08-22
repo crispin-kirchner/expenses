@@ -8,5 +8,6 @@ xcopy /s /y /f build "%TARGET_PATH%\public"
 
 copy /y "expenses.bat" "%TARGET_PATH%"
 copy /y "expenses.vbs" "%TARGET_PATH%"
+copy /y "findpid.bat" "%TARGET_PATH%"
 copy /y "cert.pem" "%TARGET_PATH%"
 copy /y "key.pem" "%TARGET_PATH%"
