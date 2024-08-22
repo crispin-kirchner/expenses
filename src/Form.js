@@ -168,37 +168,41 @@ function setProposalFieldVisible(visible) {
     toggleClass(getExpenseForm(), 'dc-active', visible);
 }
 
-async function handleDescriptionInput() {
-    state.proposalSelection = false;
+const FORM_HANDLE_DESCRIPTION_INPUT = 'FORM_HANDLE_DESCRIPTION_INPUT';
 
-    const searchString = getDescriptionInput().value;
-    const hasText = !!searchString.length;
+function handleDescriptionInput() {
+    App.rateLimit(FORM_HANDLE_DESCRIPTION_INPUT, constants.findAsYouTypeRateLimit, async () => {
+        state.proposalSelection = false;
 
-    if (!hasText) {
-        setProposalFieldVisible(false);
-        return;
-    }
-    const dictionary = await getDictionary();
-    const proposals = Object.entries(dictionary)
-        .filter(e => e[0].toLowerCase().startsWith(searchString.toLowerCase()))
-        .sort((a, b) => b[1] - a[1]);
-
-    if (proposals.length === 0) {
-        setProposalFieldVisible(false);
-        return;
-    }
-
-    getProposalField().innerHTML = proposals
-        .map((p, i) => `
-            <div class="cursor-pointer ${i === 0 ? '' : 'border-top'} px-2 py-1" data-xpns-value="${p[0]}">
-                ${App.decorateTags(p[0])}
-            </div>`)
-        .join('\n');
-
-    getProposalField().querySelectorAll('div')
-        .forEach(d => d.addEventListener('click', handleProposalSelect));
-
-    setProposalFieldVisible(true);
+        const searchString = getDescriptionInput().value;
+        const hasText = !!searchString.length;
+    
+        if (!hasText) {
+            setProposalFieldVisible(false);
+            return;
+        }
+        const dictionary = await getDictionary();
+        const proposals = Object.entries(dictionary)
+            .filter(e => e[0].toLowerCase().startsWith(searchString.toLowerCase()))
+            .sort((a, b) => b[1] - a[1]);
+    
+        if (proposals.length === 0) {
+            setProposalFieldVisible(false);
+            return;
+        }
+    
+        getProposalField().innerHTML = proposals
+            .map((p, i) => `
+                <div class="cursor-pointer ${i === 0 ? '' : 'border-top'} px-2 py-1" data-xpns-value="${p[0]}">
+                    ${App.decorateTags(p[0])}
+                </div>`)
+            .join('\n');
+    
+        getProposalField().querySelectorAll('div')
+            .forEach(d => d.addEventListener('click', handleProposalSelect));
+    
+        setProposalFieldVisible(true);
+    });
 }
 
 function handleDescriptionBlur() {

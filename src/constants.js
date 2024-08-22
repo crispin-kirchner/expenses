@@ -12,6 +12,7 @@ const monthOnlyFormat = new Intl.DateTimeFormat(texts.languages, { month: 'long'
 const numberFormat = new Intl.NumberFormat(texts.languages, { useGrouping: true, minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const bigNumberFormat = new Intl.NumberFormat(texts.languages, { useGrouping: true, maximumFractionDigits: 0 });
 const decimalRegex = /^([0-9]+\.?[0-9]*|\.[0-9]+)$/;
+const findAsYouTypeRateLimit = 500;
 const integerRegex = /^([0-9]+)$/;
 const labelRegex = /#(\p{Letter}+)\b/ug;
 const DEFAULT_CURRENCY = currencies.CHF;
@@ -36,6 +37,7 @@ export {
     numberFormat,
     bigNumberFormat,
     decimalRegex,
+    findAsYouTypeRateLimit,
     integerRegex,
     labelRegex,
     DEFAULT_CURRENCY,

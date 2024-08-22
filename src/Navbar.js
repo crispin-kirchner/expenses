@@ -51,6 +51,15 @@ function getSearchInput() {
     return document.getElementById(SEARCH_INPUT);
 }
 
+const HANDLE_SEARCH_INPUT_INPUT = 'HANDLE_SEARCH_INPUT_INPUT';
+
+function handleSearchInputInput() {
+    App.rateLimit(HANDLE_SEARCH_INPUT_INPUT, constants.findAsYouTypeRateLimit, () => {
+        updateSearchString(getSearchInput().value);
+        positions.refreshSearchData();
+    });
+}
+
 function renderLinkButton(id, icon, title) {
     return `
         <button type="button" id="${id}" class="btn text-light" ${title ? `title="${title}"` : ''}>
@@ -146,10 +155,7 @@ function onAttach() {
     getNewButton()?.addEventListener('click', App.startNew);
     getTodayButton()?.addEventListener('click', () => App.setDate(constants.today));
     getSearchButton()?.addEventListener('click', () => App.setViewMode(ViewMode.SEARCH));
-    getSearchInput()?.addEventListener('input', async evt => {
-        updateSearchString(evt.currentTarget.value);
-        positions.refreshSearchData();
-    });
+    getSearchInput()?.addEventListener('input', handleSearchInputInput);
     getSearchInput()?.focus();
 }
 

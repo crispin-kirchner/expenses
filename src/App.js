@@ -65,9 +65,23 @@ function getCurrentDayString() {
 }
 
 /*
+ * Tools
+ */
+const rateLimitTimeouts = {};
+
+function rateLimit(label, delay, func) {
+  if(rateLimitTimeouts[label]) {
+    clearTimeout(rateLimitTimeouts[label]);
+  }
+  rateLimitTimeouts[label] = setTimeout(() => {
+    rateLimitTimeouts[label] = undefined;
+    func();
+  }, delay);
+}
+
+/*
  * UI
  */
-
 function getLabelByField(fieldId) {
   return document.querySelector(`label[for="${fieldId}"]`);
 }
@@ -377,6 +391,7 @@ export {
   isPositionFormVisible,
   isNewButtonVisible,
   isSubCent,
+  rateLimit,
   removeExpense,
   render,
   renderAppArea,
